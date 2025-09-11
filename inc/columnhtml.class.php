@@ -32,14 +32,16 @@
 /**
  * class PluginReportsColumn to manage output
  */
-class PluginReportsColumnHtml extends PluginReportsColumn {
+class PluginReportsColumnHtml extends PluginReportsColumn
+{
 
 
-   function displayValue($output_type, $row) {
+    function displayValue($output_type, $row)
+    {
 
-      if (isset($row[$this->name]) && $row[$this->name]) {
-          return htmlspecialchars_decode($row[$this->name]);
-      }
-      return '';
-   }
+        if (isset($row[$this->name]) && $row[$this->name]) {
+            return htmlspecialchars_decode($row[$this->name]);
+        }
+        return '';
+    }
 }

@@ -32,13 +32,13 @@
 $USEDBREPLICATE         = 1;
 $DBCONNECTION_REQUIRED  = 0; // Not really a big SQL request
 
-include ("../../../../inc/includes.php");
-
 includeLocales("equipmentbygroups");
 //TRANS: The name of the report = List all devices of a group, ordered by users
 Html::header(__('equipmentbygroups_report_title', 'reports'), $_SERVER['PHP_SELF'], "utils", "report");
 
 Report::title();
+
+global $DB;
 
 if (isset ($_GET["reset_search"])) {
    resetSearch();
@@ -53,7 +53,8 @@ if (isset($_GET["groups_id"]) && $_GET["groups_id"]) {
              'id'          => $_GET['groups_id']];
 }
 
-$result = $DB->request('glpi_groups', ['SELECT' => ['id', 'name'],
+$result = $DB->request( ['SELECT' => ['id', 'name'],
+    'FROM' => 'glpi_groups',
                                        'WHERE'  => $where,
                                        'ORDER'  => 'name']);
 $last_group_id = -1;

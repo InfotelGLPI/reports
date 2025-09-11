@@ -36,7 +36,7 @@
 abstract class PluginReportsAutoCriteria {
 
    //Criteria's internal name
-   private $name = "";
+   protected $name = "";
 
    //Label of the criteria (refers to an entry in the locale file)
    private $criterias_labels = [];

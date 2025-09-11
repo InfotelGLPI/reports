@@ -34,7 +34,7 @@ $USEDBREPLICATE         = 1;
 $DBCONNECTION_REQUIRED  = 1;
 
 // Initialization of the variables
-include ("../../../../inc/includes.php");
+global $DB;
 
 $dbu = new DbUtils();
 

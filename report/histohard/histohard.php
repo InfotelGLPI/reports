@@ -32,7 +32,7 @@
 $USEDBREPLICATE         = 1;
 $DBCONNECTION_REQUIRED  = 1; // Really a big SQL request
 
-include ("../../../../inc/includes.php");
+global $DB;
 
 includeLocales("histohard");
 
@@ -47,7 +47,7 @@ Html::header(__("histohard_report_title", 'reports'), $_SERVER['PHP_SELF'], "uti
 Report::title();
 
 echo "<div class='center'>";
-echo "<table class='tab_cadrehov'>\n";
+echo "<table class='tab_cadre_fixe'>\n";
 echo "<tr class='tab_bg_1 center'>".
      "<th colspan='5'>". __("History of last hardware's installations", 'reports')."</th></tr>\n";
 
@@ -73,7 +73,7 @@ $sql = "SELECT `glpi_logs`.`date_mod` AS dat, `linked_action`, `itemtype`, `item
         ORDER BY `glpi_logs`.`id` DESC
         LIMIT 0,100";
 
-$result = $DB->request($sql);
+$result = $DB->doQuery($sql);
 
 $prev  = "";
 $class = "tab_bg_2";

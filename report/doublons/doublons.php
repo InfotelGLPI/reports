@@ -29,7 +29,7 @@
  --------------------------------------------------------------------------
  */
 
-include ("../../../../inc/includes.php");
+global $DB;
 
 includeLocales("doublons");
 
@@ -104,7 +104,7 @@ if ($crit == 5) { // Search Duplicate IP Address - From glpi_networking_ports
    $IPBlacklist = "A_ipa.`name` != ''
                    AND A_ipa.`name` != '0.0.0.0'";
 
-   $res  =$DB->query("SELECT `value`
+   $res  =$DB->doQuery("SELECT `value`
                       FROM `glpi_blacklists`
                       WHERE `type` = '1'");
 
@@ -163,7 +163,7 @@ if ($crit == 5) { // Search Duplicate IP Address - From glpi_networking_ports
 } else if ($crit == 4) { // Search Duplicate Mac Address - From glpi_computer_device
    $MacBlacklist = "''";
 
-   $res = $DB->query("SELECT `value`
+   $res = $DB->doQuery("SELECT `value`
                       FROM `glpi_blacklists`
                       WHERE `type` = '2'");
    while ($data = $DB->fetchArray($res)) {
@@ -207,7 +207,7 @@ if ($crit == 5) { // Search Duplicate IP Address - From glpi_networking_ports
 } else if ($crit > 0) { // Search Duplicate Name and/ord Serial or Otherserial - From glpi_computers
    $SerialBlacklist = "''";
 
-   $res = $DB->query("SELECT `value`
+   $res = $DB->doQuery("SELECT `value`
                       FROM `glpi_blacklists`
                       WHERE `type` = '3'");
    while ($data = $DB->fetchArray($res)) {
@@ -256,7 +256,7 @@ if ($crit > 0) { // Display result
    if ($canedit) {
       Html::openMassiveActionsForm('massformComputer');
    }
-   echo "<table class='tab_cadrehov' cellpadding='5'>" .
+   echo "<table class='tab_cadre_fixe' cellpadding='5'>" .
       "<tr><th colspan='$colspan'>" . __('First computer', 'reports') . "</th>" .
       "<th class='blue' colspan='$colspan'>" . __('Second computer', 'reports')."</th></tr>\n" .
       "<tr>";
@@ -302,7 +302,7 @@ if ($crit > 0) { // Display result
 
    $comp = new Computer();
    $ids  =[];
-   $result = $DBread->query($Sql);
+   $result = $DBread->doQuery($Sql);
    for ($prev=-1, $i=0 ; $data = $DBread->fetchArray($result) ; $i++) {
       if ($prev != $data["entity"]) {
          $prev = $data["entity"];
@@ -410,8 +410,8 @@ function getLastOcsUpdate($computers_id) {
       $field = 'last_fusioninventory_update';
    }
 
-   $query = $DB->request($table,
-                         ['SELECT' => $field,
+   $query = $DB->request(['SELECT' => $field,
+                             'FROM' => $table,
                           'WHERE'  => ['computers_id' => $computers_id]]);
 
    if (count($query) > 0) {

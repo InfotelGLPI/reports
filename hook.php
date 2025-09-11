@@ -30,57 +30,57 @@
 */
 
 
-function plugin_reports_install() {
-   global $DB;
+function plugin_reports_install()
+{
+    global $DB;
 
-   $migration = new Migration('1.15.0');
+    $migration = new Migration('1.15.0');
 
    // config of doublon report is now in glpi_blacklists
-   If ($DB->tableExists("glpi_plugin_reports_doublons_backlists")) {
-
-      if ($result = $DB->request('glpi_plugin_reports_doublons_backlists')) {
-         if (count($result) > 0) {
-            foreach ($result as $data) {
-               $data = toolbox::addslashes_deep($data);
-               if ($data['type'] == 1) {
-                  $type = 2;
-               } else if ($data['type'] == 2) {
-                  $type = 1;
-               } else {
-                  $type = $data['type'];
-               }
-               $query = "INSERT INTO `glpi_blacklists`
+    if ($DB->tableExists("glpi_plugin_reports_doublons_backlists")) {
+        if ($result = $DB->request(['FROM' => 'glpi_plugin_reports_doublons_backlists'])) {
+            if (count($result) > 0) {
+                foreach ($result as $data) {
+                    if ($data['type'] == 1) {
+                        $type = 2;
+                    } elseif ($data['type'] == 2) {
+                        $type = 1;
+                    } else {
+                        $type = $data['type'];
+                    }
+                    $query = "INSERT INTO `glpi_blacklists`
                              (`type`, `name`, `value`, `comment`)
                           VALUES (".$type.", '".$data['addr']."', '".$data['addr']."',
                                   '".$data['comment']."')";
-               $DB->queryOrDie($query, "0.90 config doublon in blacklist");
+                    $DB->doQuery($query);
+                }
             }
-         }
-      }
-      $migration->dropTable('glpi_plugin_reports_doublons_backlists');
-   }
+        }
+        $migration->dropTable('glpi_plugin_reports_doublons_backlists');
+    }
 
    // No autoload when plugin is not activated
-   include_once (Plugin::getPhpDir('reports')."/inc/profile.class.php");
+    include_once(Plugin::getPhpDir('reports')."/inc/profile.class.php");
 
-   PluginReportsProfile::install($migration);
+    PluginReportsProfile::install($migration);
 
-   $migration->executeMigration();
+    $migration->executeMigration();
 
-   return true;
-   }
+    return true;
+}
 
 
-function plugin_reports_uninstall() {
+function plugin_reports_uninstall()
+{
 
-   $migration = new Migration('1.15.0');
+    $migration = new Migration('1.15.0');
 
    // No autoload when plugin is not activated (if dessactivation before uninstall)
-   include_once (Plugin::getPhpDir('reports')."/inc/profile.class.php");
+    include_once(Plugin::getPhpDir('reports')."/inc/profile.class.php");
 
-   return PluginReportsProfile::uninstall($migration);
+    return PluginReportsProfile::uninstall($migration);
 
-   $migration->executeMigration();
+    $migration->executeMigration();
 
-   return true;
+    return true;
 }

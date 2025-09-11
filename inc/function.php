@@ -39,11 +39,12 @@ function searchReport($all = false) {
    global $DB;
 
    $tab = [];
-   $filter = ['state' => Plugin::ACTIVATED];
+   $filter = ['FROM' => 'glpi_plugins',
+       'WHERE' => ['state' => Plugin::ACTIVATED]];
    if ($all) {
       $filter = "";
    }
-   foreach ($DB->request('glpi_plugins', $filter) as $plug) {
+   foreach ($DB->request($filter) as $plug) {
       foreach (glob(Plugin::getPhpDir($plug['directory'])."/report/*", GLOB_ONLYDIR) as $path) {
          $tab[basename($path)] = $plug['directory'];
          includeLocales(basename($path), $plug['directory']);

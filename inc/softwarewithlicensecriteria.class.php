@@ -32,7 +32,8 @@
 /**
  * Dropdown for softwares with license
  */
-class PluginReportsSoftwareWithLicenseCriteria extends PluginReportsDropdownCriteria {
+class PluginReportsSoftwareWithLicenseCriteria extends PluginReportsDropdownCriteria
+{
 
 
    /**
@@ -40,17 +41,23 @@ class PluginReportsSoftwareWithLicenseCriteria extends PluginReportsDropdownCrit
     * @param $name      (default 'softwares_id')
     * @param $label     (default '')
    **/
-   function __construct($report, $name='softwares_id', $label='') {
+    function __construct($report, $name = 'softwares_id', $label = '')
+    {
 
-      parent::__construct($report, $name, 'glpi_softwares',
-                          ($label ? $label : _n('Software', 'Software', 1)));
-   }
+        parent::__construct(
+            $report,
+            $name,
+            'glpi_softwares',
+            ($label ? $label : _n('Software', 'Software', 1))
+        );
+    }
 
 
-   function displayDropdownCriteria() {
-      global $DB;
+    function displayDropdownCriteria()
+    {
+        global $DB;
 
-      $query = "SELECT `glpi_softwares`.`name`, `glpi_softwares`.`id`
+        $query = "SELECT `glpi_softwares`.`name`, `glpi_softwares`.`id`
                 FROM `glpi_softwarelicenses`
                 LEFT JOIN `glpi_softwares`
                      ON `glpi_softwarelicenses`.`softwares_id` = `glpi_softwares`.`id`
@@ -59,22 +66,21 @@ class PluginReportsSoftwareWithLicenseCriteria extends PluginReportsDropdownCrit
                 WHERE `glpi_softwarelicenses`.`entities_id`
                            IN (" . $_SESSION['glpiactiveentities_string'] . ")
                 GROUP BY `glpi_softwares`.`name`";
-      $result = $DB->query($query);
+        $result = $DB->doQuery($query);
 
-      if ($DB->numrows($result)) {
-         echo "<select name='".$this->getName()."'>";
-         while ($data = $DB->fetchArray($result)) {
-            echo "<option value='" . $data["id"] . "'";
-            if ($data["id"] == $this->getParameterValue()) {
-               echo " selected = 'selected'";
+        if ($DB->numrows($result)) {
+            echo "<select name='".$this->getName()."'>";
+            while ($data = $DB->fetchArray($result)) {
+                echo "<option value='" . $data["id"] . "'";
+                if ($data["id"] == $this->getParameterValue()) {
+                    echo " selected = 'selected'";
+                }
+                echo ">" . $data["name"];
+                echo "</option>";
             }
-            echo ">" . $data["name"];
-            echo "</option>";
-         }
-         echo "</select>";
-      } else {
-         echo "<span class='red b center'>".__('No item found')."</span>";
-      }
-   }
-
+            echo "</select>";
+        } else {
+            echo "<span class='red b center'>".__('No item found')."</span>";
+        }
+    }
 }

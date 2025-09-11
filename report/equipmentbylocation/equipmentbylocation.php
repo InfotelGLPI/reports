@@ -32,7 +32,7 @@
 $USEDBREPLICATE         = 1;
 $DBCONNECTION_REQUIRED  = 0;
 
-include ("../../../../inc/includes.php");
+global $DB;
 //TRANS: The name of the report = Number of equipments by location
 $report = new PluginReportsAutoReport(__('equipmentbylocation_report_title', 'reports'));
 

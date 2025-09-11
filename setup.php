@@ -31,81 +31,84 @@
 
 include_once(Plugin::getPhpDir('reports')."/inc/function.php");
 
-define ("REPORTS_NO_ENTITY_RESTRICTION", 0);
-define ("REPORTS_CURRENT_ENTITY", 1);
-define ("REPORTS_SUB_ENTITIES", 2);
+define("REPORTS_NO_ENTITY_RESTRICTION", 0);
+define("REPORTS_CURRENT_ENTITY", 1);
+define("REPORTS_SUB_ENTITIES", 2);
 
 
-function plugin_init_reports() {
-   global $PLUGIN_HOOKS, $DB, $LANG;
+function plugin_init_reports()
+{
+    global $PLUGIN_HOOKS, $LANG;
 
-   $PLUGIN_HOOKS['csrf_compliant']['reports'] = true;
+    $PLUGIN_HOOKS['csrf_compliant']['reports'] = true;
 
-   $plugin = new plugin;
+    $plugin = new plugin;
 
    //Define only for bookmarks
-   Plugin::registerClass('PluginReportsReport');
+    Plugin::registerClass('PluginReportsReport');
 
-   Plugin::registerClass('PluginReportsStat');
+    Plugin::registerClass('PluginReportsStat');
 
-   Plugin::registerClass('PluginReportsProfile', ['addtabon' => ['Profile']]);
+    Plugin::registerClass('PluginReportsProfile', ['addtabon' => ['Profile']]);
 
-   if (Session::haveRight("config", UPDATE)) {
-      $PLUGIN_HOOKS['config_page']['reports']     = 'front/report.form.php';
-   }
+    if (Session::haveRight("config", UPDATE)) {
+        $PLUGIN_HOOKS['config_page']['reports']     = 'front/report.form.php';
+    }
 
-   $PLUGIN_HOOKS['menu_entry']['reports'] = false;
+    $PLUGIN_HOOKS['menu_entry']['reports'] = false;
 
-   $rightreport = [];
-   $rightstats  = [];
+    $rightreport = [];
+    $rightstats  = [];
 
-   foreach (searchReport() as $report => $plug) {
-      $field = 'plugin_reports_'.$report;
-      if ($plug != 'reports') {
-         $field = 'plugin_reports_'.$plug."_".$report;
-      }
-      if (Session::haveRight($field, READ)) {
-         $tmp = $LANG["plugin_$plug"][$report];
-         //If the report's name contains 'stat' then display it in the statistics page
-         //(instead of Report page)
-         if (isStat($report)) {
-            if (!isset($PLUGIN_HOOKS['stats'][$plug])) {
-               $PLUGIN_HOOKS['stats'][$plug] = [];
+    foreach (searchReport() as $report => $plug) {
+        $field = 'plugin_reports_'.$report;
+        if ($plug != 'reports') {
+            $field = 'plugin_reports_'.$plug."_".$report;
+        }
+        if (Session::haveRight($field, READ)) {
+            $tmp = $LANG["plugin_$plug"][$report];
+           //If the report's name contains 'stat' then display it in the statistics page
+           //(instead of Report page)
+            if (isStat($report)) {
+                if (!isset($PLUGIN_HOOKS['stats'][$plug])) {
+                    $PLUGIN_HOOKS['stats'][$plug] = [];
+                }
+                $PLUGIN_HOOKS['stats'][$plug]["report/$report/$report.php"] = $tmp;
+            } else {
+                if (!isset($PLUGIN_HOOKS['reports'][$plug])) {
+                    $PLUGIN_HOOKS['reports'][$plug] = [];
+                }
+                $PLUGIN_HOOKS['reports'][$plug]["report/$report/$report.php"] = $tmp;
             }
-            $PLUGIN_HOOKS['stats'][$plug]["report/$report/$report.php"] = $tmp;
-         } else {
-            if (!isset($PLUGIN_HOOKS['reports'][$plug])) {
-               $PLUGIN_HOOKS['reports'][$plug] = [];
-            }
-            $PLUGIN_HOOKS['reports'][$plug]["report/$report/$report.php"] = $tmp;
-         }
-      }
-   }
+        }
+    }
 }
 
 
 /**
  * Indicate if the report must be displayed in reports or statistics menu
- * @param $report_name the name of the report
- * @return true if it's a stat, false if it's a report
+ * @param $report_name string name of the report
+ * @return false if it's a stat, false if it's a report
  */
-function isStat($report_name) {
+function isStat($report_name)
+{
 
-   if (strpos($report_name, 'stat') !== false) {
-      return true;
-   }
-   return false;
+    if (strpos($report_name, 'stat') !== false) {
+        return true;
+    }
+    return false;
 }
 
 
-function plugin_version_reports() {
+function plugin_version_reports()
+{
 
-   return ['name'           => _n('Report', 'Reports', 2),
-           'version'        => '1.16.0',
-           'author'         => 'Nelly Mahu-Lasson, Remi Collet',
+    return ['name'           => _n('Report', 'Reports', 2),
+           'version'        => '2.0.0',
+           'author'         => 'Nelly Mahu-Lasson, Remi Collet, Infotel',
            'license'        => 'GPLv3+',
-           'homepage'       => 'https://github.com/yllen/reports',
-           'minGlpiVersion' => '10.0.0',
-           'requirements'   => ['glpi' => ['min' => '10.0.0',
-                                           'max' => '10.1.0']]];
+           'homepage'       => 'https://github.com/InfotelGLPI/reports',
+           'minGlpiVersion' => '11.0.0',
+           'requirements'   => ['glpi' => ['min' => '11.0.0',
+                                           'max' => '12.0.0']]];
 }

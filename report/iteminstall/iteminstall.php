@@ -33,7 +33,7 @@ $USEDBREPLICATE         = 1;
 $DBCONNECTION_REQUIRED  = 1;
 
 // Initialization of the variables
-include ("../../../../inc/includes.php");
+global $DB;
 
 $dbu = new DbUtils();
 
@@ -70,7 +70,7 @@ if ($report->criteriasValidated()) {
                 $dbu->getEntitiesRestrictRequest('WHERE', 'glpi_infocoms').
                     $date->getSqlCriteriasRestriction('AND').
                     $budg->getSqlCriteriasRestriction('AND');
-      foreach ($DB->request($sql) as $data) {
+      foreach ($DB->doQuery($sql) as $data) {
          $types[] = $data['itemtype'];
       }
 

@@ -48,7 +48,7 @@ function doStatBis ($table, $entities, $header) {
                     AND `entities_id` = '$entity'
               GROUP BY `states_id`";
 
-      $result = $DB->request($sql);
+      $result = $DB->doQuery($sql);
       $counts[$entity] = [];
       foreach ($result as $data) {
          $counts[$entity][$data["states_id"]] = $data["cpt"];
@@ -119,7 +119,7 @@ function doStat ($table, $entity, $header, $level=0) {
                  AND `entities_id` = '$entity'
            GROUP BY `states_id`";
 
-   $result = $DB->request($sql);
+   $result = $DB->doQuery($sql);
    $count  = [];
    foreach ($result as $data) {
       $count[$data["states_id"]] = $data["cpt"];
@@ -185,7 +185,8 @@ function doStatChilds($table, $entity, $header, &$total, $level) {
    global $DB;
 
    // Search child entities
-   $result = $DB->request('glpi_entities', ['SELECT' => ['id', 'name'],
+   $result = $DB->request(['SELECT' => ['id', 'name'],
+       'FROM' => 'glpi_entities',
                                             'WHERE'  => ['entities_id' => $entity],
                                             'ORDER'  => 'name']);
 
@@ -201,7 +202,7 @@ function doStatChilds($table, $entity, $header, &$total, $level) {
 $USEDBREPLICATE        = 1;
 $DBCONNECTION_REQUIRED = 0;
 
-include ("../../../../inc/includes.php");
+global $DB;
 
 $dbu = new DbUtils();
 
@@ -270,7 +271,7 @@ if (isset($_POST["type"]) && $_POST["type"] != '') {
    $sql = "SELECT `id`, `name`
            FROM `glpi_states`
            ORDER BY `id`";
-   $result = $DB->query($sql);
+   $result = $DB->doQuery($sql);
 
    $header[0] = __('Unknown', 'reports');
    while ($data = $DB->fetchArray($result)) {

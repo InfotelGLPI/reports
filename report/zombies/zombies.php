@@ -32,7 +32,7 @@
 $USEDBREPLICATE         = 0;
 $DBCONNECTION_REQUIRED  = 0;
 
-include ("../../../../inc/includes.php");
+global $DB;
 
 //TRANS: The name of the report = Users with no right
 $report = new PluginReportsAutoReport(__('zombies_report_title', 'reports'));

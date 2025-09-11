@@ -33,38 +33,40 @@
 * Class to create, execute and display a new record
 * The class stores a collection of criterias and
 * manage :
-* 	- criterias selection form
-*	- query executing using with criterias restriction
-* 	- result display & export (HTML, PDF, CSV, SLK)
+*   - criterias selection form
+*   - query executing using with criterias restriction
+*   - result display & export (HTML, PDF, CSV, SLK)
 **/
-class PluginReportsAutoReport {
+#[AllowDynamicProperties]
+class PluginReportsAutoReport
+{
 
-   private $criterias       = [];
-   private $columns         = [];
-   private $group_by        = [];
-   private $columns_mapping = [];
-   private $sql             = "";
-   private $name            = "";
-   private $subname         = "";
-   private $cpt             = 0;
-   private $title           = '';
+    private $criterias       = [];
+    private $columns         = [];
+    private $group_by        = [];
+    private $columns_mapping = [];
+    private $sql             = "";
+    private $name            = "";
+    private $subname         = "";
+    private $cpt             = 0;
+    private $title           = '';
 
 
-   function __construct($title='') {
-
-
-      preg_match('@/(plugins|marketplace)/(.*)/report/(.*)/@', $_SERVER['SCRIPT_NAME'], $regs);
-      $this->plug = $regs[2];
-      $this->name = $regs[3];
-      includeLocales($this->name, $this->plug);
-      $this->setTitle($title);
-   }
+    function __construct($title = '')
+    {
+        preg_match('@/(plugins|marketplace)/(.*)/report/(.*)/@', $_SERVER['REQUEST_URI'], $regs);
+        $this->plug = $regs[2];
+        $this->name = $regs[3];
+        includeLocales($this->name, $this->plug);
+        $this->setTitle($title);
+    }
 
 
    //-------------- Getters ------------------//
-   function getCriterias() {
-      return $this->criterias;
-   }
+    function getCriterias()
+    {
+        return $this->criterias;
+    }
 
 
    //-------------- Setters ------------------//
@@ -75,9 +77,10 @@ class PluginReportsAutoReport {
    *
    * @param $columns_mappings array the columns new values
    **/
-   function setColumnsMappings($columns_mappings) {
-      $this->columns_mapping = $columns_mappings;
-   }
+    function setColumnsMappings($columns_mappings)
+    {
+        $this->columns_mapping = $columns_mappings;
+    }
 
 
    /**
@@ -88,14 +91,15 @@ class PluginReportsAutoReport {
     *
     * @param $columns    column name or array of column names
    **/
-   function setGroupBy($columns) {
+    function setGroupBy($columns)
+    {
 
-      if (is_array($columns)) {
-         $this->group_by = $columns;
-      } else {
-         $this->group_by = [$columns];
-      }
-   }
+        if (is_array($columns)) {
+            $this->group_by = $columns;
+        } else {
+            $this->group_by = [$columns];
+        }
+    }
 
 
    /**
@@ -104,36 +108,39 @@ class PluginReportsAutoReport {
    * @param $columns array which contains
    *        sql column name => PluginReportsColumn object
    **/
-   function setColumns($columns) {
+    function setColumns($columns)
+    {
 
-      $this->columns = [];
-      foreach ($columns as $name => $column) {
-         if ($column instanceof PluginReportsColumn) {
-            $this->columns[$column->name] = $column;
-         } else {
-            // For compat with setColumnsNames - default text mode
-            $this->columns[$name] = new PluginReportsColumn($name, $column);
-         }
-      }
-   }
+        $this->columns = [];
+        foreach ($columns as $name => $column) {
+            if ($column instanceof PluginReportsColumn) {
+                $this->columns[$column->name] = $column;
+            } else {
+               // For compat with setColumnsNames - default text mode
+                $this->columns[$name] = new PluginReportsColumn($name, $column);
+            }
+        }
+    }
 
 
    /**
    * Set sql request to be executed
    * @param sql the sql request as a string
    **/
-   function setSqlRequest($sql) {
-      $this->sql = $sql;
-   }
+    function setSqlRequest($sql)
+    {
+        $this->sql = $sql;
+    }
 
 
    /**
    * Set report's name
    * @param name the name of the report
    **/
-   function setName($name) {
-      list($this->plug,$this->name) = explode('.',$name,2);
-   }
+    function setName($name)
+    {
+        list($this->plug,$this->name) = explode('.', $name, 2);
+    }
 
 
    /**
@@ -141,29 +148,30 @@ class PluginReportsAutoReport {
    *
    * @param $title the title of the report
    **/
-   function setTitle($title) {
+    function setTitle($title)
+    {
 
-      if ($title) {
-         $this->title = $title;
-
-      } else {
-         $this->title = (isset($this->name)
+        if ($title) {
+            $this->title = $title;
+        } else {
+            $this->title = (isset($this->name)
                              ? sprintf(__('%s'), $this->name)
                              : __('Report', 'Reports', 1));
-      }
-   }
+        }
+    }
 
 
    /**
     * Get the report's title (main title + sub title from criteria)
    **/
-   function getFullTitle() {
+    function getFullTitle()
+    {
 
-      if ($this->subname) {
-         return $this->title ." - " . $this->subname;
-      }
-      return $this->title;
-   }
+        if ($this->subname) {
+            return $this->title ." - " . $this->subname;
+        }
+        return $this->title;
+    }
 
 
    /**
@@ -171,28 +179,30 @@ class PluginReportsAutoReport {
     *
     * @param subname the report's subname to display
    **/
-   function setSubName($subname) {
-      $this->subname = $subname;
-   }
+    function setSubName($subname)
+    {
+        $this->subname = $subname;
+    }
 
 
    /**
     * Generate automatically the report's subname
    **/
-   function setSubNameAuto() {
+    function setSubNameAuto()
+    {
 
-      $subname = "";
-      $prefix = "";
-      //Get all criteria's subnames and add it to the report's subname
-      foreach ($this->criterias as $criteria) {
-         if ($name = $criteria->getSubName()) {
-            $subname .= $prefix.$name;
-            $prefix = " - ";
-         }
-      }
+        $subname = "";
+        $prefix = "";
+       //Get all criteria's subnames and add it to the report's subname
+        foreach ($this->criterias as $criteria) {
+            if ($name = $criteria->getSubName()) {
+                $subname .= $prefix.$name;
+                $prefix = " - ";
+            }
+        }
 
-      $this->subname = $subname;
-   }
+        $this->subname = $subname;
+    }
 
 
    //------------- Other -------------//
@@ -201,9 +211,10 @@ class PluginReportsAutoReport {
     *
     * @return true if form is validated
    **/
-   function criteriasValidated() {
-      return isset($_POST['find']);
-   }
+    function criteriasValidated()
+    {
+        return isset($_POST['find']);
+    }
 
 
    /**
@@ -211,198 +222,200 @@ class PluginReportsAutoReport {
     *
     * @param $options   array
    **/
-   function execute($options=[]) {
-      global $DB, $HEADER_LOADED;
+    function execute($options = [])
+    {
+        global $DB, $HEADER_LOADED;
 
-      
-      $field = 'plugin_reports_'.$this->name;
-      if ($this->plug != 'reports') {
-          $field = 'plugin_reports_'.$this->plug."_".$this->name;
-      }
-      Session::checkRight($field, READ);
-      
-      // Require (for pager) when not called by displayCriteriasForm
-      $this->manageCriteriasValues();
 
-      if (isset ($_POST['list_limit'])) {
-         $_SESSION['glpilist_limit'] = $_POST['list_limit'];
-         unset ($_POST['list_limit']);
-      }
+        $field = 'plugin_reports_'.$this->name;
+        if ($this->plug != 'reports') {
+            $field = 'plugin_reports_'.$this->plug."_".$this->name;
+        }
+        Session::checkRight($field, READ);
 
-      $limit = $_SESSION['glpilist_limit'];
+       // Require (for pager) when not called by displayCriteriasForm
+        $this->manageCriteriasValues();
 
-      if (isset ($_POST["display_type"])) {
-         $output_type = $_POST["display_type"];
-         if ($output_type < 0) {
-            $output_type = - $output_type;
-            $limit       = 0;
-         }
-      } else {
-         $output_type = Search::HTML_OUTPUT;
-      }
+        if (isset($_POST['list_limit'])) {
+            $_SESSION['glpilist_limit'] = $_POST['list_limit'];
+            unset($_POST['list_limit']);
+        }
 
-      $title = $this->title;
-      if ($this->subname) {
-         $title = sprintf(__('%1$s - %2$s'), $title, $this->subname);
-      }
+        $limit = $_SESSION['glpilist_limit'];
 
-      $res   = $DB->query($this->sql);
-      $nbtot = ($res ? $DB->numrows($res): 0);
-      if ($limit) {
-         $start = (isset ($_GET["start"]) ? intval($_GET["start"]) : 0);
-         if ($start >= $nbtot) {
+        if (isset($_POST["display_type"])) {
+            $output_type = $_POST["display_type"];
+            if ($output_type < 0) {
+                $output_type = - $output_type;
+                $limit       = 0;
+            }
+        } else {
+            $output_type = Search::HTML_OUTPUT;
+        }
+
+        $title = $this->title;
+        if ($this->subname) {
+            $title = sprintf(__('%1$s - %2$s'), $title, $this->subname);
+        }
+
+        $res   = $DB->doQuery($this->sql);
+        $nbtot = ($res ? $DB->numrows($res): 0);
+        if ($limit) {
+            $start = (isset($_GET["start"]) ? intval($_GET["start"]) : 0);
+            if ($start >= $nbtot) {
+                $start = 0;
+            }
+            if (($start > 0) || (($start + $limit) < $nbtot)) {
+                $res = $DB->doQuery($this->sql . " LIMIT $start,$limit");
+            }
+        } else {
             $start = 0;
-         }
-         if (($start > 0) || (($start + $limit) < $nbtot)) {
-            $res = $DB->query($this->sql . " LIMIT $start,$limit");
-         }
-      } else {
-         $start = 0;
-      }
+        }
 
-      if ($nbtot == 0) {
-         if (!$HEADER_LOADED) {
-            Html::header($title, $_SERVER['PHP_SELF'], "utils", "report");
-            Report::title();
-         }
-         echo "<div class='center'><font class='red b'>".__('No item found')."</font></div>";
-         Html::footer();
-      } else if ($output_type == Search::HTML_OUTPUT) {
-         if (!$HEADER_LOADED) {
-            Html::header($title, $_SERVER['PHP_SELF'], "utils", "report");
-            Report::title();
-         }
-         echo "<div class='center'><table class='tab_cadre_fixe'>";
-         echo "<tr><th>".$title."</th></tr>\n";
-         echo "<tr class='tab_bg_2 center'><td class='center'>";
-         echo "<form method='POST' action='" .$_SERVER["PHP_SELF"] . "?start=$start'>\n";
-
-         $param = "";
-         foreach ($_POST as $key => $val) {
-            if (is_array($val)) {
-               foreach ($val as $k => $v) {
-                  echo Html::hidden($key.[$k], ['value' => $v]);
-                  if (!empty ($param)) {
-                     $param .= "&";
-                  }
-                  $param .= $key."[".$k."]=".urlencode($v);
-               }
-            } else {
-               echo Html::hidden($key, ['value' => $val]);
-               if (!empty ($param)) {
-                  $param .= "&";
-               }
-               $param .= "$key=" . urlencode($val);
+        if ($nbtot == 0) {
+            if (!$HEADER_LOADED) {
+                Html::header($title, $_SERVER['PHP_SELF'], "utils", "report");
+                Report::title();
             }
-         }
-         Dropdown::showOutputFormat();
-         Html::closeForm();
-         echo "</td></tr>";
-         echo "</table></div>";
-
-         Html::printPager($start, $nbtot, $_SERVER['PHP_SELF'], $param);
-      }
-
-      if ($res && ($nbtot > 0)) {
-         if (!isset ($_POST["display_type"]) || ($_POST["display_type"] == Search::HTML_OUTPUT)) {
-            if (isset($options['withmassiveaction']) && class_exists($options['withmassiveaction'])) {
-               $massformid = 'massform'.$options['withmassiveaction'];
-               Html::openMassiveActionsForm($massformid);
-               Html::showMassiveActions(['container' => $massformid]);
+            echo "<div class='center'><font class='red b'>".__('No item found')."</font></div>";
+            Html::footer();
+        } elseif ($output_type == Search::HTML_OUTPUT) {
+            if (!$HEADER_LOADED) {
+                Html::header($title, $_SERVER['PHP_SELF'], "utils", "report");
+                Report::title();
             }
-         }
+            echo "<div class='center'><table class='tab_cadre_fixe'>";
+            echo "<tr><th>".$title."</th></tr>\n";
+            echo "<tr class='tab_bg_2 center'><td class='center'>";
+            echo "<form method='POST' action='" .$_SERVER["PHP_SELF"] . "?start=$start'>\n";
 
-         $nbcols = $DB->numFields($res);
-         $nbrows = $DB->numrows($res);
-
-         echo Search::showHeader($output_type, $nbrows, $nbcols, true);
-         echo Search::showNewLine($output_type);
-         $num = 1;
-
-         // fill $sqlcols with default sql query fields so we can validate $columns
-         $sqlcols = [];
-         for ($i = 0 ; $i < $nbcols ; $i++) {
-            $colname   = $DB->fieldName($res, $i);
-            $sqlcols[] = $colname;
-         }
-         $colsname = [];
-         // if $columns is not empty, display $columns
-         if (count($this->columns) > 0) {
-            foreach ($this->columns as $colname => $column) {
-               // display only $columns that are valid
-               if (in_array($colname, $sqlcols)) {
-                  $column->showTitle($output_type, $num);
-                  $colsname[$colname] = $column;
-               }
+            $param = "";
+            foreach ($_POST as $key => $val) {
+                if (is_array($val)) {
+                    foreach ($val as $k => $v) {
+                        echo Html::hidden($key.[$k], ['value' => $v]);
+                        if (!empty($param)) {
+                            $param .= "&";
+                        }
+                        $param .= $key."[".$k."]=".urlencode($v);
+                    }
+                } else {
+                    echo Html::hidden($key, ['value' => $val]);
+                    if (!empty($param)) {
+                        $param .= "&";
+                    }
+                    $param .= "$key=" . urlencode($val);
+                }
             }
-         } else { // else display default columns from SQL query
-            foreach ($sqlcols as $colname) {
-               $column = new PluginReportsColumn($colname, $colname);
-               $column->showTitle($output_type, $num);
-               $colsname[$colname] = $column;
-            }
-         }
+            Dropdown::showOutputFormat();
+            Html::closeForm();
+            echo "</td></tr>";
+            echo "</table></div>";
 
-         echo Search::showEndLine($output_type);
+            Html::printPager($start, $nbtot, $_SERVER['PHP_SELF'], $param);
+        }
 
-         $prev = "";
-         for ($row_num = 2 ; $row = $DB->fetchAssoc($res); $row_num++) {
-            $crt = "";
-            foreach ($this->group_by as $colname) {
-               if (isset ($row[$colname])) {
-                  $crt .= $row[$colname] . "####";
-               }
+        if ($res && ($nbtot > 0)) {
+            if (!isset($_POST["display_type"]) || ($_POST["display_type"] == Search::HTML_OUTPUT)) {
+                if (isset($options['withmassiveaction']) && class_exists($options['withmassiveaction'])) {
+                    $massformid = 'massform'.$options['withmassiveaction'];
+                    Html::openMassiveActionsForm($massformid);
+                    Html::showMassiveActions(['container' => $massformid]);
+                }
             }
 
+            $nbcols = $DB->numFields($res);
+            $nbrows = $DB->numrows($res);
+
+            echo Search::showHeader($output_type, $nbrows, $nbcols, true);
             echo Search::showNewLine($output_type);
             $num = 1;
 
-            foreach ($colsname as $colname => $column) {
-
-               //If value needs to be modified on the fly
-               if (isset ($this->columns_mapping[$colname])
-                   && isset ($this->columns_mapping[$colname][$row[$colname]])) {
-
-                  $new_value = $this->columns_mapping[$colname][$row[$colname]];
-                  $row[$colname] = $new_value;
-               }
-
-               if (!in_array($colname, $this->group_by)) {
-                  $column->showValue($output_type, $row, $num, $row_num);
-               } else if ($crt == $prev) {
-                  $column->showValue($output_type,
-                                     (($output_type == Search::CSV_OUTPUT) ? $row : []),
-                                     $num, $row_num);
-               } else {
-                  $column->showValue($output_type, $row, $num, $row_num, true);
-               }
-            } // Each column
-            echo Search::showEndLine($output_type);
-            $prev = $crt;
-         } // Each row
-
-         if (isset($options['withtotal']) && $options['withtotal']) {
-               echo Search::showNewLine($output_type);
-               $num = 1;
-
-               foreach ($colsname as $colname => $column) {
-                  $column->showTotal($output_type, $num, $row_num);
-               }
-
-               echo Search::showEndLine($output_type);
-         }
-         echo Search::showFooter($output_type, $title);
-
-         if (!isset ($_POST["display_type"]) || ($_POST["display_type"] == Search::HTML_OUTPUT)) {
-            if (isset($options['withmassiveaction']) && class_exists($options['withmassiveaction'])) {
-               Html::showMassiveActions(['container' => $massformid,
-                                         'ontop'     => false]);
-               Html::closeForm();
+           // fill $sqlcols with default sql query fields so we can validate $columns
+            $sqlcols = [];
+            for ($i = 0; $i < $nbcols; $i++) {
+                $colname   = $DB->fieldName($res, $i);
+                $sqlcols[] = $colname;
             }
-            Html::footer();
-         }
-      }
-   }
+            $colsname = [];
+           // if $columns is not empty, display $columns
+            if (count($this->columns) > 0) {
+                foreach ($this->columns as $colname => $column) {
+                   // display only $columns that are valid
+                    if (in_array($colname, $sqlcols)) {
+                        $column->showTitle($output_type, $num);
+                        $colsname[$colname] = $column;
+                    }
+                }
+            } else { // else display default columns from SQL query
+                foreach ($sqlcols as $colname) {
+                    $column = new PluginReportsColumn($colname, $colname);
+                    $column->showTitle($output_type, $num);
+                    $colsname[$colname] = $column;
+                }
+            }
+
+            echo Search::showEndLine($output_type);
+
+            $prev = "";
+            for ($row_num = 2; $row = $DB->fetchAssoc($res); $row_num++) {
+                $crt = "";
+                foreach ($this->group_by as $colname) {
+                    if (isset($row[$colname])) {
+                        $crt .= $row[$colname] . "####";
+                    }
+                }
+
+                echo Search::showNewLine($output_type);
+                $num = 1;
+
+                foreach ($colsname as $colname => $column) {
+                   //If value needs to be modified on the fly
+                    if (isset($this->columns_mapping[$colname])
+                    && isset($this->columns_mapping[$colname][$row[$colname]])) {
+                        $new_value = $this->columns_mapping[$colname][$row[$colname]];
+                        $row[$colname] = $new_value;
+                    }
+
+                    if (!in_array($colname, $this->group_by)) {
+                        $column->showValue($output_type, $row, $num, $row_num);
+                    } elseif ($crt == $prev) {
+                        $column->showValue(
+                            $output_type,
+                            (($output_type == Search::CSV_OUTPUT) ? $row : []),
+                            $num,
+                            $row_num
+                        );
+                    } else {
+                        $column->showValue($output_type, $row, $num, $row_num, true);
+                    }
+                } // Each column
+                echo Search::showEndLine($output_type);
+                $prev = $crt;
+            } // Each row
+
+            if (isset($options['withtotal']) && $options['withtotal']) {
+                echo Search::showNewLine($output_type);
+                $num = 1;
+
+                foreach ($colsname as $colname => $column) {
+                    $column->showTotal($output_type, $num, $row_num);
+                }
+
+                echo Search::showEndLine($output_type);
+            }
+            echo Search::showFooter($output_type, $title);
+
+            if (!isset($_POST["display_type"]) || ($_POST["display_type"] == Search::HTML_OUTPUT)) {
+                if (isset($options['withmassiveaction']) && class_exists($options['withmassiveaction'])) {
+                    Html::showMassiveActions(['container' => $massformid,
+                                         'ontop'     => false]);
+                    Html::closeForm();
+                }
+                Html::footer();
+            }
+        }
+    }
 
 
    /**
@@ -410,90 +423,97 @@ class PluginReportsAutoReport {
     * @param target the form's target
     * @param params the search criterias
     */
-   function displayCriteriasForm() {
-      global $HEADER_LOADED;
+    function displayCriteriasForm()
+    {
+        global $HEADER_LOADED;
 
-      //Get criteria's values
-      $this->manageCriteriasValues();
+       //Get criteria's values
+        $this->manageCriteriasValues();
 
-      //Display Html::header is output is HTML
-      if (isset ($_POST["display_type"]) && $_POST["display_type"] != Search::HTML_OUTPUT) {
-         return;
-      }
-      if (!$HEADER_LOADED) {
+       //Display Html::header is output is HTML
+        if (isset($_POST["display_type"]) && $_POST["display_type"] != Search::HTML_OUTPUT) {
+            return;
+        }
+        if (!$HEADER_LOADED) {
+            $title = $this->title;
+            if ($this->subname) {
+                $title = sprintf(__('%1$s - %2$s'), $title, $this->subname);
+            }
 
-         $title = $this->title;
-         if ($this->subname) {
-            $title = sprintf(__('%1$s - %2$s'), $title, $this->subname);
-         }
+            if (isStat($this->name)) {
+                Html::header($title, $_SERVER['PHP_SELF'], "helpdesk", "stat");
+                Stat::title();
+            } else {
+                Html::header(
+                    $title,
+                    $_SERVER['PHP_SELF'],
+                    "tools",
+                    "report"
+                );
+                Report::title();
+            }
+        }
 
-         if (isStat($this->name)) {
-            Html::header($title, $_SERVER['PHP_SELF'], "helpdesk", "stat");
-            Stat::title();
-         } else {
-            Html::header($title, $_SERVER['PHP_SELF'],
-                        "tools", "report");
-            Report::title();
-         }
-      }
+        $field = 'plugin_reports_'.$this->name;
+        if ($this->plug != 'reports') {
+            $field = 'plugin_reports_'.$this->plug."_".$this->name;
+        }
+        Session::checkRight($field, READ);
 
-      $field = 'plugin_reports_'.$this->name;
-      if ($this->plug != 'reports') {
-         $field = 'plugin_reports_'.$this->plug."_".$this->name;
-      }
-      Session::checkRight($field, READ);
+       //Display form only if there're criterias
+        if (!empty($this->criterias)) {
+            echo "<div class='center'>";
+            echo "<form method='post' name='form' action='".$_SERVER['PHP_SELF']."'>";
+            echo "<table class='tab_cadre_fixe'>";
+            echo "<tr><th colspan='6'>" . __('Search criteria', 'reports');
 
-      //Display form only if there're criterias
-      if (!empty($this->criterias)) {
-         echo "<div class='center'>";
-         echo "<form method='post' name='form' action='".$_SERVER['PHP_SELF']."'>";
-         echo "<table class='tab_cadre_fixe'>";
-         echo "<tr><th colspan='6'>" . __('Search criteria', 'reports');
+           //If form is validated, then display the bookmark button
+            if ($this->criteriasValidated()) {
+               //Add parameters to uri to be saved as bookmarks
+                $_SERVER["REQUEST_URI"] = $this->buildBookmarkUrl();
+                SavedSearch::showSaveButton(
+                    SavedSearch::URI,
+                    (isStat($this->name)?'PluginReportsStat':'PluginReportsReport')
+                );
+            }
+            echo "</th></tr>\n";
 
-         //If form is validated, then display the bookmark button
-         if ($this->criteriasValidated()) {
-            //Add parameters to uri to be saved as bookmarks
-            $_SERVER["REQUEST_URI"] = $this->buildBookmarkUrl();
-            SavedSearch::showSaveButton(SavedSearch::URI,
-                                        (isStat($this->name)?'PluginReportsStat':'PluginReportsReport'));
-         }
-         echo "</th></tr>\n";
+           //Display each criteria's html selection item
+            foreach ($this->criterias as $criteria) {
+                $criteria->displayCriteria();
+            }
 
-         //Display each criteria's html selection item
-         foreach ($this->criterias as $criteria) {
-            $criteria->displayCriteria();
-         }
+            $this->closeColumn();
 
-         $this->closeColumn();
-
-         echo "<tr class='tab_bg_2'><td colspan='4' class='center'>";
-         echo Html::submit(_sx('button', 'Search'), ['name' => 'find',
+            echo "<tr class='tab_bg_2'><td colspan='4' class='center'>";
+            echo Html::submit(_sx('button', 'Search'), ['name' => 'find',
                                                      'class' => 'btn btn-primary']);
-         echo "</td></tr>";
-         echo "</table></div>";
-         Html::closeForm();
-      }
-   }
+            echo "</td></tr>";
+            echo "</table></div>";
+            Html::closeForm();
+        }
+    }
 
 
-   function manageCriteriasValues() {
+    function manageCriteriasValues()
+    {
 
-      foreach ($this->criterias as $criteria) {
-         $criteria->manageCriteriaValues();
-      }
+        foreach ($this->criterias as $criteria) {
+            $criteria->manageCriteriaValues();
+        }
 
-      //If selectio form is validated, then stores it
-      if (isset($_GET['find']) || isset($_POST['find'])) {
-         $_POST['find'] = true;
-      }
-      // Order by
-      if (isset($_GET['sort'])) {
-         $_POST['sort'] = $_GET['sort'];
-      }
-      if (isset($_GET['order'])) {
-         $_POST['order'] = $_GET['order'];
-      }
-   }
+       //If selectio form is validated, then stores it
+        if (isset($_GET['find']) || isset($_POST['find'])) {
+            $_POST['find'] = true;
+        }
+       // Order by
+        if (isset($_GET['sort'])) {
+            $_POST['sort'] = $_GET['sort'];
+        }
+        if (isset($_GET['order'])) {
+            $_POST['order'] = $_GET['order'];
+        }
+    }
 
 
    /**
@@ -502,96 +522,103 @@ class PluginReportsAutoReport {
     * @param params the values to be used
     * @param link with previous condition
     */
-   function addSqlCriteriasRestriction($link = 'AND') {
+    function addSqlCriteriasRestriction($link = 'AND')
+    {
 
-      $sql = "";
-      //Get all criterias sql restriction criterias
-      foreach ($this->criterias as $criteria) {
-         $add = $criteria->getSqlCriteriasRestriction($link);
-         if ($add) {
-            $sql .= $add;
-            $link = 'AND';
-         }
-      }
-      return $sql;
-   }
+        $sql = "";
+       //Get all criterias sql restriction criterias
+        foreach ($this->criterias as $criteria) {
+            $add = $criteria->getSqlCriteriasRestriction($link);
+            if ($add) {
+                $sql .= $add;
+                $link = 'AND';
+            }
+        }
+        return $sql;
+    }
 
 
    /**
    * Build the bookmark URL, which contains all the criteria's values
    * @return a string to be stored by the bookmarking system
    **/
-   function buildBookmarkUrl() {
+    function buildBookmarkUrl()
+    {
 
-      $bookmark_criterias='?find=1';
-      foreach ($this->criterias as $criteria) {
-         $bookmark_criterias.= $criteria->getBookmarkUrl();
-      }
-      return $_SERVER["REQUEST_URI"].$bookmark_criterias;
-   }
+        $bookmark_criterias='?find=1';
+        foreach ($this->criterias as $criteria) {
+            $bookmark_criterias.= $criteria->getBookmarkUrl();
+        }
+        return $_SERVER["REQUEST_URI"].$bookmark_criterias;
+    }
 
 
    /**
    * Add a new criteria to the report
    **/
-   function addCriteria($criteria) {
-      $this->criterias[] = $criteria;
-   }
+    function addCriteria($criteria)
+    {
+        $this->criterias[] = $criteria;
+    }
 
 
    /**
     * Delete a criteria
     */
-   function delCriteria($name) {
+    function delCriteria($name)
+    {
 
-      foreach ($this->criterias as $key => $crit) {
-         if ($crit->getName() == $name) {
-            unset($this->criterias[$key]);
-         }
-      }
-   }
+        foreach ($this->criterias as $key => $crit) {
+            if ($crit->getName() == $name) {
+                unset($this->criterias[$key]);
+            }
+        }
+    }
 
 
    /**
    * Add a new column in the criterias selection form
    **/
-   function startColumn() {
+    function startColumn()
+    {
 
-      if ($this->cpt==0) {
-         echo "<tr class='tab_bg_1'>";
-      }
-      echo "<td>";
-      $this->cpt++;
-   }
+        if ($this->cpt==0) {
+            echo "<tr class='tab_bg_1'>";
+        }
+        echo "<td>";
+        $this->cpt++;
+    }
 
 
    /**
    * End a column in the criterias selection form
    **/
-   function endColumn() {
+    function endColumn()
+    {
 
-      echo "</td>";
-      if ($this->cpt==4) {
-         echo "</tr>";
-         $this->cpt=0;
-      }
-   }
+        echo "</td>";
+        if ($this->cpt==4) {
+            echo "</tr>";
+            $this->cpt=0;
+        }
+    }
 
 
    /**
    * Close a column in the criterias selection form
    **/
-   function closeColumn() {
+    function closeColumn()
+    {
 
-      if ($this->cpt>0) {
-         while ($this->cpt<4) {
-            echo "<td></td>";
-            $this->cpt++;
-         }
-         $this->cpt=0;
-         echo "</tr>";
-      }
-   }
+        if ($this->cpt>0) {
+            while ($this->cpt<4) {
+                echo "<td></td>";
+                $this->cpt++;
+            }
+            $this->cpt=0;
+            echo "</tr>";
+        }
+    }
 
    /**
     * Get the fields used for order
@@ -600,20 +627,21 @@ class PluginReportsAutoReport {
     *
     * @return array of column names
     */
-   function getOrderByFields($default) {
+    function getOrderByFields($default)
+    {
 
-      if (!isset($_REQUEST['sort'])) {
-         $_REQUEST['sort'] = $default;
-      }
-      $colsort = $_REQUEST['sort'];
+        if (!isset($_REQUEST['sort'])) {
+            $_REQUEST['sort'] = $default;
+        }
+        $colsort = $_REQUEST['sort'];
 
-      foreach ($this->columns as $colname => $column) {
-         if ($colname == $colsort) {
-            return explode(',',$column->sorton);
-         }
-      }
-      return [];
-   }
+        foreach ($this->columns as $colname => $column) {
+            if ($colname == $colsort) {
+                return explode(',', $column->sorton);
+            }
+        }
+        return [];
+    }
 
    /**
     * Build the ORDER BY clause
@@ -623,22 +651,23 @@ class PluginReportsAutoReport {
     *
     * @return string with SQL clause
     */
-   function getOrderBy($default, $setgroupby=false) {
+    function getOrderBy($default, $setgroupby = false)
+    {
 
-      if (!isset($_REQUEST['order']) || $_REQUEST['order']!='DESC') {
-         $_REQUEST['order'] = 'ASC';
-      }
-      $order   = $_REQUEST['order'];
+        if (!isset($_REQUEST['order']) || $_REQUEST['order']!='DESC') {
+            $_REQUEST['order'] = 'ASC';
+        }
+        $order   = $_REQUEST['order'];
 
-      $tab = $this->getOrderByFields($default);
-      if (count($tab)>0) {
-         if ($setgroupby) {
-            $this->setGroupBy($tab);
-         }
-         return " ORDER BY ".implode(" $order, ", $tab)." $order";
-      }
-      return '';
-   }
+        $tab = $this->getOrderByFields($default);
+        if (count($tab)>0) {
+            if ($setgroupby) {
+                $this->setGroupBy($tab);
+            }
+            return " ORDER BY ".implode(" $order, ", $tab)." $order";
+        }
+        return '';
+    }
 
 
    /**
@@ -647,7 +676,8 @@ class PluginReportsAutoReport {
     *
     * @param $default string, name of the column used by default
     */
-   function setGroupByAuto($default) {
-      $this->setGroupBy($this->getOrderByFields($default));
-   }
+    function setGroupByAuto($default)
+    {
+        $this->setGroupBy($this->getOrderByFields($default));
+    }
 }

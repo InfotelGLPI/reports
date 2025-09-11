@@ -32,15 +32,16 @@
 $USEDBREPLICATE         = 1;
 $DBCONNECTION_REQUIRED  = 0;
 
-include ("../../../../inc/includes.php");
-
 $dbu = new DbUtils();
 
 //TRANS: The name of the report = Applications by locations and versions
 $report = new PluginReportsAutoReport(__('applicationsbylocation_report_title', 'reports'));
 
-$softwarecategories = new PluginReportsSoftwareCategoriesCriteria($report, 'softwarecategories',
-                                                                  __('Software category'));
+$softwarecategories = new PluginReportsSoftwareCategoriesCriteria(
+    $report,
+    'softwarecategories',
+    __('Software category')
+);
 $softwarecategories->setSqlField("`glpi_softwarecategories`.`id`");
 
 $software = new PluginReportsSoftwareCriteria($report, 'software', __('Applications', 'reports'));
@@ -57,22 +58,40 @@ $report->displayCriteriasForm();
 
 // Form validate and only one software with license
 if ($report->criteriasValidated()) {
+    $report->setSubNameAuto();
 
-   $report->setSubNameAuto();
-
-   $report->setColumns([new PluginReportsColumnLink('soft', _n('Software', 'Software', 1),
-                                                    'Software', ['sorton' => 'soft,version']),
-                        new PluginReportsColumnLink('locat', _n('Location', 'Locations', 1),
-                                                    'Location', ['sorton' => 'glpi_locations.name']),
-                        new PluginReportsColumnLink('computer', _n('Computer', 'Computers', 1),
-                                                    'Computer', ['sorton' => 'glpi_computers.name']),
+    $report->setColumns([new PluginReportsColumnLink(
+        'soft',
+        _n('Software', 'Software', 1),
+        'Software',
+        ['sorton' => 'soft,version']
+    ),
+                        new PluginReportsColumnLink(
+                            'locat',
+                            _n('Location', 'Locations', 1),
+                            'Location',
+                            ['sorton' => 'glpi_locations.name']
+                        ),
+                        new PluginReportsColumnLink(
+                            'computer',
+                            _n('Computer', 'Computers', 1),
+                            'Computer',
+                            ['sorton' => 'glpi_computers.name']
+                        ),
                         new PluginReportsColumn('statecpt', _n('Status', 'Statuses', 1)),
-                        new PluginReportsColumnLink('version', __('Version name'),
-                                                    'SoftwareVersion'),
-                        new PluginReportsColumnLink('user', _n('User', 'Users', 1), 'User',
-                                                    ['sorton' => 'glpi_users.name'])]);
+                        new PluginReportsColumnLink(
+                            'version',
+                            __('Version name'),
+                            'SoftwareVersion'
+                        ),
+                        new PluginReportsColumnLink(
+                            'user',
+                            _n('User', 'Users', 1),
+                            'User',
+                            ['sorton' => 'glpi_users.name']
+                        )]);
 
-   $query = "SELECT `glpi_softwareversions`.`softwares_id` AS soft,
+    $query = "SELECT `glpi_softwareversions`.`softwares_id` AS soft,
                     `glpi_softwareversions`.`name` AS software,
                     `glpi_locations`.`id` AS locat,
                     `glpi_computers`.`id` AS computer,
@@ -101,8 +120,8 @@ if ($report->criteriasValidated()) {
              $report->addSqlCriteriasRestriction().
              "ORDER BY soft ASC, locat ASC";
 
-   $report->setSqlRequest($query);
-   $report->execute();
+    $report->setSqlRequest($query);
+    $report->execute();
 } else {
-   Html::footer();
+    Html::footer();
 }

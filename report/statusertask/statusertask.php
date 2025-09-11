@@ -32,7 +32,7 @@
 $USEDBREPLICATE         = 1;
 $DBCONNECTION_REQUIRED  = 1;
 
-include ("../../../../inc/includes.php");
+global $DB;
 
 //titre du rapport dans la liste de selection,  soit en dur ici, soit mettre à jour la variable dans les fichiers de traduction;
 $report = new PluginReportsAutoReport(__('statusertask_report_title', 'reports'));
@@ -48,17 +48,17 @@ if ($report->criteriasValidated()) {
  //  $report->setSubNameAuto();
 //   $title    = $report->getFullTitle();
 
-   $cols = [new PluginReportsColumn('realname', __('User')),
+    $cols = [new PluginReportsColumn('realname', __('User')),
             new PluginReportsColumn('date', __('Date')),
             new PluginReportsColumn('ticketid', __('Ticket task id')),
             new PluginReportsColumn('duree', __('Duration')),
             new PluginReportsColumn('nbretask', __('Number created tasks', 'reports')),
             new PluginReportsColumn('total', __('Total duration'))];
 
-   $report->setColumns($cols);
+    $report->setColumns($cols);
 
 
-   $query = "SELECT DATE_FORMAT(`glpi_tickettasks`.`date`, '%d/%m/%Y') AS date,
+    $query = "SELECT DATE_FORMAT(`glpi_tickettasks`.`date`, '%d/%m/%Y') AS date,
                     `glpi_users`.`realname`,
                     `glpi_tickettasks`.`id` AS ticketid,
                     SEC_TO_TIME( sum( glpi_tickettasks.actiontime ) )  AS duree,
@@ -74,12 +74,10 @@ if ($report->criteriasValidated()) {
                     $date->getSqlCriteriasRestriction()."
               GROUP BY date, realname, ticketid";
 
-   $report->setSqlRequest($query);
-   $report->setGroupBy('RTOTAL');
+    $report->setSqlRequest($query);
+    $report->setGroupBy('RTOTAL');
 
-   $report->execute();
+    $report->execute();
+} else {
+    Html::footer();
 }
-else {
-   Html::footer();
-}
-

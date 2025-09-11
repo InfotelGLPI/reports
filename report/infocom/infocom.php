@@ -38,7 +38,7 @@
 $USEDBREPLICATE         = 1;
 $DBCONNECTION_REQUIRED  = 0;
 
-include ("../../../../inc/includes.php");
+global $DB, $CFG_GLPI;
 
 global $DB;
 $dbu = new DbUtils();

@@ -32,7 +32,7 @@
 $USEDBREPLICATE        = 1;
 $DBCONNECTION_REQUIRED = 1; // Really a big SQL request
 
-include ("../../../../inc/includes.php");
+global $DB;
 
 includeLocales("histoinst");
 
@@ -48,7 +48,7 @@ Html::header(__('histoinst_report_title', 'reports'), $_SERVER['PHP_SELF'], "uti
 Report::title();
 
 echo "<div class='center'>";
-echo "<table class='tab_cadrehov' cellpadding='5'>\n";
+echo "<table class='tab_cadre_fixe' cellpadding='5'>\n";
 echo "<tr class='tab_bg_1 center'>".
       "<th colspan='4'>" . __("History of last software's installations", "reports") .
       "</th></tr>\n";
@@ -70,7 +70,7 @@ $sql = "SELECT  `glpi_logs`.`date_mod` AS dat, `linked_action`, `itemtype`, `ite
         ORDER BY `glpi_logs`.`id` DESC
         LIMIT 0,200";
 
-$result = $DB->request($sql);
+$result = $DB->doQuery($sql);
 
 $prev = "";
 $class = "tab_bg_2";

@@ -32,7 +32,7 @@
 $USEDBREPLICATE        = 1;
 $DBCONNECTION_REQUIRED = 0; // not really a big SQL request
 
-include ("../../../../inc/includes.php");
+global $DB;
 
 $dbu = new DbUtils();
 

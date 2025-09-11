@@ -29,348 +29,361 @@
  --------------------------------------------------------------------------
  */
 
-class PluginReportsProfile extends Profile {
-   static $rightname = 'profile';
+class PluginReportsProfile extends Profile
+{
+    static $rightname = 'profile';
 
    /**
     * @param $prof   Profile object
    **/
-   static function showForProfile(Profile $prof){
-      global $DB;
+    static function showForProfile(Profile $prof)
+    {
+        global $DB;
 
-      $canedit = Session::haveRightsOr(self::$rightname, [CREATE, UPDATE, PURGE]);
+        $canedit = Session::haveRightsOr(self::$rightname, [CREATE, UPDATE, PURGE]);
 
-      if ($canedit) {
-         echo "<form method='post' action='".$prof->getFormURL()."'>";
-      }
+        if ($canedit) {
+            echo "<form method='post' action='".$prof->getFormURL()."'>";
+        }
 
-      $rights = self::getAllRights();
-      $prof->displayRightsChoiceMatrix($rights,
-                                       ['canedit'       => $canedit,
+        $rights = self::getAllRights();
+        $prof->displayRightsChoiceMatrix(
+            $rights,
+            ['canedit'       => $canedit,
                                         'default_class' => 'tab_bg_2',
-                                        'title'         => __('Rights management by profil',
-                                                                   'reports')]);
-      if ($canedit) {
-         echo "<div class='center'>";
-         echo Html::hidden('id', ['value' => $prof->getField('id')]);
-         echo Html::submit(_sx('button', 'Save'), ['name' => 'update']);
-         echo "</div>\n";
-         Html::closeForm();
-      }
-      echo "</div>";
-
-   }
+                                        'title'         => __(
+                                            'Rights management by profil',
+                                            'reports'
+                                        )]
+        );
+        if ($canedit) {
+            echo "<div class='center'>";
+            echo Html::hidden('id', ['value' => $prof->getField('id')]);
+            echo Html::submit(_sx('button', 'Save'), ['name' => 'update']);
+            echo "</div>\n";
+            Html::closeForm();
+        }
+        echo "</div>";
+    }
 
 
    /**
     * @param $report
    **/
-   static function showForReport($report) {
-      global $DB;
+    static function showForReport($report)
+    {
+        global $DB;
 
-      /* call from front/config.form.php
+       /* call from front/config.form.php
        * $report = "bar" (from reports) or "foo_bar" (other plugins)
-       */
-      if (empty($report) || !Session::haveRight('profile', READ)) {
-         return false;
-      }
-      $current = self::getAllProfilesRights(["name = 'plugin_reports_$report'"]);
-      $canedit = Session::haveRight('profile', UPDATE);
+        */
+        if (empty($report) || !Session::haveRight('profile', READ)) {
+            return false;
+        }
+        $current = self::getAllProfilesRights(["name = 'plugin_reports_$report'"]);
+        $canedit = Session::haveRight('profile', UPDATE);
 
-      if ($canedit) {
-         echo "<form action='".$_SERVER['PHP_SELF']."' method='post'>\n";
-      }
+        if ($canedit) {
+            echo "<form action='".$_SERVER['PHP_SELF']."' method='post'>\n";
+        }
 
-      echo "<table class='tab_cadre'>\n";
-      echo "<tr><th colspan='2'>".__('Profils rights', 'reports')."</th></tr>\n";
+        echo "<table class='tab_cadre'>\n";
+        echo "<tr><th colspan='2'>".__('Profils rights', 'reports')."</th></tr>\n";
 
-      foreach ($DB->request('glpi_profiles',['SELECT' => ['id', 'name'],
+        foreach ($DB->request(['SELECT' => ['id', 'name'],
+          'FROM' => 'glpi_profiles',
                                              'ORDER'  => 'name']) as $data) {
-         echo "<tr class='tab_bg_1'><td>" . $data['name'] . "&nbsp: </td><td>";
+            echo "<tr class='tab_bg_1'><td>" . $data['name'] . "&nbsp: </td><td>";
 
-         $profrights = ProfileRight::getProfileRights($data['id'], ['statistic', 'reports']);
-         $canstat    = (isset($profrights['statistic']) && $profrights['statistic']);
-         $canreport  = (isset($profrights['reports'])   && $profrights['reports']);
+            $profrights = ProfileRight::getProfileRights($data['id'], ['statistic', 'reports']);
+            $canstat    = (isset($profrights['statistic']) && $profrights['statistic']);
+            $canreport  = (isset($profrights['reports'])   && $profrights['reports']);
 
-         if ((isStat($report) && $canstat)
+            if ((isStat($report) && $canstat)
              || (!isStat($report) && $canreport)) {
-            Profile::dropdownRight($data['id'],
-                                   ['value'    => (isset($current[$data['id']])
-                                                         ? $current[$data['id']] : 0),
+                Profile::dropdownRight(
+                    $data['id'],
+                    ['value'    => ($current[$data['id']] ?? 0),
                                     'nonone'  => 0,
                                     'noread'  => 0,
-                                    'nowrite' => 1]);
-         } else {
-            // Can't access because missing right from GLPI core
-            echo Html::hidden($data['id'], ['value' => 'NULL']);
-            echo __('No access')." *";
-         }
-         echo "</td></tr>\n";
-      }
-      echo "<tr class='tab_bg_4'><td colspan='2'>* ";
-      if (isStat($report)) {
-         echo __('No right on Assistance / Statistics', 'reports');
-      } else {
-         echo __('No right on Tools / Reports', 'reports');
-      }
-      echo "</tr>";
+                    'nowrite' => 1]
+                );
+            } else {
+               // Can't access because missing right from GLPI core
+                echo Html::hidden($data['id'], ['value' => 'NULL']);
+                echo __('No access')." *";
+            }
+            echo "</td></tr>\n";
+        }
+        echo "<tr class='tab_bg_4'><td colspan='2'>* ";
+        if (isStat($report)) {
+            echo __('No right on Assistance / Statistics', 'reports');
+        } else {
+            echo __('No right on Tools / Reports', 'reports');
+        }
+        echo "</tr>";
 
-      if ($canedit) {
-         echo "<tr class='tab_bg_1'><td colspan='2' class='center'>";
-         echo Html::hidden('report', ['value' => $report]);
-         echo Html::submit(_sx('button', 'Update'), ['name' => 'update',
+        if ($canedit) {
+            echo "<tr class='tab_bg_1'><td colspan='2' class='center'>";
+            echo Html::hidden('report', ['value' => $report]);
+            echo Html::submit(_sx('button', 'Update'), ['name' => 'update',
                                                      'class' => 'btn btn-primary']);
-         echo "</td></tr>\n";
-         echo "</table>\n";
-         Html::closeForm();
-      } else {
-         echo "</table>\n";
-      }
-   }
+            echo "</td></tr>\n";
+            echo "</table>\n";
+            Html::closeForm();
+        } else {
+            echo "</table>\n";
+        }
+    }
 
    /**
     * @param $input
    **/
-   static function updateForReport($input) {
+    static function updateForReport($input)
+    {
 
-      /* call from front/config.form.php
+       /* call from front/config.form.php
        * $report = "bar" (from reports) or "foo_bar" (other plugins)
-       */
-      $prof      = new ProfileRight();
-      $report    = $input['report'];
-      $rightname = "plugin_reports_$report";
-      $current   = self::getAllProfilesRights(["name = '$rightname'"], true);
+        */
+        $prof      = new ProfileRight();
+        $report    = $input['report'];
+        $rightname = "plugin_reports_$report";
+        $current   = self::getAllProfilesRights(["name = '$rightname'"], true);
 
-      foreach($input as $profiles_id => $right) {
-         if ($right == 'NULL') {
-            $right = 0;
-         }
-         if (is_numeric($profiles_id)) {
-            if (isset($current[$profiles_id])) {
-               $prof->update(['id'     => $current[$profiles_id]['id'],
+        foreach ($input as $profiles_id => $right) {
+            if ($right == 'NULL') {
+                $right = 0;
+            }
+            if (is_numeric($profiles_id)) {
+                if (isset($current[$profiles_id])) {
+                    $prof->update(['id'     => $current[$profiles_id]['id'],
                               'rights' => $right]);
-            } else if ($right) {
-               $prof->add(['profiles_id' => $profiles_id,
+                } elseif ($right) {
+                    $prof->add(['profiles_id' => $profiles_id,
                            'name'        => $rightname,
                            'rights'      => $right]);
+                }
+               // TODO Check here with another plugin
             }
-            // TODO Check here with another plugin
-         }
-      }
-   }
+        }
+    }
 
 
    /**
     * @param $reports
    **/
-   function updateRights($reports) {
-      global $DB;
+    function updateRights($reports)
+    {
+        global $DB;
 
-      $profile_right = new ProfileRight;
+        $profile_right = new ProfileRight;
 
-      $rights = [];
-      foreach ($reports as $report => $plug) {
-         if ($plug == 'reports') {
-            $rights["plugin_reports_$report"] = 1;
-         } else {
-            $rights["plugin_reports_${plug}_${report}"] = 1;
-         }
-      }
+        $rights = [];
+        foreach ($reports as $report => $plug) {
+            if ($plug == 'reports') {
+                $rights["plugin_reports_$report"] = 1;
+            } else {
+                $rights["plugin_reports_${plug}_${report}"] = 1;
+            }
+        }
 
-      $current_rights = [];
-      foreach ($DB->request('glpi_profilerights',
-                            ['SELECT'   => 'name',
+        $current_rights = [];
+        foreach ($DB->request(['SELECT'   => 'name',
                              'DISTINCT' => true,
+                                'FROM' => 'glpi_profilerights',
                              'WHERE'    => ['name' => ['LIKE', 'plugin_reports_%']]]) as $data) {
-         $current_rights[$data['name']] = 1;
-      }
+            $current_rights[$data['name']] = 1;
+        }
 
-      // Remove old reports
-      foreach($current_rights as $right => $value) {
-         if (!isset($rights[$right])) {
-            // Delete the lines for old reports
-            $profile_right->deleteByCriteria(['name' => $right]);
-         } else {
-            unset($rights[$right]);
-         }
-      }
+       // Remove old reports
+        foreach ($current_rights as $right => $value) {
+            if (!isset($rights[$right])) {
+               // Delete the lines for old reports
+                $profile_right->deleteByCriteria(['name' => $right]);
+            } else {
+                unset($rights[$right]);
+            }
+        }
 /*
       // Add new reports
       $rights_name = array_keys($rights);
       ProfileRight::addProfileRights($rights_name);
       if ($_SESSION['glpiactiveprofile']['id'] == 4) {
          $profile_right->updateProfileRights(4, $rights);
-      }*/
-   }
+       }*/
+    }
 
 
    /**
     * @param $crit
     * @param $full   (false by default)
    **/
-   static function getAllProfilesRights($crit, $full=false) {
-      global $DB;
+    static function getAllProfilesRights($crit, $full = false)
+    {
+        global $DB;
 
-      $tab = [];
+        $tab = [];
 
-      foreach ($DB->request('glpi_profilerights', $crit) as $data) {
-         $tab[$data['profiles_id']] = ($full ? $data : $data['rights']);
-      }
-      return $tab;
-   }
+        foreach ($DB->request('glpi_profilerights', $crit) as $data) {
+            $tab[$data['profiles_id']] = ($full ? $data : $data['rights']);
+        }
+        return $tab;
+    }
 
 
-   static function getAllRights() {
-      global $LANG;
+    static function getAllRights()
+    {
+        global $LANG;
 
-      $rights = [];
+        $rights = [];
 
-      foreach(searchReport() as $key => $plug) {
-         $mod = (($plug == 'reports') ? $key : "${plug}_${key}");
-         if (!isset($plugname[$plug])) {
-            // Retrieve the plugin name
-            $function         = "plugin_version_$plug";
-            $tmp              = $function();
-            $plugname[$plug]  = $tmp['name'];
-         }
-         $field = 'plugin_reports_'.$key;
-         if ($plug != 'reports') {
-            $field = 'plugin_reports_'.$plug."_".$key;
-         }
+        foreach (searchReport() as $key => $plug) {
+            $mod = (($plug == 'reports') ? $key : "${plug}_${key}");
+            if (!isset($plugname[$plug])) {
+                // Retrieve the plugin name
+                $function         = "plugin_version_$plug";
+                $tmp              = $function();
+                $plugname[$plug]  = $tmp['name'];
+            }
+            $field = 'plugin_reports_'.$key;
+            if ($plug != 'reports') {
+                $field = 'plugin_reports_'.$plug."_".$key;
+            }
 
-         $rights[] = ['itemtype' => 'PluginReportsReport',
+            $rights[] = ['itemtype' => 'PluginReportsReport',
                       'label'    => $plugname[$plug]." - ".$LANG["plugin_$plug"][$key],
                       'field'    => $field];
-      }
-      return $rights;
-
-   }
+        }
+        return $rights;
+    }
 
 
    /**
     * Look for all the plugins, and update rights if necessary
     */
-   function updatePluginRights() {
+    function updatePluginRights()
+    {
 
-      $tab = searchReport();
-      $this->updateRights($tab);
+        $tab = searchReport();
+        $this->updateRights($tab);
 
-      return $tab;
-   }
-
-
-   static function install(Migration $mig) {
-      global $DB;
+        return $tab;
+    }
 
 
-      if ($DB->tableExists('glpi_plugin_reports_profiles')) {
-         if ($DB->fieldExists('glpi_plugin_reports_profiles','ID')) { // version installee < 1.4.0
-            $query = "ALTER TABLE `glpi_plugin_reports_profiles`
+    static function install(Migration $mig)
+    {
+        global $DB;
+
+
+        if ($DB->tableExists('glpi_plugin_reports_profiles')) {
+            if ($DB->fieldExists('glpi_plugin_reports_profiles', 'ID')) { // version installee < 1.4.0
+                $query = "ALTER TABLE `glpi_plugin_reports_profiles`
                       CHANGE `ID` `id` int(11) NOT NULL auto_increment";
-            $DB->queryOrDie($query, "CHANGE ID: ".$DB->error());
-         }
+                $DB->doQuery($query, "CHANGE ID: ".$DB->error());
+            }
 
-         if (!$DB->fieldExists('glpi_plugin_reports_profiles','profiles_id')) { // version < 1.5.0
-            $mig->renameTable('glpi_plugin_reports_profiles', 'glpi_plugin_reports_oldprofiles');
-            $mig->executeMigration();
+            if (!$DB->fieldExists('glpi_plugin_reports_profiles', 'profiles_id')) { // version < 1.5.0
+                $mig->renameTable('glpi_plugin_reports_profiles', 'glpi_plugin_reports_oldprofiles');
+                $mig->executeMigration();
 
-            $fields = $DB->list_fields('glpi_plugin_reports_oldprofiles');
-            unset($fields['id']);
-            unset($fields['profile']);
-            foreach($fields as $field => $descr) {
-               $query = "INSERT INTO `glpi_plugin_reports_profiles`
+                $fields = $DB->list_fields('glpi_plugin_reports_oldprofiles');
+                unset($fields['id']);
+                unset($fields['profile']);
+                foreach ($fields as $field => $descr) {
+                    $query = "INSERT INTO `glpi_plugin_reports_profiles`
                                 (`profiles_id`, `report`, `access`)
                           SELECT `id`, '$field', `$field`
                           FROM `glpi_plugin_reports_oldprofiles`
                           WHERE `$field` IS NOT NULL";
-               $DB->queryOrDie($query, "LOAD TABLE profiles: ".$DB->error());
+                    $DB->doQuery($query, "LOAD TABLE profiles: ".$DB->error());
+                }
+
+                $mig->dropTable('glpi_plugin_reports_oldprofiles');
             }
 
-            $mig->dropTable('glpi_plugin_reports_oldprofiles');
-         }
 
+           // -- SINCE 0.85 --
+           //Add new rights in glpi_profilerights table
+            $profileRight = new ProfileRight();
 
-         // -- SINCE 0.85 --
-         //Add new rights in glpi_profilerights table
-         $profileRight = new ProfileRight();
-
-         foreach ($DB->request('glpi_plugin_reports_profiles') as $data) {
-            $right['profiles_id']   = $data['profiles_id'];
-            $right['name']          = "plugin_reports_".$data['report'];
-            $droit                  = $data['access'];
-            if ($droit == 'r') {
-               $right['rights'] = 1;
-               $profileRight->add($right);
+            foreach ($DB->request(['FROM' => 'glpi_plugin_reports_profiles']) as $data) {
+                $right['profiles_id']   = $data['profiles_id'];
+                $right['name']          = "plugin_reports_".$data['report'];
+                $droit                  = $data['access'];
+                if ($droit == 'r') {
+                    $right['rights'] = 1;
+                    $profileRight->add($right);
+                }
             }
-         }
-         $mig->dropTable('glpi_plugin_reports_profiles');
-      }
-
-   }
+            $mig->dropTable('glpi_plugin_reports_profiles');
+        }
+    }
 
 
-   static function uninstall(Migration $mig) {
-      global $DB;
+    static function uninstall(Migration $mig)
+    {
+        global $DB;
 
-      $tables = ['glpi_plugin_reports_profiles',
+        $tables = ['glpi_plugin_reports_profiles',
                  'glpi_plugin_reports_oldprofiles',
                  'glpi_plugin_reports_doublons_backlist',
                  'glpi_plugin_reports_doublons_backlists'];
 
-      foreach ($tables as $table) {
-         $mig->dropTable($table);
-      }
+        foreach ($tables as $table) {
+            $mig->dropTable($table);
+        }
 
-      //Delete rights associated with the plugin
-      $query = "DELETE
+       //Delete rights associated with the plugin
+        $query = "DELETE
                 FROM `glpi_profilerights`
                 WHERE `name` LIKE 'plugin_reports_%'";
-      $DB->queryOrDie($query, $DB->error());
-   }
+        $DB->doQuery($query, $DB->error());
+    }
 
 
    /**
     * @see inc/CommonGLPI::getTabNameForItem()
    **/
-   function getTabNameForItem(CommonGLPI $item, $withtemplate=0) {
-      global $DB;
+    function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
+    {
+        global $DB;
 
-      if ($item->getType() == 'Profile') {
-         if ($item->getField('interface') == 'central') {
-            $nb = 0;
-            if (Session::haveRight('reports', READ)) {
-               if ($_SESSION['glpishow_count_on_tabs']) {
-
-                  $query = $DB->request('glpi_profilerights',
-                                        ['COUNT' => 'cpt',
+        if ($item->getType() == 'Profile') {
+            if ($item->getField('interface') == 'central') {
+                $nb = 0;
+                if (Session::haveRight('reports', READ)) {
+                    if ($_SESSION['glpishow_count_on_tabs']) {
+                        $query = $DB->request(['COUNT' => 'cpt',
+                                            'FROM' => 'glpi_profilerights',
                                          'WHERE' => ['profiles_id' => $_GET['id'],
                                                      'name'        => ['LIKE', 'plugin_reports_%'],
                                                      'rights'      => 1]]);
-                  foreach ($query as $data_nb) {
-                     $nb = $data_nb['cpt'];
-                  }
-               }
-               return self::createTabEntry(PluginReportsReport::getTypeName($nb), $nb);
+                        foreach ($query as $data_nb) {
+                             $nb = $data_nb['cpt'];
+                        }
+                    }
+                    return self::createTabEntry(PluginReportsReport::getTypeName($nb), $nb);
+                }
             }
-         }
-      }
-      return '';
-   }
+        }
+        return '';
+    }
 
 
-   static function displayTabContentForItem(CommonGLPI $item, $tabnum=1, $withtemplate=0) {
+    static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
+    {
 
-      if ($item->getType() == 'Profile') {
-         if ($item->getField('interface') == 'central') {
-            $ID = $item->getField('id');
+        if ($item->getType() == 'Profile') {
+            if ($item->getField('interface') == 'central') {
+                $ID = $item->getField('id');
 
-            $prof = new self();
-            $prof->updatePluginRights();
+                $prof = new self();
+                $prof->updatePluginRights();
 
-            self::showForProfile($item);
-         }
-      }
-      return true;
-   }
-
-  }
+                self::showForProfile($item);
+            }
+        }
+        return true;
+    }
+}
