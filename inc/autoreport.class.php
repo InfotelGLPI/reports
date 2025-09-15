@@ -48,6 +48,7 @@ class PluginReportsAutoReport {
    private $subname         = "";
    private $cpt             = 0;
    private $title           = '';
+    private string $plug;
 
 
    function __construct($title='') {
