@@ -31,6 +31,8 @@
 
 global $DB;
 
+use Glpi\Application\View\TemplateRenderer;
+
 includeLocales("doublons");
 
 Session::checkRight("plugin_reports_doublons", READ);
@@ -89,7 +91,11 @@ if ($crit > 0) {
    echo "<td>";
    //Add parameters to uri to be saved as bookmarks
    $_SERVER["REQUEST_URI"] = buildBookmarkUrl($_SERVER["REQUEST_URI"],$crit);
-   SavedSearch::showSaveButton(SavedSearch::SEARCH,'Computer');
+//   SavedSearch::showSaveButton(SavedSearch::SEARCH,'Computer');
+    TemplateRenderer::getInstance()->render('pages/tools/savedsearch/save_button.html.twig', [
+        'type' => SavedSearch::SEARCH,
+        'itemtype' => 'Computer',
+    ]);
    echo "</td>";
 }
 echo"</tr>\n";
@@ -375,7 +381,7 @@ if ($crit > 0) { // Display result
    if ($i) {
       printf(__('%1$s: %2$s'), __('Duplicate computers', 'reports'), $i);
    } else {
-      echo __('No item found');
+      echo __s('No results found');
    }
    echo "</td></tr>\n";
    echo "</table>";

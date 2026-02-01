@@ -105,7 +105,7 @@ function plugin_version_reports()
 
     return ['name'           => _n('Report', 'Reports', 2),
            'version'        => '2.0.0',
-           'author'         => 'Nelly Mahu-Lasson, Remi Collet, Infotel',
+           'author'         => "<a href='https://blogglpi.infotel.com'>Infotel</a>, Xavier CAILLAUD, Nelly MAHU-LASSON, Remi COLLET",
            'license'        => 'GPLv3+',
            'homepage'       => 'https://github.com/InfotelGLPI/reports',
            'minGlpiVersion' => '11.0.0',

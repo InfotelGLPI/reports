@@ -80,7 +80,7 @@ class PluginReportsSoftwareWithLicenseCriteria extends PluginReportsDropdownCrit
             }
             echo "</select>";
         } else {
-            echo "<span class='red b center'>".__('No item found')."</span>";
+            echo "<span class='red b center'>".__s('No results found')."</span>";
         }
     }
 }

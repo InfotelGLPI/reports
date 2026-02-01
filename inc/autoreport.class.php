@@ -1,4 +1,5 @@
 <?php
+
 /**
  -------------------------------------------------------------------------
   LICENSE
@@ -29,6 +30,8 @@
  --------------------------------------------------------------------------
  */
 
+use Glpi\Application\View\TemplateRenderer;
+
 /**
 * Class to create, execute and display a new record
 * The class stores a collection of criterias and
@@ -40,7 +43,6 @@
 #[AllowDynamicProperties]
 class PluginReportsAutoReport
 {
-
     private $criterias       = [];
     private $columns         = [];
     private $group_by        = [];
@@ -52,7 +54,7 @@ class PluginReportsAutoReport
     private $title           = '';
 
 
-    function __construct($title = '')
+    public function __construct($title = '')
     {
         preg_match('@/(plugins|marketplace)/(.*)/report/(.*)/@', $_SERVER['REQUEST_URI'], $regs);
         $this->plug = $regs[2];
@@ -62,36 +64,36 @@ class PluginReportsAutoReport
     }
 
 
-   //-------------- Getters ------------------//
-    function getCriterias()
+    //-------------- Getters ------------------//
+    public function getCriterias()
     {
         return $this->criterias;
     }
 
 
-   //-------------- Setters ------------------//
-   /**
-   * Set column mappings : when a column's value cannot be
-   * displays as it is, but needs to be replaced by another one
-   * DEPRECATED : should use PluginReportsColumnMap
-   *
-   * @param $columns_mappings array the columns new values
-   **/
-    function setColumnsMappings($columns_mappings)
+    //-------------- Setters ------------------//
+    /**
+    * Set column mappings : when a column's value cannot be
+    * displays as it is, but needs to be replaced by another one
+    * DEPRECATED : should use PluginReportsColumnMap
+    *
+    * @param $columns_mappings array the columns new values
+    **/
+    public function setColumnsMappings($columns_mappings)
     {
         $this->columns_mapping = $columns_mappings;
     }
 
 
-   /**
-    * Defined "GROUP BY" columns
-    * for output improvment
-    * first line displayed in bold
-    * next lines not displayed
-    *
-    * @param $columns    column name or array of column names
-   **/
-    function setGroupBy($columns)
+    /**
+     * Defined "GROUP BY" columns
+     * for output improvment
+     * first line displayed in bold
+     * next lines not displayed
+     *
+     * @param $columns    column name or array of column names
+    **/
+    public function setGroupBy($columns)
     {
 
         if (is_array($columns)) {
@@ -102,13 +104,13 @@ class PluginReportsAutoReport
     }
 
 
-   /**
-   * Set columns names (label to be displayed)
-   *
-   * @param $columns array which contains
-   *        sql column name => PluginReportsColumn object
-   **/
-    function setColumns($columns)
+    /**
+    * Set columns names (label to be displayed)
+    *
+    * @param $columns array which contains
+    *        sql column name => PluginReportsColumn object
+    **/
+    public function setColumns($columns)
     {
 
         $this->columns = [];
@@ -116,39 +118,39 @@ class PluginReportsAutoReport
             if ($column instanceof PluginReportsColumn) {
                 $this->columns[$column->name] = $column;
             } else {
-               // For compat with setColumnsNames - default text mode
+                // For compat with setColumnsNames - default text mode
                 $this->columns[$name] = new PluginReportsColumn($name, $column);
             }
         }
     }
 
 
-   /**
-   * Set sql request to be executed
-   * @param sql the sql request as a string
-   **/
-    function setSqlRequest($sql)
+    /**
+    * Set sql request to be executed
+    * @param sql the sql request as a string
+    **/
+    public function setSqlRequest($sql)
     {
         $this->sql = $sql;
     }
 
 
-   /**
-   * Set report's name
-   * @param name the name of the report
-   **/
-    function setName($name)
+    /**
+    * Set report's name
+    * @param name the name of the report
+    **/
+    public function setName($name)
     {
-        list($this->plug,$this->name) = explode('.', $name, 2);
+        [$this->plug, $this->name] = explode('.', $name, 2);
     }
 
 
-   /**
-   * Set report's Title
-   *
-   * @param $title the title of the report
-   **/
-    function setTitle($title)
+    /**
+    * Set report's Title
+    *
+    * @param $title the title of the report
+    **/
+    public function setTitle($title)
     {
 
         if ($title) {
@@ -161,42 +163,42 @@ class PluginReportsAutoReport
     }
 
 
-   /**
-    * Get the report's title (main title + sub title from criteria)
-   **/
-    function getFullTitle()
+    /**
+     * Get the report's title (main title + sub title from criteria)
+    **/
+    public function getFullTitle()
     {
 
         if ($this->subname) {
-            return $this->title ." - " . $this->subname;
+            return $this->title . " - " . $this->subname;
         }
         return $this->title;
     }
 
 
-   /**
-    * Set the report's subname
-    *
-    * @param subname the report's subname to display
-   **/
-    function setSubName($subname)
+    /**
+     * Set the report's subname
+     *
+     * @param subname the report's subname to display
+    **/
+    public function setSubName($subname)
     {
         $this->subname = $subname;
     }
 
 
-   /**
-    * Generate automatically the report's subname
-   **/
-    function setSubNameAuto()
+    /**
+     * Generate automatically the report's subname
+    **/
+    public function setSubNameAuto()
     {
 
         $subname = "";
         $prefix = "";
-       //Get all criteria's subnames and add it to the report's subname
+        //Get all criteria's subnames and add it to the report's subname
         foreach ($this->criterias as $criteria) {
             if ($name = $criteria->getSubName()) {
-                $subname .= $prefix.$name;
+                $subname .= $prefix . $name;
                 $prefix = " - ";
             }
         }
@@ -205,35 +207,35 @@ class PluginReportsAutoReport
     }
 
 
-   //------------- Other -------------//
-   /**
-    * Indicates if the criteria's form is validated or not
-    *
-    * @return true if form is validated
-   **/
-    function criteriasValidated()
+    //------------- Other -------------//
+    /**
+     * Indicates if the criteria's form is validated or not
+     *
+     * @return true if form is validated
+    **/
+    public function criteriasValidated()
     {
         return isset($_POST['find']);
     }
 
 
-   /**
-    * Execute the report
-    *
-    * @param $options   array
-   **/
-    function execute($options = [])
+    /**
+     * Execute the report
+     *
+     * @param $options   array
+    **/
+    public function execute($options = [])
     {
         global $DB, $HEADER_LOADED;
 
 
-        $field = 'plugin_reports_'.$this->name;
+        $field = 'plugin_reports_' . $this->name;
         if ($this->plug != 'reports') {
-            $field = 'plugin_reports_'.$this->plug."_".$this->name;
+            $field = 'plugin_reports_' . $this->plug . "_" . $this->name;
         }
         Session::checkRight($field, READ);
 
-       // Require (for pager) when not called by displayCriteriasForm
+        // Require (for pager) when not called by displayCriteriasForm
         $this->manageCriteriasValues();
 
         if (isset($_POST['list_limit'])) {
@@ -259,7 +261,7 @@ class PluginReportsAutoReport
         }
 
         $res   = $DB->doQuery($this->sql);
-        $nbtot = ($res ? $DB->numrows($res): 0);
+        $nbtot = ($res ? $DB->numrows($res) : 0);
         if ($limit) {
             $start = (isset($_GET["start"]) ? intval($_GET["start"]) : 0);
             if ($start >= $nbtot) {
@@ -277,7 +279,7 @@ class PluginReportsAutoReport
                 Html::header($title, $_SERVER['PHP_SELF'], "utils", "report");
                 Report::title();
             }
-            echo "<div class='center'><font class='red b'>".__('No item found')."</font></div>";
+            echo "<div class='center'><font class='red b'>" . __s('No results found') . "</font></div>";
             Html::footer();
         } elseif ($output_type == Search::HTML_OUTPUT) {
             if (!$HEADER_LOADED) {
@@ -285,19 +287,20 @@ class PluginReportsAutoReport
                 Report::title();
             }
             echo "<div class='center'><table class='tab_cadre_fixe'>";
-            echo "<tr><th>".$title."</th></tr>\n";
+            echo "<tr><th>" . $title . "</th></tr>\n";
             echo "<tr class='tab_bg_2 center'><td class='center'>";
-            echo "<form method='POST' action='" .$_SERVER["PHP_SELF"] . "?start=$start'>\n";
+            Toolbox::logInfo($_SERVER["PHP_SELF"]);
+            echo "<form method='POST' action='" . $_SERVER["PHP_SELF"] . "?start=$start'>\n";
 
             $param = "";
             foreach ($_POST as $key => $val) {
                 if (is_array($val)) {
                     foreach ($val as $k => $v) {
-                        echo Html::hidden($key.[$k], ['value' => $v]);
+                        echo Html::hidden($key . [$k], ['value' => $v]);
                         if (!empty($param)) {
                             $param .= "&";
                         }
-                        $param .= $key."[".$k."]=".urlencode($v);
+                        $param .= $key . "[" . $k . "]=" . urlencode($v);
                     }
                 } else {
                     echo Html::hidden($key, ['value' => $val]);
@@ -318,7 +321,7 @@ class PluginReportsAutoReport
         if ($res && ($nbtot > 0)) {
             if (!isset($_POST["display_type"]) || ($_POST["display_type"] == Search::HTML_OUTPUT)) {
                 if (isset($options['withmassiveaction']) && class_exists($options['withmassiveaction'])) {
-                    $massformid = 'massform'.$options['withmassiveaction'];
+                    $massformid = 'massform' . $options['withmassiveaction'];
                     Html::openMassiveActionsForm($massformid);
                     Html::showMassiveActions(['container' => $massformid]);
                 }
@@ -331,17 +334,17 @@ class PluginReportsAutoReport
             echo Search::showNewLine($output_type);
             $num = 1;
 
-           // fill $sqlcols with default sql query fields so we can validate $columns
+            // fill $sqlcols with default sql query fields so we can validate $columns
             $sqlcols = [];
             for ($i = 0; $i < $nbcols; $i++) {
                 $colname   = $DB->fieldName($res, $i);
                 $sqlcols[] = $colname;
             }
             $colsname = [];
-           // if $columns is not empty, display $columns
+            // if $columns is not empty, display $columns
             if (count($this->columns) > 0) {
                 foreach ($this->columns as $colname => $column) {
-                   // display only $columns that are valid
+                    // display only $columns that are valid
                     if (in_array($colname, $sqlcols)) {
                         $column->showTitle($output_type, $num);
                         $colsname[$colname] = $column;
@@ -370,7 +373,7 @@ class PluginReportsAutoReport
                 $num = 1;
 
                 foreach ($colsname as $colname => $column) {
-                   //If value needs to be modified on the fly
+                    //If value needs to be modified on the fly
                     if (isset($this->columns_mapping[$colname])
                     && isset($this->columns_mapping[$colname][$row[$colname]])) {
                         $new_value = $this->columns_mapping[$colname][$row[$colname]];
@@ -409,7 +412,7 @@ class PluginReportsAutoReport
             if (!isset($_POST["display_type"]) || ($_POST["display_type"] == Search::HTML_OUTPUT)) {
                 if (isset($options['withmassiveaction']) && class_exists($options['withmassiveaction'])) {
                     Html::showMassiveActions(['container' => $massformid,
-                                         'ontop'     => false]);
+                        'ontop'     => false]);
                     Html::closeForm();
                 }
                 Html::footer();
@@ -418,19 +421,19 @@ class PluginReportsAutoReport
     }
 
 
-   /**
-    * Display a common search criterias form
-    * @param target the form's target
-    * @param params the search criterias
-    */
-    function displayCriteriasForm()
+    /**
+     * Display a common search criterias form
+     * @param target the form's target
+     * @param params the search criterias
+     */
+    public function displayCriteriasForm()
     {
         global $HEADER_LOADED;
 
-       //Get criteria's values
+        //Get criteria's values
         $this->manageCriteriasValues();
 
-       //Display Html::header is output is HTML
+        //Display Html::header is output is HTML
         if (isset($_POST["display_type"]) && $_POST["display_type"] != Search::HTML_OUTPUT) {
             return;
         }
@@ -454,31 +457,32 @@ class PluginReportsAutoReport
             }
         }
 
-        $field = 'plugin_reports_'.$this->name;
+        $field = 'plugin_reports_' . $this->name;
         if ($this->plug != 'reports') {
-            $field = 'plugin_reports_'.$this->plug."_".$this->name;
+            $field = 'plugin_reports_' . $this->plug . "_" . $this->name;
         }
         Session::checkRight($field, READ);
 
-       //Display form only if there're criterias
+        //Display form only if there're criterias
         if (!empty($this->criterias)) {
             echo "<div class='center'>";
-            echo "<form method='post' name='form' action='".$_SERVER['PHP_SELF']."'>";
+            echo "<form method='post' name='form' action='" . $_SERVER['REQUEST_URI'] . "'>";
             echo "<table class='tab_cadre_fixe'>";
             echo "<tr><th colspan='6'>" . __('Search criteria', 'reports');
 
-           //If form is validated, then display the bookmark button
+            //If form is validated, then display the bookmark button
             if ($this->criteriasValidated()) {
-               //Add parameters to uri to be saved as bookmarks
+                //Add parameters to uri to be saved as bookmarks
                 $_SERVER["REQUEST_URI"] = $this->buildBookmarkUrl();
-                SavedSearch::showSaveButton(
-                    SavedSearch::URI,
-                    (isStat($this->name)?'PluginReportsStat':'PluginReportsReport')
-                );
+                TemplateRenderer::getInstance()->render('pages/tools/savedsearch/save_button.html.twig', [
+                    'type' => SavedSearch::SEARCH,
+                    'itemtype' => (isStat($this->name) ? 'PluginReportsStat' : 'PluginReportsReport'),
+                ]);
+
             }
             echo "</th></tr>\n";
 
-           //Display each criteria's html selection item
+            //Display each criteria's html selection item
             foreach ($this->criterias as $criteria) {
                 $criteria->displayCriteria();
             }
@@ -487,7 +491,7 @@ class PluginReportsAutoReport
 
             echo "<tr class='tab_bg_2'><td colspan='4' class='center'>";
             echo Html::submit(_sx('button', 'Search'), ['name' => 'find',
-                                                     'class' => 'btn btn-primary']);
+                'class' => 'btn btn-primary']);
             echo "</td></tr>";
             echo "</table></div>";
             Html::closeForm();
@@ -495,18 +499,18 @@ class PluginReportsAutoReport
     }
 
 
-    function manageCriteriasValues()
+    public function manageCriteriasValues()
     {
 
         foreach ($this->criterias as $criteria) {
             $criteria->manageCriteriaValues();
         }
 
-       //If selectio form is validated, then stores it
+        //If selectio form is validated, then stores it
         if (isset($_GET['find']) || isset($_POST['find'])) {
             $_POST['find'] = true;
         }
-       // Order by
+        // Order by
         if (isset($_GET['sort'])) {
             $_POST['sort'] = $_GET['sort'];
         }
@@ -516,17 +520,17 @@ class PluginReportsAutoReport
     }
 
 
-   /**
-    * Append date and time restriction in an sql request
-    * @param fields the fields to be restricted
-    * @param params the values to be used
-    * @param link with previous condition
-    */
-    function addSqlCriteriasRestriction($link = 'AND')
+    /**
+     * Append date and time restriction in an sql request
+     * @param fields the fields to be restricted
+     * @param params the values to be used
+     * @param link with previous condition
+     */
+    public function addSqlCriteriasRestriction($link = 'AND')
     {
 
         $sql = "";
-       //Get all criterias sql restriction criterias
+        //Get all criterias sql restriction criterias
         foreach ($this->criterias as $criteria) {
             $add = $criteria->getSqlCriteriasRestriction($link);
             if ($add) {
@@ -538,34 +542,34 @@ class PluginReportsAutoReport
     }
 
 
-   /**
-   * Build the bookmark URL, which contains all the criteria's values
-   * @return a string to be stored by the bookmarking system
-   **/
-    function buildBookmarkUrl()
+    /**
+    * Build the bookmark URL, which contains all the criteria's values
+    * @return a string to be stored by the bookmarking system
+    **/
+    public function buildBookmarkUrl()
     {
 
-        $bookmark_criterias='?find=1';
+        $bookmark_criterias = '?find=1';
         foreach ($this->criterias as $criteria) {
-            $bookmark_criterias.= $criteria->getBookmarkUrl();
+            $bookmark_criterias .= $criteria->getBookmarkUrl();
         }
-        return $_SERVER["REQUEST_URI"].$bookmark_criterias;
+        return $_SERVER["REQUEST_URI"] . $bookmark_criterias;
     }
 
 
-   /**
-   * Add a new criteria to the report
-   **/
-    function addCriteria($criteria)
+    /**
+    * Add a new criteria to the report
+    **/
+    public function addCriteria($criteria)
     {
         $this->criterias[] = $criteria;
     }
 
 
-   /**
-    * Delete a criteria
-    */
-    function delCriteria($name)
+    /**
+     * Delete a criteria
+     */
+    public function delCriteria($name)
     {
 
         foreach ($this->criterias as $key => $crit) {
@@ -576,13 +580,13 @@ class PluginReportsAutoReport
     }
 
 
-   /**
-   * Add a new column in the criterias selection form
-   **/
-    function startColumn()
+    /**
+    * Add a new column in the criterias selection form
+    **/
+    public function startColumn()
     {
 
-        if ($this->cpt==0) {
+        if ($this->cpt == 0) {
             echo "<tr class='tab_bg_1'>";
         }
         echo "<td>";
@@ -590,44 +594,44 @@ class PluginReportsAutoReport
     }
 
 
-   /**
-   * End a column in the criterias selection form
-   **/
-    function endColumn()
+    /**
+    * End a column in the criterias selection form
+    **/
+    public function endColumn()
     {
 
         echo "</td>";
-        if ($this->cpt==4) {
+        if ($this->cpt == 4) {
             echo "</tr>";
-            $this->cpt=0;
+            $this->cpt = 0;
         }
     }
 
 
-   /**
-   * Close a column in the criterias selection form
-   **/
-    function closeColumn()
+    /**
+    * Close a column in the criterias selection form
+    **/
+    public function closeColumn()
     {
 
-        if ($this->cpt>0) {
-            while ($this->cpt<4) {
+        if ($this->cpt > 0) {
+            while ($this->cpt < 4) {
                 echo "<td></td>";
                 $this->cpt++;
             }
-            $this->cpt=0;
+            $this->cpt = 0;
             echo "</tr>";
         }
     }
 
-   /**
-    * Get the fields used for order
-    *
-    * @param $default string, name of the column used by default
-    *
-    * @return array of column names
-    */
-    function getOrderByFields($default)
+    /**
+     * Get the fields used for order
+     *
+     * @param $default string, name of the column used by default
+     *
+     * @return array of column names
+     */
+    public function getOrderByFields($default)
     {
 
         if (!isset($_REQUEST['sort'])) {
@@ -643,40 +647,40 @@ class PluginReportsAutoReport
         return [];
     }
 
-   /**
-    * Build the ORDER BY clause
-    *
-    * @param $default string, name of the column used by default
-    * @apram $setgroupby if true, setGroupBy on same column
-    *
-    * @return string with SQL clause
-    */
-    function getOrderBy($default, $setgroupby = false)
+    /**
+     * Build the ORDER BY clause
+     *
+     * @param $default string, name of the column used by default
+     * @apram $setgroupby if true, setGroupBy on same column
+     *
+     * @return string with SQL clause
+     */
+    public function getOrderBy($default, $setgroupby = false)
     {
 
-        if (!isset($_REQUEST['order']) || $_REQUEST['order']!='DESC') {
+        if (!isset($_REQUEST['order']) || $_REQUEST['order'] != 'DESC') {
             $_REQUEST['order'] = 'ASC';
         }
         $order   = $_REQUEST['order'];
 
         $tab = $this->getOrderByFields($default);
-        if (count($tab)>0) {
+        if (count($tab) > 0) {
             if ($setgroupby) {
                 $this->setGroupBy($tab);
             }
-            return " ORDER BY ".implode(" $order, ", $tab)." $order";
+            return " ORDER BY " . implode(" $order, ", $tab) . " $order";
         }
         return '';
     }
 
 
-   /**
-    * Set the GroupBy columns using the Orderby Fields
-    * **** name of the columns must be the same than the fields ***
-    *
-    * @param $default string, name of the column used by default
-    */
-    function setGroupByAuto($default)
+    /**
+     * Set the GroupBy columns using the Orderby Fields
+     * **** name of the columns must be the same than the fields ***
+     *
+     * @param $default string, name of the column used by default
+     */
+    public function setGroupByAuto($default)
     {
         $this->setGroupBy($this->getOrderByFields($default));
     }

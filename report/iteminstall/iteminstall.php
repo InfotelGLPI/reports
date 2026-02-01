@@ -214,7 +214,7 @@ if ($report->criteriasValidated()) {
       echo Search::showHeader($display_type, $nbrows, $nbcols, true);
       echo Search::showNewLine($display_type);
       $num=1;
-      echo Search::showHeaderItem($display_type, __('No item found'), $num);
+      echo Search::showHeaderItem($display_type, __s('No results found'), $num);
       echo Search::showEndLine($display_type);
    }
    echo Search::showFooter($display_type, $title);
