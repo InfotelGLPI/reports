@@ -1,4 +1,5 @@
 <?php
+
 /**
  -------------------------------------------------------------------------
   LICENSE
@@ -32,96 +33,154 @@
 /**
  * class PluginReportsColumn to manage output
  */
-class PluginReportsColumn {
-
-   // name of the column in the SQL result set
-   public    $name;
-   // Fields for ORDER BY when this column is selected
-   public $sorton;
-   // Label of the column in the report
-   private   $title;
-   // Extras class for rendering in HTML
-   private   $extrafine;
-   // Extras class for rendering in HTML in Bold
-   private   $extrabold;
-   // Manage total for this colum (if handled by sub-type)
-   protected $withtotal;
-
-
-   function __construct($name, $title, $options=[]) {
-
-      $this->name      = $name;
-      $this->title     = $title;
-
-      // Extras class for each cell
-      $this->extrafine = (isset($options['extrafine']) ? $options['extrafine'] : '');
-
-      // Extras class for each total cell
-      $this->extrabold = (isset($options['extrabold']) ? $options['extrabold'] : "class='b'");
-
-      // Enable total for this column (if handle bu subtype)
-      $this->withtotal = (isset($options['withtotal']) ? $options['withtotal'] : false);
-
-      // Enable sort for this column
-      $this->sorton = (isset($options['sorton']) ? $options['sorton'] : false);
-   }
+class PluginReportsColumn
+{
+    // name of the column in the SQL result set
+    public $name;
+    // Fields for ORDER BY when this column is selected
+    public $sorton;
+    // Label of the column in the report
+    private $title;
+    // Extras class for rendering in HTML
+    private $extrafine;
+    // Extras class for rendering in HTML in Bold
+    private $extrabold;
+    // Manage total for this colum (if handled by sub-type)
+    protected $withtotal;
 
 
-   function showTitle($output_type, &$num) {
+    public function __construct($name, $title, $options = [])
+    {
 
-      if (($output_type != Search::HTML_OUTPUT) || !$this->sorton) {
-          echo Search::showHeaderItem($output_type, $this->title, $num);
-          return;
-      }
-      $order = 'ASC';
-      $issort = false;
-      if (isset($_REQUEST['sort']) && $_REQUEST['sort']==$this->name) {
-         $issort = true;
-         if (isset($_REQUEST['order']) && $_REQUEST['order']=='ASC') {
-            $order = 'DESC';
-         }
-      }
-      $link  = $_SERVER['PHP_SELF'];
-      $first = true;
-      foreach ($_REQUEST as $name => $value) {
-         if (!in_array($name, ['sort','order','PHPSESSID'])) {
-            $link .= ($first ? '?' : '&amp;');
-            $link .= $name .'='.urlencode($value);
-            $first = false;
-         }
-      }
-      $link .= ($first ? '?' : '&amp;').'sort='.urlencode($this->name);
-      $link .= '&amp;order='.$order;
-      echo Search::showHeaderItem($output_type, $this->title, $num,
-                                  $link, $issort, ($order=='ASC'?'DESC':'ASC'));
-   }
+        $this->name      = $name;
+        $this->title     = $title;
+
+        // Extras class for each cell
+        $this->extrafine = ($options['extrafine'] ?? '');
+
+        // Extras class for each total cell
+        $this->extrabold = ($options['extrabold'] ?? "class='b'");
+
+        // Enable total for this column (if handle bu subtype)
+        $this->withtotal = ($options['withtotal'] ?? false);
+
+        // Enable sort for this column
+        $this->sorton = ($options['sorton'] ?? false);
+    }
 
 
-   function showValue($output_type, $row, &$num, $row_num, $bold=false) {
+    public function showTitle($output, $output_type, &$num)
+    {
 
-      echo Search::showItem($output_type, $this->displayValue($output_type, $row), $num, $row_num,
-                            ($bold ? $this->extrabold : $this->extrafine));
-   }
+        if (($output_type != Search::HTML_OUTPUT) || !$this->sorton) {
+            //          echo Search::showHeaderItem($output_type,$this->title , $num);
+            echo $output::showHeaderItem($this->title, $num);
+            return;
+        }
+        $order = 'ASC';
+        $issort = false;
+        if (isset($_REQUEST['sort']) && $_REQUEST['sort'] == $this->name) {
+            $issort = true;
+            if (isset($_REQUEST['order']) && $_REQUEST['order'] == 'ASC') {
+                $order = 'DESC';
+            }
+        }
+        $link  = $_SERVER['REQUEST_URI'];
+        $first = true;
+        foreach ($_REQUEST as $name => $value) {
+            if (!in_array($name, ['sort','order','PHPSESSID'])) {
+                $link .= ($first ? '?' : '&amp;');
+                $link .= $name . '=' . urlencode($value);
+                $first = false;
+            }
+        }
+        $link .= ($first ? '?' : '&amp;') . 'sort=' . urlencode($this->name);
+        $link .= '&amp;order=' . $order;
+        //      echo Search::showHeaderItem($output_type, $this->title, $num,
+        //                                  $link, $issort, ($order=='ASC'?'DESC':'ASC'));
+
+        echo $output::showHeaderItem($this->title, $num, $link, $issort, ($order == 'ASC' ? 'DESC' : 'ASC'));
+    }
+
+    public function showHtmlTitle($output, &$num)
+    {
+
+        if (!$this->sorton) {
+            return $output::showHeaderItem($this->title, $num);
+        }
+        $order = 'ASC';
+        $issort = false;
+        if (isset($_REQUEST['sort']) && $_REQUEST['sort'] == $this->name) {
+            $issort = true;
+            if (isset($_REQUEST['order']) && $_REQUEST['order'] == 'ASC') {
+                $order = 'DESC';
+            }
+        }
+        $link  = $_SERVER['REQUEST_URI'];
+        $first = true;
+        foreach ($_REQUEST as $name => $value) {
+            if (!in_array($name, ['sort','order','PHPSESSID'])) {
+                $link .= ($first ? '?' : '&amp;');
+                $link .= $name . '=' . urlencode($value);
+                $first = false;
+            }
+        }
+        $link .= ($first ? '?' : '&amp;') . 'sort=' . urlencode($this->name);
+        $link .= '&amp;order=' . $order;
+        return $output::showHeaderItem($this->title, $num, $link, $issort, ($order == 'ASC' ? 'DESC' : 'ASC'));
+    }
+
+    public function showExportTitle()
+    {
+        return $this->title;
+    }
+
+    public function showValue($output_type, $row)
+    {
+        return $this->displayValue($output_type, $row);
+    }
+
+    public function showHtmlValue($output_type, $output, $row, $num, $row_num, $bold = false)
+    {
+        return $output::showItem($this->displayValue($output_type, $row), $num, $row_num, ($bold ? $this->extrabold : $this->extrafine));
+    }
+
+    public function showExportValue()
+    {
+        return $row[$this->name] ?? "";
+    }
 
 
-   function showTotal($output_type, &$num, $row_num) {
+    public function showTotal($output_type, &$num, $row_num)
+    {
 
-      echo Search::showItem($output_type,
-                            ($this->withtotal ? $this->displayTotal($output_type) : ''),
-                            $num, $row_num, $this->extrabold);
-   }
+        echo Search::showItem(
+            $output_type,
+            ($this->withtotal ? $this->displayTotal($output_type) : ''),
+            $num,
+            $row_num,
+            $this->extrabold
+        );
+    }
+
+    public function showNewTotal($output_type, &$num, $row_num)
+    {
+
+        return ($this->withtotal ? $this->displayTotal($output_type) : '');
+    }
 
 
-   function displayValue($output_type, $row) {
+    public function displayValue($output_type, $row)
+    {
+        if (isset($row[$this->name])) {
+            return $row[$this->name];
+        }
+        return '';
+    }
 
-      if (isset($row[$this->name])) {
-         return $row[$this->name];
-      }
-      return '';
-   }
 
-
-   function displayTotal($output_type) {
-      return '';
-   }
+    public function displayTotal($output_type)
+    {
+        return '';
+    }
 }

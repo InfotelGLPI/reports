@@ -38,24 +38,24 @@ function plugin_reports_install()
 
    // config of doublon report is now in glpi_blacklists
     if ($DB->tableExists("glpi_plugin_reports_doublons_backlists")) {
-        if ($result = $DB->request(['FROM' => 'glpi_plugin_reports_doublons_backlists'])) {
-            if (count($result) > 0) {
-                foreach ($result as $data) {
-                    if ($data['type'] == 1) {
-                        $type = 2;
-                    } elseif ($data['type'] == 2) {
-                        $type = 1;
-                    } else {
-                        $type = $data['type'];
-                    }
-                    $query = "INSERT INTO `glpi_blacklists`
-                             (`type`, `name`, `value`, `comment`)
-                          VALUES (".$type.", '".$data['addr']."', '".$data['addr']."',
-                                  '".$data['comment']."')";
-                    $DB->doQuery($query);
-                }
-            }
-        }
+//        if ($result = $DB->request(['FROM' => 'glpi_plugin_reports_doublons_backlists'])) {
+//            if (count($result) > 0) {
+//                foreach ($result as $data) {
+//                    if ($data['type'] == 1) {
+//                        $type = 2;
+//                    } elseif ($data['type'] == 2) {
+//                        $type = 1;
+//                    } else {
+//                        $type = $data['type'];
+//                    }
+//                    $query = "INSERT INTO `glpi_blacklists`
+//                             (`type`, `name`, `value`, `comment`)
+//                          VALUES (".$type.", '".$data['addr']."', '".$data['addr']."',
+//                                  '".$data['comment']."')";
+//                    $DB->doQuery($query);
+//                }
+//            }
+//        }
         $migration->dropTable('glpi_plugin_reports_doublons_backlists');
     }
 

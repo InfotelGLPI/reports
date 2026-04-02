@@ -1,4 +1,5 @@
 <?php
+
 /**
  -------------------------------------------------------------------------
   LICENSE
@@ -29,8 +30,6 @@
  --------------------------------------------------------------------------
  */
 
-include_once("../../../inc/includes.php");
-
 Session::checkRight('profile', READ);
 
 Plugin::load('reports', true);
@@ -46,15 +45,15 @@ global $DB, $LANG;
 
 require_once "../inc/profile.class.php";
 
-$report='';
+$report = '';
 if (isset($_POST['report'])) {
-    $report=$_POST['report'];
+    $report = $_POST['report'];
 }
 
 $prof = new PluginReportsProfile();
 
 if (isset($_POST['delete']) && $report) {
-    $profile_right = new ProfileRight;
+    $profile_right = new ProfileRight();
     $profile_right->deleteByCriteria(['name' => "plugin_reports_$report"]);
     ProfileRight::addProfileRights(["plugin_reports_$report"]);
 } elseif (isset($_POST['update']) && $report) {
@@ -64,26 +63,26 @@ if (isset($_POST['delete']) && $report) {
 
 $tab = $prof->updatePluginRights();
 
-echo "<form method='post' action=\"".$_SERVER["PHP_SELF"]."\">";
+echo "<form method='post' action=\"" . $_SERVER["PHP_SELF"] . "\">";
 echo "<table class='tab_cadre'>";
-echo "<tr><th class='center'>".__('Reports plugin configuration', 'reports')."</th></tr>";
-echo "<tr><th>". __('Rights management by report', 'reports'). "</th></tr>\n";
+echo "<tr><th class='center'>" . __('Reports plugin configuration', 'reports') . "</th></tr>";
+echo "<tr><th>" . __('Rights management by report', 'reports') . "</th></tr>\n";
 
-echo "<tr class='tab_bg_1'><td>".__('Report', 'Reports', 1). "&nbsp; ";
+echo "<tr class='tab_bg_1'><td>" . __('Report', 'Reports', 1) . "&nbsp; ";
 
 $result = $DB->request(
     ['SELECT' => ['id', 'name'],
-     'FROM' => 'glpi_profiles',
-    'ORDER'  => 'name']
+        'FROM' => 'glpi_profiles',
+        'ORDER'  => 'name']
 );
 
 echo "<select name='report'>";
 $plugname = [];
 $rap      = [];
 foreach ($tab as $key => $plug) {
-    $mod = (($plug == 'reports') ? $key : $plug.'_'.$key);
+    $mod = (($plug == 'reports') ? $key : $plug . '_' . $key);
     if (!isset($plugname[$plug])) {
-       // Retrieve the plugin name
+        // Retrieve the plugin name
         $function        = "plugin_version_$plug";
         $tmp             = $function();
         $plugname[$plug] = $tmp['name'];
@@ -96,11 +95,11 @@ foreach ($tab as $key => $plug) {
 
 $tab = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
 foreach ($rap as $plug => $tmp1) {
-    echo '<optgroup label="'.sprintf(__('%1$s - %2$s'), __('Plugins'), $plugname[$plug]).'">';
+    echo '<optgroup label="' . sprintf(__('%1$s - %2$s'), __('Plugins'), $plugname[$plug]) . '">';
     foreach ($tmp1 as $section => $tmp2) {
-        echo '<optgroup label="'.$tab."&raquo;&nbsp;".$section.'">';
+        echo '<optgroup label="' . $tab . "&raquo;&nbsp;" . $section . '">';
         foreach ($tmp2 as $mod => $name) {
-            echo "<option value='$mod' ".($report=="$mod"?"selected":"").">${tab}${tab}$name</option>\n";
+            echo "<option value='$mod' " . ($report == "$mod" ? "selected" : "") . ">{$tab}{$tab}$name</option>\n";
         }
         echo "</optgroup>\n";
     }

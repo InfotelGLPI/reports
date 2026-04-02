@@ -1,4 +1,5 @@
 <?php
+
 /**
  -------------------------------------------------------------------------
   LICENSE
@@ -34,26 +35,46 @@ $DBCONNECTION_REQUIRED = 0; // not really a big SQL request
 
 global $DB;
 
-$dbu = new DbUtils();
+$report = new PluginReportsAutoReport(__('Location tree', 'reports'));
 
-//TRANS: The name of the report = Location tree
-$report = new PluginReportsAutoReport(__('location_report_title', 'reports'));
-
-$report->setColumns([new PluginReportsColumn('entity', __('Entity'),
-                                             ['sorton' => 'entity,location']),
-                     new PluginReportsColumn('location', __('Location'), ['sorton' => 'location']),
-                     new PluginReportsColumnLink('link', _n('Link', 'Links', 2, 'report'),
-                                                 'Location', ['sorton' => '`glpi_locations`.`name`'])]);
+$report->setColumns([new PluginReportsColumn(
+    'entity',
+    __('Entity'),
+    ['sorton' => 'entity,location']
+),
+    new PluginReportsColumn('location', __('Location'), ['sorton' => 'location']),
+    new PluginReportsColumnLink(
+        'link',
+        _n('Link', 'Links', 2, 'reports'),
+        'Location',
+        ['sorton' => '`glpi_locations`.`name`']
+    )]);
 
 // SQL statement
-$query = "SELECT `glpi_entities`.`completename` AS entity,
-                 `glpi_locations`.`completename` AS location,
-                 `glpi_locations`.`id` AS link
-          FROM `glpi_locations`
-          LEFT JOIN `glpi_entities` ON (`glpi_locations`.`entities_id` = `glpi_entities`.`id`)" .
-          $dbu->getEntitiesRestrictRequest(" WHERE ", "glpi_locations") .
-          $report->getOrderBy('entity');
+$criteria = [
+    'SELECT' => ['glpi_entities.completename AS entity',
+        'glpi_locations.completename AS location',
+        'glpi_locations.id AS link',
+    ],
+    'FROM' => 'glpi_locations',
+    'LEFT JOIN'       => [
+        'glpi_entities' => [
+            'ON' => [
+                'glpi_locations' => 'entities_id',
+                'glpi_entities'          => 'id',
+            ],
+        ],
+    ],
+    'WHERE' => [],
+    'ORDERBY'   => [],
+];
+$criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
+    'glpi_locations'
+);
 
-$report->setGroupBy('entity');
-$report->setSqlRequest($query);
+$criteria['ORDERBY'] = $criteria['ORDERBY'] + $report->getNewOrderBy('entity');
+
+
+$report->setSqlRequest($criteria);
+
 $report->execute();

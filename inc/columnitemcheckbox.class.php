@@ -1,4 +1,5 @@
 <?php
+
 /**
  -------------------------------------------------------------------------
   LICENSE
@@ -32,40 +33,44 @@
 /**
  * class PluginReportsColumn to manage output
  */
-class PluginReportsColumnItemCheckbox extends PluginReportsColumn {
-
-   private $obj          = NULL;
-   private $with_comment = 0;
-
-
-   function __construct($name, $itemtype, $options=[]) {
-
-      parent::__construct($name, '&nbsp;', $options);
-
-      $dbu = new DbUtils();
-      $this->obj = $dbu->getItemForItemtype($itemtype);
-   }
+class PluginReportsColumnItemCheckbox extends PluginReportsColumn
+{
+    private $obj          = null;
+    private $with_comment = 0;
 
 
-   function showTitle($output_type, &$num) {
+    public function __construct($name, $itemtype, $options = [])
+    {
 
-      echo Search::showHeaderItem($output_type,
-                                  Html::getCheckAllAsCheckbox('massform'.get_class($this->obj)), $num);
+        parent::__construct($name, '&nbsp;', $options);
 
-   }
+        $dbu = new DbUtils();
+        $this->obj = $dbu->getItemForItemtype($itemtype);
+    }
 
 
-   function displayValue($output_type, $row) {
+    public function showHtmlTitle($output, &$num)
+    {
 
-      if (!isset($row[$this->name]) || !$row[$this->name]) {
-         return '';
-      }
-      if ($this->obj
-          && ($output_type == Search::HTML_OUTPUT)
-          && $this->obj->can($row[$this->name], UPDATE)) {
-         return Html::getMassiveActionCheckBox(get_class($this->obj), $row[$this->name]);
-      }
+        echo $output::showHeaderItem(Html::getCheckAllAsCheckbox('massform' . get_class($this->obj)), $num);
 
-      return '';
-   }
+    }
+
+    public function showExportTitle() {}
+
+
+    public function displayValue($output_type, $row)
+    {
+
+        if (!isset($row[$this->name]) || !$row[$this->name]) {
+            return '';
+        }
+        if ($this->obj
+            && ($output_type == Search::HTML_OUTPUT)
+            && $this->obj->can($row[$this->name], UPDATE)) {
+            return Html::getMassiveActionCheckBox(get_class($this->obj), $row[$this->name]);
+        }
+
+        return '';
+    }
 }

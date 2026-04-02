@@ -65,7 +65,7 @@ if ($report->criteriasValidated()) {
                                                                      'sorton'    => 'nb1']);
       $cols[] = new PluginReportsColumnInteger('nb2', __('Requester'), ['with_zero' => false,
                                                                         'sorton'    => 'nb2']);
-      $cols[] = new PluginReportsColumnInteger('nb3', __('Watcher'), ['with_zero' => false,
+      $cols[] = new PluginReportsColumnInteger('nb3', __('Observer'), ['with_zero' => false,
                                                                       'sorton'    => 'nb3']);
       $cols[] = new PluginReportsColumnInteger('nb4', __('Technician'), ['with_zero' => false,
                                                                          'sorton'    => 'nb4']);
