@@ -94,7 +94,7 @@ class PluginReportsIntegerCriteria extends PluginReportsDropdownCriteria {
          Dropdown::showFromArray($this->getName()."_sign",
                                  ['<='    => '<=',
                                   '>='    => '>='],
-                                 ['value' => Glpi\Toolbox\Sanitizer::unsanitize($this->getParameter($this->getName()."_sign"))]);
+                                 ['value' => $this->getParameter($this->getName()."_sign")]);
          echo "&nbsp;";
       }
       $opt = ['value' => $this->getParameterValue(),
@@ -121,7 +121,7 @@ class PluginReportsIntegerCriteria extends PluginReportsDropdownCriteria {
    function getSign() {
 
       if (empty($this->signe)) {
-         return Glpi\Toolbox\Sanitizer::unsanitize($this->getParameter($this->getName()."_sign"));
+         return $this->getParameter($this->getName()."_sign");
       }
       return $this->signe;
    }
@@ -135,5 +135,14 @@ class PluginReportsIntegerCriteria extends PluginReportsDropdownCriteria {
       $param = $this->getParameterValue();
       return $link." ".$this->getSqlField().$this->getSign()."'".($param*$this->coef)."' ";
    }
+
+    /**
+     * Get SQL code associated with the criteria
+     */
+    public function getNewSqlCriteriasRestriction($link = 'AND') {
+
+        $param = $this->getParameterValue();
+        return [$this->getSqlField() => [$this->getSign(), ($param*$this->coef)]];
+    }
 
 }

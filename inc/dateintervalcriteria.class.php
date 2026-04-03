@@ -1,4 +1,5 @@
 <?php
+
 /**
  -------------------------------------------------------------------------
   LICENSE
@@ -32,134 +33,173 @@
 /**
  * Criteria which allows to select a date interval
  */
-class PluginReportsDateIntervalCriteria extends PluginReportsAutoCriteria {
+class PluginReportsDateIntervalCriteria extends PluginReportsAutoCriteria
+{
+    public function __construct($report, $name = 'date-interval', $label = '', $start = '', $end = '')
+    {
 
-   function __construct($report, $name='date-interval', $label='', $start='', $end='') {
-
-      parent::__construct($report, $name, $name, $label);
-      $this->addCriteriaLabel($this->getName()."_1",
-                              ($start ? $start : ($label ? __('After') : __('Start date'))));
-      $this->addCriteriaLabel($this->getName()."_2",
-                              ($end ? $end : ($label ? __('Before') : __('End date'))));
-   }
-
-
-   public function setStartDate($startdate) {
-      $this->addParameter($this->getName()."_1", $startdate);
-   }
-
-
-   function setEndDate($enddate) {
-      $this->addParameter($this->getName()."_2", $enddate);
-   }
+        parent::__construct($report, $name, $name, $label);
+        $this->addCriteriaLabel(
+            $this->getName() . "_1",
+            ($start ? $start : ($label ? __('After') : __('Start date')))
+        );
+        $this->addCriteriaLabel(
+            $this->getName() . "_2",
+            ($end ? $end : ($label ? __('Before') : __('End date')))
+        );
+    }
 
 
-   public function getStartDate() {
-
-      $start = $this->getParameter($this->getName()."_1");
-      $end   = $this->getParameter($this->getName()."_2");
-
-      return (empty($start) || empty($end) || ($start < $end) ? $start : $end);
-   }
+    public function setStartDate($startdate)
+    {
+        $this->addParameter($this->getName() . "_1", $startdate);
+    }
 
 
-   public function getEndDate() {
-
-      $start = $this->getParameter($this->getName()."_1");
-      $end   = $this->getParameter($this->getName()."_2");
-
-      return (empty($start) || empty($end) || ($start < $end) ? $end : $start);
-   }
+    public function setEndDate($enddate)
+    {
+        $this->addParameter($this->getName() . "_2", $enddate);
+    }
 
 
-   public function setDefaultValues() {
+    public function getStartDate()
+    {
 
-      $this->setStartDate('');
-      $this->setEndDate('');
-   }
+        $start = $this->getParameter($this->getName() . "_1");
+        $end   = $this->getParameter($this->getName() . "_2");
 
-
-   public function displayCriteria() {
-
-      $this->getReport()->startColumn();
-      $name = $this->getCriteriaLabel($this->getName());
-      if ($name) {
-         echo "$name, ";
-      }
-      echo $this->getCriteriaLabel($this->getName()."_1").'&nbsp;:';
-      $this->getReport()->endColumn();
-
-      $this->getReport()->startColumn();
-      Html::showDateField($this->getName()."_1", ['value'      => $this->getStartDate(),
-                                                  'maybeempty' => false]);
-      $this->getReport()->endColumn();
-
-      $this->getReport()->startColumn();
-      if ($name) {
-         echo "$name, ";
-      }
-      echo $this->getCriteriaLabel($this->getName()."_2").'&nbsp;:';
-      $this->getReport()->endColumn();
-
-      $this->getReport()->startColumn();
-      Html::showDateField($this->getName()."_2", ['value'      => $this->getEndDate(),
-                                                  'maybeempty' => false]);
-      $this->getReport()->endColumn();
-   }
+        return (empty($start) || empty($end) || ($start < $end) ? $start : $end);
+    }
 
 
-   public function getSqlCriteriasRestriction($link = 'AND') {
+    public function getEndDate()
+    {
 
-      $start = $this->getStartDate();
-      $end   = $this->getEndDate();
+        $start = $this->getParameter($this->getName() . "_1");
+        $end   = $this->getParameter($this->getName() . "_2");
 
-      if (empty($start) && empty($end)) {
-         return '';
-      }
-
-      $sql = '';
-      if (!empty($start)) {
-         $sql .= $this->getSqlField() . ">= '" . $this->getStartDate() . " 00:00:00'";
-      }
-
-      if (!empty($start) && !empty($end)) {
-         $sql .= ' AND ';
-      }
-
-      if (!empty($end)) {
-         $sql .= $this->getSqlField() . "<='" . $this->getEndDate() . " 23:59:59' ";
-      }
-
-      return $link . " ($sql)";
-   }
+        return (empty($start) || empty($end) || ($start < $end) ? $end : $start);
+    }
 
 
-   function getSubName() {
+    public function setDefaultValues()
+    {
 
-      $start = $this->getStartDate();
-      $end   = $this->getEndDate();
-      $title = $this->getCriteriaLabel($this->getName());
+        $this->setStartDate('');
+        $this->setEndDate('');
+    }
 
-      if (empty($start) && empty($end)) {
-         return '';
-      }
-      if (empty($title)) {
-         if ($this->getName() == 'date-interval') {
-            $title = __('Date interval', 'reports');
-         } if ($this->getName() == 'time-interval') {
-            $title = __('Time interval', 'reports');
-         }
-      }
 
-      if (empty($start)) {
-         return $title . ', ' . sprintf(__('%1$s %2$s'), __('Before'), Html::convDate($end));
-      }
+    public function displayCriteria()
+    {
 
-      if (empty($end)) {
-         return $title . ', ' . sprintf(__('%1$s %2$s'), __('After'), Html::convDate($start));
-      }
+        $this->getReport()->startColumn();
+        $name = $this->getCriteriaLabel($this->getName());
+        if ($name) {
+            echo "$name, ";
+        }
+        echo $this->getCriteriaLabel($this->getName() . "_1") . '&nbsp;:';
+        $this->getReport()->endColumn();
 
-      return sprintf(__('%1$s (%2$s)'), $title, Html::convDate($start) . ',' .Html::convDate($end));
-   }
+        $this->getReport()->startColumn();
+        Html::showDateField($this->getName() . "_1", ['value'      => $this->getStartDate(),
+            'maybeempty' => false]);
+        $this->getReport()->endColumn();
+
+        $this->getReport()->startColumn();
+        if ($name) {
+            echo "$name, ";
+        }
+        echo $this->getCriteriaLabel($this->getName() . "_2") . '&nbsp;:';
+        $this->getReport()->endColumn();
+
+        $this->getReport()->startColumn();
+        Html::showDateField($this->getName() . "_2", ['value'      => $this->getEndDate(),
+            'maybeempty' => false]);
+        $this->getReport()->endColumn();
+    }
+
+
+    public function getSqlCriteriasRestriction($link = 'AND')
+    {
+
+        $start = $this->getStartDate();
+        $end   = $this->getEndDate();
+
+        if (empty($start) && empty($end)) {
+            return '';
+        }
+
+        $sql = '';
+        if (!empty($start)) {
+            $sql .= $this->getSqlField() . ">= '" . $this->getStartDate() . " 00:00:00'";
+        }
+
+        if (!empty($start) && !empty($end)) {
+            $sql .= ' AND ';
+        }
+
+        if (!empty($end)) {
+            $sql .= $this->getSqlField() . "<='" . $this->getEndDate() . " 23:59:59' ";
+        }
+
+        return $link . " ($sql)";
+    }
+
+    public function getNewSqlCriteriasRestriction($link = 'AND')
+    {
+
+        $start = $this->getStartDate();
+        $end   = $this->getEndDate();
+
+        if (empty($start) && empty($end)) {
+            return '';
+        }
+
+        $sql = [];
+        if (!empty($start)) {
+            $sql = [$this->getSqlField() => ['>=', $start . " 00:00:00"]];
+        }
+
+        //        if (!empty($start) && !empty($end)) {
+        //            $sql .= ' AND ';
+        //        }
+
+        if (!empty($end)) {
+            $sql = $sql + [$this->getSqlField() => ['<=', $end . " 23:59:59"]];
+        }
+
+        return $sql;
+    }
+
+
+    public function getSubName()
+    {
+
+        $start = $this->getStartDate();
+        $end   = $this->getEndDate();
+        $title = $this->getCriteriaLabel($this->getName());
+
+        if (empty($start) && empty($end)) {
+            return '';
+        }
+        if (empty($title)) {
+            if ($this->getName() == 'date-interval') {
+                $title = __('Date interval', 'reports');
+            } if ($this->getName() == 'time-interval') {
+                $title = __('Time interval', 'reports');
+            }
+        }
+
+        if (empty($start)) {
+            return $title . ', ' . sprintf(__('%1$s %2$s'), __('Before'), Html::convDate($end));
+        }
+
+        if (empty($end)) {
+            return $title . ', ' . sprintf(__('%1$s %2$s'), __('After'), Html::convDate($start));
+        }
+
+        return sprintf(__('%1$s (%2$s)'), $title, Html::convDate($start) . ',' . Html::convDate($end));
+    }
 
 }

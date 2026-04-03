@@ -20,10 +20,10 @@
 
  @package   reports
  @authors    Nelly Mahu-Lasson, Remi Collet
- @copyright Copyright (c) 2009-2022 Reports plugin team
+ @copyright Copyright (c) 2009-2026 Reports plugin team
  @license   AGPL License 3.0 or (at your option) any later version
             http://www.gnu.org/licenses/agpl-3.0-standalone.html
- @link      https://forge.glpi-project.org/projects/reports
+ @link      https://github.com/InfotelGLPI/reports
  @link      http://www.glpi-project.org/
  @since     2009
  --------------------------------------------------------------------------
@@ -33,8 +33,8 @@ $USEDBREPLICATE         = 1;
 $DBCONNECTION_REQUIRED  = 0; // not really a big SQL request
 
 global $DB;
-//TRANS: The name of the report = Global History (for Test / example only)
-$report = new PluginReportsAutoReport(__('globalhisto_report_title', 'reports'));
+
+$report = new PluginReportsAutoReport(__('Global History (for Test / example only)', 'reports'));
 
 //Report's search criterias
 //Possible current values are :
@@ -76,13 +76,16 @@ if ($report->criteriasValidated()) {
                         new PluginReportsColumnMap('linked_action', _x('noun','Update'),
                                                    $columns_mappings)]);
 
+    $criteria = [
+        'SELECT' => ['id', 'date_mod', 'user_name', 'linked_action'],
+        'FROM' => 'glpi_logs',
+        'WHERE' => [],
+        'ORDERBY' => 'date_mod'
+    ];
 
-   $query = "SELECT `id`, `date_mod`, `user_name`, `linked_action`
-             FROM `glpi_logs` ".
-             $report->addSqlCriteriasRestriction("WHERE")."
-             ORDER BY `date_mod`";
+    $criteria['WHERE'] = $criteria['WHERE'] +  $report->addNewSqlCriteriasRestriction();
 
-   $report->setSqlRequest($query);
+   $report->setSqlRequest($criteria);
    $report->execute();
 } else {
    Html::footer();

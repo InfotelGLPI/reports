@@ -79,25 +79,23 @@ class PluginReportsColumn
         }
         $order = 'ASC';
         $issort = false;
-        if (isset($_REQUEST['sort']) && $_REQUEST['sort'] == $this->name) {
+        if (isset($_GET['sort']) && $_GET['sort'] == $this->name) {
             $issort = true;
-            if (isset($_REQUEST['order']) && $_REQUEST['order'] == 'ASC') {
+            if (isset($_GET['order']) && $_GET['order'] == 'ASC') {
                 $order = 'DESC';
             }
         }
-        $link  = $_SERVER['REQUEST_URI'];
-        $first = true;
-        foreach ($_REQUEST as $name => $value) {
-            if (!in_array($name, ['sort','order','PHPSESSID'])) {
-                $link .= ($first ? '?' : '&amp;');
-                $link .= $name . '=' . urlencode($value);
-                $first = false;
+        $link  = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+        $link .= '?sort=' . urlencode($this->name);
+        $link .= '&order=' . $order;
+
+        // Keep only essential parameters (id, report)
+        $essential_params = ['id', 'report'];
+        foreach ($essential_params as $param) {
+            if (isset($_GET[$param])) {
+                $link .= '&' . $param . '=' . urlencode($_GET[$param]);
             }
         }
-        $link .= ($first ? '?' : '&amp;') . 'sort=' . urlencode($this->name);
-        $link .= '&amp;order=' . $order;
-        //      echo Search::showHeaderItem($output_type, $this->title, $num,
-        //                                  $link, $issort, ($order=='ASC'?'DESC':'ASC'));
 
         echo $output::showHeaderItem($this->title, $num, $link, $issort, ($order == 'ASC' ? 'DESC' : 'ASC'));
     }
@@ -110,23 +108,24 @@ class PluginReportsColumn
         }
         $order = 'ASC';
         $issort = false;
-        if (isset($_REQUEST['sort']) && $_REQUEST['sort'] == $this->name) {
+        if (isset($_GET['sort']) && $_GET['sort'] == $this->name) {
             $issort = true;
-            if (isset($_REQUEST['order']) && $_REQUEST['order'] == 'ASC') {
+            if (isset($_GET['order']) && $_GET['order'] == 'ASC') {
                 $order = 'DESC';
             }
         }
-        $link  = $_SERVER['REQUEST_URI'];
-        $first = true;
-        foreach ($_REQUEST as $name => $value) {
-            if (!in_array($name, ['sort','order','PHPSESSID'])) {
-                $link .= ($first ? '?' : '&amp;');
-                $link .= $name . '=' . urlencode($value);
-                $first = false;
+        $link  = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+        $link .= '?sort=' . urlencode($this->name);
+        $link .= '&order=' . $order;
+
+        // Keep only essential parameters (id, report)
+        $essential_params = ['id', 'report'];
+        foreach ($essential_params as $param) {
+            if (isset($_GET[$param])) {
+                $link .= '&' . $param . '=' . urlencode($_GET[$param]);
             }
         }
-        $link .= ($first ? '?' : '&amp;') . 'sort=' . urlencode($this->name);
-        $link .= '&amp;order=' . $order;
+
         return $output::showHeaderItem($this->title, $num, $link, $issort, ($order == 'ASC' ? 'DESC' : 'ASC'));
     }
 
@@ -140,28 +139,28 @@ class PluginReportsColumn
         return $this->displayValue($output_type, $row);
     }
 
-    public function showHtmlValue($output_type, $output, $row, $num, $row_num, $bold = false)
-    {
-        return $output::showItem($this->displayValue($output_type, $row), $num, $row_num, ($bold ? $this->extrabold : $this->extrafine));
-    }
-
-    public function showExportValue()
-    {
-        return $row[$this->name] ?? "";
-    }
-
-
-    public function showTotal($output_type, &$num, $row_num)
-    {
-
-        echo Search::showItem(
-            $output_type,
-            ($this->withtotal ? $this->displayTotal($output_type) : ''),
-            $num,
-            $row_num,
-            $this->extrabold
-        );
-    }
+//    public function showHtmlValue($output_type, $output, $row, $num, $row_num, $bold = false)
+//    {
+//        return $output::showItem($this->displayValue($output_type, $row), $num, $row_num, ($bold ? $this->extrabold : $this->extrafine));
+//    }
+//
+//    public function showExportValue()
+//    {
+//        return $row[$this->name] ?? "";
+//    }
+//
+//
+//    public function showTotal($output_type, &$num, $row_num)
+//    {
+//
+//        echo Search::showItem(
+//            $output_type,
+//            ($this->withtotal ? $this->displayTotal($output_type) : ''),
+//            $num,
+//            $row_num,
+//            $this->extrabold
+//        );
+//    }
 
     public function showNewTotal($output_type, &$num, $row_num)
     {

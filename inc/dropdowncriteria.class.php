@@ -290,4 +290,22 @@ class PluginReportsDropdownCriteria extends PluginReportsAutoCriteria {
       return '';
    }
 
+
+    /**
+     * Get SQL code associated with the criteria
+     */
+    public function getNewSqlCriteriasRestriction($link = 'AND') {
+
+        if ($this->getParameterValue() || $this->searchzero) {
+            if (!$this->childrens) {
+                return [$this->getSqlField() => $this->getParameterValue()];
+            }
+            if ($this->getParameterValue()) {
+                $childs = getSonsOf($this->getTable(),
+                    $this->getParameterValue());
+                return [$this->getSqlField() => $childs];
+            }
+            // 0 + its child means ALL
+        }
+    }
 }

@@ -29,6 +29,8 @@
  --------------------------------------------------------------------------
  */
 
+use Glpi\DBAL\QueryExpression;
+
 /**
  * Criteria which allows to select a time interval
  */
@@ -99,6 +101,30 @@ class PluginReportsTimeIntervalCriteria extends PluginReportsAutoCriteria {
       return " $link (TIME(". $this->getSqlField().") >= '".$this->getParameter('starttime').":00'
                       OR TIME(".$this->getSqlField().") < '".$this->getParameter('endtime').":00')";
    }
+
+    /**
+     * Get SQL code associated with the criteria
+     */
+    public function getNewSqlCriteriasRestriction($link = 'AND') {
+
+        if ($this->getParameter("starttime") < $this->getParameter("endtime")) {
+
+            $begin = $this->getParameter('starttime'). ":00";
+            $end = $this->getParameter('endtime'). ":00";
+            return [
+                new QueryExpression("TIME(" . $this->getSqlField() . ") => $begin"),
+                new QueryExpression("TIME(" . $this->getSqlField() . ") < $end") ,
+            ];
+
+        }
+        // ex time < 08:00:00 or 18:00:00 <= time
+        $begin = $this->getParameter('starttime'). ":00";
+        $end = $this->getParameter('endtime'). ":00";
+        return [
+            new QueryExpression("TIME(" . $this->getSqlField() . ") => $begin"),
+            new QueryExpression("TIME(" . $this->getSqlField() . ") < $end") ,
+        ];
+    }
 
 
    function getSubName() {

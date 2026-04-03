@@ -20,10 +20,10 @@
 
  @package   reports
  @authors    Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay
- @copyright Copyright (c) 2009-2022 Reports plugin team
+ @copyright Copyright (c) 2009-2026 Reports plugin team
  @license   AGPL License 3.0 or (at your option) any later version
             http://www.gnu.org/licenses/agpl-3.0-standalone.html
- @link      https://forge.glpi-project.org/projects/reports
+ @link      https://github.com/InfotelGLPI/reports
  @link      http://www.glpi-project.org/
  @since     2009
  -------------------------------------------------------------------------
@@ -44,9 +44,9 @@ function plugin_reports_rulelist ($rulecollection, $title) {
    $rulecollection->getCollectionDatas(true, true);
    echo "<div class='center'>";
    echo "<table class='tab_cadre' cellpadding='5'>\n";
-   echo "<tr><th colspan='6'><a href='".$_SERVER["PHP_SELF"]."'>" .
+   echo "<tr><th colspan='6'><a href='".$_SERVER["REQUEST_URI"]."'>" .
          //TRANS: The name of the report = Rule's catalog
-         __('rules_report_title', 'reports') . "</a> - " . $title . "</th></tr>";
+         __("Rule's catalog", 'reports') . "</a> - " . $title . "</th></tr>";
 
    echo "<tr><th>".__('Name')."</th>";
    echo "<th>".__('Description')."</th>";
@@ -94,7 +94,7 @@ function plugin_reports_rulelist ($rulecollection, $title) {
    echo "</table></div>\n";
 }
 
-Html::header(__("rules_report_title", 'reports'), $_SERVER['PHP_SELF'], "utils", "report");
+Html::header(__("Rule's catalog", 'reports'), $_SERVER['PHP_SELF'], "utils", "report");
 
 Report::title();
 
@@ -111,19 +111,19 @@ if ($type == "ldap") {
 } else {
    echo "<div class='center'>";
    echo "<table class='tab_cadre' cellpadding='5'>\n";
-   echo "<tr><th>". sprintf(__('%1$s - %2$s'), __("rules_report_title", 'reports'), __('Rule type')).
+   echo "<tr><th>". sprintf(__('%1$s - %2$s'), __("Rule's catalog", 'reports'), __('Rule type')).
         "</th></tr>";
 
 
    if (Session::haveRight("rule_ldap", READ)) {
       echo "<tr class='tab_bg_1'><td class='center b'>".
-           "<a href='".$_SERVER["PHP_SELF"]."?type=ldap'>".__('Authorizations assignment rules').
+           "<a href='".$_SERVER["REQUEST_URI"]."?type=ldap'>".__('Authorizations assignment rules').
            "</a></td></tr>";
    }
 
    if (Session::haveRight("rule_softwarecategories", READ)) {
       echo "<tr class='tab_bg_1'><td class='center b'>".
-           "<a href='".$_SERVER["PHP_SELF"]."?type=soft'>".
+           "<a href='".$_SERVER["REQUEST_URI"]."?type=soft'>".
              __('Rules for assigning a category to software')."</a></td></tr>";
    }
    echo "</table></div>\n";

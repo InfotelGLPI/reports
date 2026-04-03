@@ -29,6 +29,8 @@
  --------------------------------------------------------------------------
  */
 
+use Glpi\DBAL\QueryExpression;
+
 /**
  * User titles selection criteria
  */
@@ -84,5 +86,15 @@ class PluginReportsTextCriteria extends PluginReportsDropdownCriteria {
       }
       return '';
    }
+
+    /**
+     * Get SQL code associated with the criteria
+     */
+    public function getNewSqlCriteriasRestriction($link = 'AND') {
+        global $DB;
+
+        $param = $this->getParameterValue();
+        return [new QueryExpression(Search::makeTextCriteria($DB::quoteName($this->getSqlField()), $param, false, $link))];
+    }
 
 }

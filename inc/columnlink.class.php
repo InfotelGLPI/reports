@@ -75,7 +75,7 @@ class PluginReportsColumnLink extends PluginReportsColumn
         }
 
         if ($output_type == Search::HTML_OUTPUT && ($this->obj != null)) {
-            return $this->obj->getLink([$this->with_comment]);
+            return $this->obj->getLink();
         }
 
         return $this->obj->getNameID();

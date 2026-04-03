@@ -20,30 +20,31 @@
 
  @package   reports
  @authors    Nelly Mahu-Lasson, Remi Collet
- @copyright Copyright (c) 2009-2022 Reports plugin team
+ @copyright Copyright (c) 2009-2026 Reports plugin team
  @license   AGPL License 3.0 or (at your option) any later version
             http://www.gnu.org/licenses/agpl-3.0-standalone.html
- @link      https://forge.glpi-project.org/projects/reports
+ @link      https://github.com/InfotelGLPI/reports
  @link      http://www.glpi-project.org/
  @since     2009
  --------------------------------------------------------------------------
  */
+
+use Glpi\DBAL\QueryFunction;
 
 $USEDBREPLICATE        = 1;
 $DBCONNECTION_REQUIRED = 1; // Really a big SQL request
 
 global $DB;
 
-includeLocales("histoinst");
-
 Session::checkRight("plugin_reports_histoinst", READ);
+
 $computer = new Computer();
 $computer->checkGlobal(READ);
+
 $software = new Software();
 $software->checkGlobal(READ);
 
-//TRANS: The name of the report = History of last software's installations
-Html::header(__('histoinst_report_title', 'reports'), $_SERVER['PHP_SELF'], "utils", "report");
+Html::header(__("History of last software's installations", 'reports'), $_SERVER['PHP_SELF'], "utils", "report");
 
 Report::title();
 
@@ -70,11 +71,51 @@ $sql = "SELECT  `glpi_logs`.`date_mod` AS dat, `linked_action`, `itemtype`, `ite
         ORDER BY `glpi_logs`.`id` DESC
         LIMIT 0,200";
 
-$result = $DB->doQuery($sql);
+$criteria = [
+    'SELECT' => ['glpi_logs.date_mod AS dat',
+        'glpi_logs.linked_action',
+        'glpi_logs.itemtype',
+        'glpi_logs.itemtype_link',
+        'glpi_logs.old_value',
+        'glpi_logs.new_value',
+        'glpi_computers.id AS cid',
+        'glpi_computers.name',
+        'glpi_logs.user_name',
+        'glpi_logs.items_id',
+        'glpi_computers.entities_id',
+    ],
+    'FROM' => 'glpi_logs',
+    'LEFT JOIN'       => [
+        'glpi_computers' => [
+            'ON' => [
+                'glpi_logs' => 'items_id',
+                'glpi_computers'          => 'id',
+            ],
+        ],
+    ],
+    'WHERE' => [
+        'linked_action' => [Log::HISTORY_INSTALL_SOFTWARE],
+        'itemtype' => 'Computer',
+        'glpi_logs.date_mod' => ['>', QueryFunction::dateSub(
+            date: QueryFunction::now(),
+            interval: '21',
+            interval_unit: 'DAY'
+        )],
+    ],
+    'ORDERBY' => 'glpi_logs.id DESC',
+    'LIMIT' => '0,200',
+];
+
+$criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
+        'glpi_computers'
+    );
+
+$iterator = $DB->request($criteria);
+
 
 $prev = "";
 $class = "tab_bg_2";
-foreach ($result as $data) {
+foreach ($iterator as $data) {
    if (empty($data["name"])) {
       $data["name"] = "(".$data["cid"].")";
    }
@@ -99,6 +140,6 @@ foreach ($result as $data) {
 if (!empty($prev)) {
    echo "</td></tr>\n";
 }
-echo "</table><p>". __('The list is limited to 200 items and 21 days', 'reports')."</p></div>\n";
+echo "</table><div class='alert alert-info center'>". __('The list is limited to 200 items and 21 days', 'reports')."</div></div>\n";
 
 Html::footer();

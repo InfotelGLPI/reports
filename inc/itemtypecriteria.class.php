@@ -1,4 +1,5 @@
 <?php
+
 /**
  -------------------------------------------------------------------------
   LICENSE
@@ -33,63 +34,72 @@
 /**
  * Ticket status selection criteria
  */
-class PluginReportsItemTypeCriteria extends PluginReportsDropdownCriteria {
+class PluginReportsItemTypeCriteria extends PluginReportsDropdownCriteria
+{
+    private $types = [];
 
-   private $types = [];
 
+    /**
+     * @param $report
+     * @param $name            (default 'itemtype')
+     * @param $label           (default '')
+     * @param $types     array
+     * @param $ignored   array
+    **/
+    public function __construct($report, $name = 'itemtype', $label = '', $types = [], $ignored = [])
+    {
+        global $CFG_GLPI;
 
-   /**
-    * @param $report
-    * @param $name            (default 'itemtype')
-    * @param $label           (default '')
-    * @param $types     array
-    * @param $ignored   array
-   **/
-   function __construct($report, $name='itemtype', $label='', $types=[], $ignored=[]) {
-      global $CFG_GLPI;
+        parent::__construct($report, $name, NOT_AVAILABLE, ($label ? $label : __('Item type')));
 
-      parent::__construct($report, $name, NOT_AVAILABLE, ($label ? $label : __('Item type')));
+        $dbu = new DbUtils();
 
-      $dbu = new DbUtils();
-
-      if (is_array($types) && count($types)) {
-         // $types is an hashtable of itemtype => display name
-         $this->types = $types;
-      } else if (is_string($types) && isset($CFG_GLPI[$types])) {
-         // $types is the name of an configured type hashtable (infocom_types, doc_types, ...)
-         foreach($CFG_GLPI[$types] as $itemtype) {
-            if (($item = $dbu->getItemForItemtype($itemtype)) && !in_array($itemtype, $ignored)) {
-               $this->types[$itemtype] = $item->getTypeName();
+        if (is_array($types) && count($types)) {
+            // $types is an hashtable of itemtype => display name
+            $this->types = $types;
+        } elseif (is_string($types) && isset($CFG_GLPI[$types])) {
+            // $types is the name of an configured type hashtable (infocom_types, doc_types, ...)
+            foreach ($CFG_GLPI[$types] as $itemtype) {
+                if (($item = $dbu->getItemForItemtype($itemtype)) && !in_array($itemtype, $ignored)) {
+                    $this->types[$itemtype] = $item->getTypeName();
+                }
             }
-         }
-         $this->types['all'] = __('All');
-      } else {
-         // No types, use helpdesk_types
-         $this->types     = Ticket::getAllTypesForHelpdesk();
-         $this->types['all'] = __('All');
-      }
-   }
+            $this->types['all'] = __('All');
+        } else {
+            // No types, use helpdesk_types
+
+            $this->types     = Ticket::getAllTypesForHelpdesk();
+            $this->types['all'] = __('All');
+        }
+    }
 
 
-   function getSubName() {
+    public function getSubName()
+    {
 
-      $dbu = new DbUtils();
-      $itemtype = $this->getParameterValue();
-      if ($itemtype && ($item = $dbu->getItemForItemtype($itemtype))) {
-         $name = $item->getTypeName();
-      } else {
-         // All
-         return '';
-      }
-      return " " . $this->getCriteriaLabel() . " : " . $name;
-   }
+        $dbu = new DbUtils();
+        $itemtype = $this->getParameterValue();
+        if ($itemtype && ($item = $dbu->getItemForItemtype($itemtype))) {
+            $name = $item->getTypeName();
+        } else {
+            // All
+            return '';
+        }
+        return " " . $this->getCriteriaLabel() . " : " . $name;
+    }
 
 
-   public function displayDropdownCriteria() {
-      ksort($this->types);
+    public function displayDropdownCriteria()
+    {
+        ksort($this->types);
+        $types = $this->types;
+        $types[0] = Dropdown::EMPTY_VALUE;
 
-      Dropdown::showFromArray($this->getName(), $this->types,
-                              ['value'=> $this->getParameterValue()]);
-   }
+        Dropdown::showFromArray(
+            $this->getName(),
+            $types,
+            ['value' => $this->getParameterValue()]
+        );
+    }
 
 }

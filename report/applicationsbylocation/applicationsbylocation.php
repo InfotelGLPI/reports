@@ -20,10 +20,10 @@
 
  @package   reports
  @authors    Nelly Mahu-Lasson, Remi Collet
- @copyright Copyright (c) 2009-2022 Reports plugin team
+ @copyright Copyright (c) 2009-2026 Reports plugin team
  @license   AGPL License 3.0 or (at your option) any later version
             http://www.gnu.org/licenses/agpl-3.0-standalone.html
- @link      https://forge.glpi-project.org/projects/reports
+ @link      https://github.com/InfotelGLPI/reports
  @link      http://www.glpi-project.org/
  @since     2009
  --------------------------------------------------------------------------
@@ -34,30 +34,29 @@ $DBCONNECTION_REQUIRED  = 0;
 
 $dbu = new DbUtils();
 
-//TRANS: The name of the report = Applications by locations and versions
-$report = new PluginReportsAutoReport(__('applicationsbylocation_report_title', 'reports'));
+$report = new PluginReportsAutoReport(__('Applications by locations and versions', 'reports'));
 
 $softwarecategories = new PluginReportsSoftwareCategoriesCriteria(
     $report,
     'softwarecategories',
     __('Software category')
 );
-$softwarecategories->setSqlField("`glpi_softwarecategories`.`id`");
+$softwarecategories->setSqlField('glpi_softwarecategories.id');
 
-$software = new PluginReportsSoftwareCriteria($report, 'software', __('Applications', 'reports'));
-$software->setSqlField("`glpi_softwares`.`id`");
+$software = new PluginReportsSoftwareCriteria($report, 'software', __('Application', 'reports'));
+$software->setSqlField('glpi_softwares.id');
 
 $statecpt = new PluginReportsStatusCriteria($report, 'statecpt', __('Computer status', 'reports'));
-$statecpt->setSqlField("`glpi_computers`.`states_id`");
+$statecpt->setSqlField('glpi_computers.states_id');
 
-$location = new PluginReportsLocationCriteria($report, 'location', _n('Location', 'Locations', 2));
-$location->setSqlField("`glpi_computers`.`locations_id`");
+$location = new PluginReportsLocationCriteria($report, 'location', _n('Location', 'Locations', 1));
+$location->setSqlField('glpi_computers.locations_id');
 
 
 $report->displayCriteriasForm();
 
 // Form validate and only one software with license
-if ($report->criteriasValidated()) {
+//if ($report->criteriasValidated()) {
     $report->setSubNameAuto();
 
     $report->setColumns([new PluginReportsColumnLink(
@@ -81,7 +80,7 @@ if ($report->criteriasValidated()) {
                         new PluginReportsColumn('statecpt', _n('Status', 'Statuses', 1)),
                         new PluginReportsColumnLink(
                             'version',
-                            __('Version name'),
+                            __('Version'),
                             'SoftwareVersion'
                         ),
                         new PluginReportsColumnLink(
@@ -91,37 +90,83 @@ if ($report->criteriasValidated()) {
                             ['sorton' => 'glpi_users.name']
                         )]);
 
-    $query = "SELECT `glpi_softwareversions`.`softwares_id` AS soft,
-                    `glpi_softwareversions`.`name` AS software,
-                    `glpi_locations`.`id` AS locat,
-                    `glpi_computers`.`id` AS computer,
-                    `state_ver`.`name` AS statever,
-                    `state_cpt`.`name` AS statecpt,
-                    `glpi_locations`.`name` as location,
-                    `glpi_softwareversions`.`id` AS version,
-                    `glpi_computers`.`users_id` AS user
-             FROM `glpi_softwareversions`
-             INNER JOIN `glpi_items_softwareversions`
-                   ON (`glpi_items_softwareversions`.`softwareversions_id` = `glpi_softwareversions`.`id`)
-             INNER JOIN `glpi_computers`
-                   ON (`glpi_items_softwareversions`.`items_id` = `glpi_computers`.`id`
-                       AND `glpi_items_softwareversions`.`itemtype` = 'Computer')
-             INNER JOIN `glpi_softwares`
-                   ON (`glpi_softwares`.`id` = `glpi_softwareversions`.`softwares_id`)
-             LEFT JOIN `glpi_softwarecategories`
-                  ON (`glpi_softwares`.`softwarecategories_id` = `glpi_softwarecategories`.`id`)
-             LEFT JOIN `glpi_locations`
-                  ON (`glpi_locations`.`id` = `glpi_computers`.`locations_id`)
-             LEFT JOIN `glpi_states` state_ver
-                  ON (`state_ver`.`id` = `glpi_softwareversions`.`states_id`)
-             LEFT JOIN `glpi_states` state_cpt
-                  ON (`state_cpt`.`id` = `glpi_computers`.`states_id`) ".
-             $dbu->getEntitiesRestrictRequest('WHERE', 'glpi_softwareversions') .
-             $report->addSqlCriteriasRestriction().
-             "ORDER BY soft ASC, locat ASC";
+    // SQL statement
+    $criteria = [
+        'SELECT' => ['glpi_softwareversions.softwares_id AS soft',
+            'glpi_softwareversions.name AS software',
+            'glpi_locations.id AS locat',
+            'glpi_computers.id AS computer',
+            'state_ver.name AS statever',
+            'state_cpt.name AS statecpt',
+            'glpi_locations.name AS location',
+            'glpi_softwareversions.id AS version',
+            'glpi_computers.users_id AS user',
+        ],
+        'FROM' => 'glpi_softwareversions',
+        'INNER JOIN'       => [
+            'glpi_items_softwareversions' => [
+                'ON' => [
+                    'glpi_items_softwareversions' => 'softwareversions_id',
+                    'glpi_softwareversions'          => 'id',
+                ],
+            ],
+            'glpi_computers' => [
+                'ON' => [
+                    'glpi_items_softwareversions'   => 'items_id',
+                    'glpi_computers'                  => 'id', [
+                        'AND' => [
+                            'glpi_items_softwareversions.itemtype' => 'Computer',
+                        ],
+                    ],
+                ]
+            ],
+            'glpi_softwares' => [
+                'ON' => [
+                    'glpi_softwareversions' => 'softwares_id',
+                    'glpi_softwares'          => 'id',
+                ],
+            ],
+        ],
+        'LEFT JOIN'       => [
+            'glpi_softwarecategories' => [
+                'ON' => [
+                    'glpi_softwares' => 'softwarecategories_id',
+                    'glpi_softwarecategories'          => 'id',
+                ],
+            ],
+            'glpi_locations' => [
+                'ON' => [
+                    'glpi_computers' => 'locations_id',
+                    'glpi_locations'          => 'id',
+                ],
+            ],
+            'glpi_states AS state_ver' => [
+                'ON' => [
+                    'glpi_softwareversions' => 'states_id',
+                    'state_ver'          => 'id',
+                ],
+            ],
+            'glpi_states AS state_cpt' => [
+                'ON' => [
+                    'glpi_computers' => 'states_id',
+                    'state_cpt'          => 'id',
+                ],
+            ],
+        ],
+        'WHERE' => [],
+        'ORDERBY'   => ['soft ASC, locat ASC'],
+    ];
+    $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
+            'glpi_softwareversions'
+        );
 
-    $report->setSqlRequest($query);
+    $criteria['WHERE'] = $criteria['WHERE'] + $report->addNewSqlCriteriasRestriction();
+
+    $criteria['ORDERBY'] = $criteria['ORDERBY'] + $report->getNewOrderBy('entity');
+
+    $report->setSqlRequest($criteria);
+
     $report->execute();
-} else {
-    Html::footer();
-}
+//} else {
+//    Html::footer();
+//}

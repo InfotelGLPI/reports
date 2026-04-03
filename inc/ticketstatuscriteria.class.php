@@ -119,4 +119,62 @@ class PluginReportsTicketStatusCriteria extends PluginReportsArrayCriteria {
       return $link . " " . $this->getSqlField() . " IN ('".$list."') ";
    }
 
+    /**
+     * Get SQL code associated with the criteria
+     *
+     * @see plugins/reports/inc/PluginReportsArrayCriteria::getSqlCriteriasRestriction()
+     **/
+    public function getNewSqlCriteriasRestriction($link='AND') {
+
+        $status = $this->getParameterValue();
+
+        switch ($status) {
+            case "notold" :
+                $list = Ticket::getAllStatusArray();
+                $check = array_merge(Ticket::getSolvedStatusArray(),
+                    Ticket::getClosedStatusArray());
+                foreach ($check as $status) {
+                    if (isset($list[$status])) {
+                        unset($list[$status]);
+                    }
+                }
+                $list = array_keys($list);
+                break;
+
+            case "old" :
+                $list = array_merge(Ticket::getSolvedStatusArray(),
+                    Ticket::getClosedStatusArray());
+                break;
+
+            case "process" :
+                $list = Ticket::getProcessStatusArray();
+                break;
+
+            case 'notclosed' :
+                $list = Ticket::getAllStatusArray();
+                foreach (Ticket::getClosedStatusArray() as $status) {
+                    if (isset($list[$status])) {
+                        unset($list[$status]);
+                    }
+                }
+                $list = array_keys($list);
+                break;
+
+            case Ticket::INCOMING :
+            case Ticket::ASSIGNED :
+            case Ticket::PLANNED :
+            case Ticket::WAITING :
+            case Ticket::SOLVED :
+            case Ticket::CLOSED :
+                $list = [$status];
+                break;
+
+            case "all" :
+            default :
+                return '';
+        }
+
+        return [$this->getSqlField() => $list];
+    }
+
 }

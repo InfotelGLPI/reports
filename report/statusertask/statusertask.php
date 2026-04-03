@@ -20,10 +20,10 @@
 
  @package   reports
  @authors    Nelly Mahu-Lasson, Remi Collet
- @copyright Copyright (c) 2009-2022 Reports plugin team
+ @copyright Copyright (c) 2009-2026 Reports plugin team
  @license   AGPL License 3.0 or (at your option) any later version
             http://www.gnu.org/licenses/agpl-3.0-standalone.html
- @link      https://forge.glpi-project.org/projects/reports
+ @link      https://github.com/InfotelGLPI/reports
  @link      http://www.glpi-project.org/
  @since     2009
  --------------------------------------------------------------------------
@@ -35,7 +35,7 @@ $DBCONNECTION_REQUIRED  = 1;
 global $DB;
 
 //titre du rapport dans la liste de selection,  soit en dur ici, soit mettre à jour la variable dans les fichiers de traduction;
-$report = new PluginReportsAutoReport(__('statusertask_report_title', 'reports'));
+$report = new PluginReportsAutoReport(__('Tasks list per user', 'reports'));
 
 //critère de selection;
 $date = new PluginReportsDateIntervalCriteria($report, '`glpi_tickettasks`.`date`', __('Tasks created', 'reports'));

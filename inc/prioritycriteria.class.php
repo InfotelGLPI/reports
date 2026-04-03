@@ -110,4 +110,20 @@ class PluginReportsPriorityCriteria extends PluginReportsAutoCriteria {
       }
    }
 
+    /**
+     * Get SQL code associated with the criteria
+     */
+    public function getNewSqlCriteriasRestriction($link = 'AND') {
+        //If value > 0 : a priority is selected
+        //If value == 0 : no priority selected
+        //If value < 0 : means "priority above the priority selected"
+        if ($this->getParameterValue() > 0) {
+            return [$this->getSqlField() => $this->getParameterValue()];
+        }
+
+        if ($this->getParameterValue() < 0) {
+            return [$this->getSqlField() => ['>=', abs($this->getParameterValue())]];
+        }
+    }
+
 }

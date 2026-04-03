@@ -815,6 +815,23 @@ class PluginReportsAutoReport extends CommonDBTM
      * Append date and time restriction in an sql request
      * @param link with previous condition
      */
+    public function addNewSqlCriteriasRestriction($link = 'AND')
+    {
+        $sql = [];
+        //Get all criterias sql restriction criterias
+        foreach ($this->criterias as $criteria) {
+            $add = $criteria->getNewSqlCriteriasRestriction($link);
+            if ($add) {
+                $sql[] = $add;
+            }
+        }
+        return $sql;
+    }
+
+    /**
+     * Append date and time restriction in an sql request
+     * @param link with previous condition
+     */
     public function addSqlCriteriasRestriction($link = 'AND')
     {
         $sql = "";

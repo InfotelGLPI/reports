@@ -1,4 +1,5 @@
 <?php
+
 /**
  -------------------------------------------------------------------------
   LICENSE
@@ -20,10 +21,10 @@
 
  @package   reports
  @authors    Nelly Mahu-Lasson, Remi Collet
- @copyright Copyright (c) 2009-2022 Reports plugin team
+ @copyright Copyright (c) 2009-2026 Reports plugin team
  @license   AGPL License 3.0 or (at your option) any later version
             http://www.gnu.org/licenses/agpl-3.0-standalone.html
- @link      https://forge.glpi-project.org/projects/reports
+ @link      https://github.com/InfotelGLPI/reports
  @link      http://www.glpi-project.org/
  @since     2009
  --------------------------------------------------------------------------
@@ -51,194 +52,201 @@ $dbu = new DbUtils();
  *
  */
 //TRANS: The name of the report = Financial information
-$report = new PluginReportsAutoReport(__('infocom_report_title', 'reports'));
+$report = new PluginReportsAutoReport(__('Financial information', 'reports'));
 
 $ignored = ['Cartridge', 'CartridgeItem', 'Consumable', 'ConsumableItem', 'Software', 'Line',
-            'Certificate', 'Appliance', 'Domain', 'Item_DeviceSimcard', 'SoftwareLicense'];
+    'Certificate', 'Appliance', 'Domain', 'Item_DeviceSimcard', 'SoftwareLicense'];
 
-$date = new PluginReportsDateIntervalCriteria($report, '`glpi_infocoms`.`buy_date`',
-                                              __('Date of purchase'));
+$date = new PluginReportsDateIntervalCriteria(
+    $report,
+    '`glpi_infocoms`.`buy_date`',
+    __('Date of purchase')
+);
 $type = new PluginReportsItemTypeCriteria($report, 'itemtype', '', 'infocom_types', $ignored);
-$budg = new PluginReportsDropdownCriteria($report, '`glpi_infocoms`.`budgets_id`', 'Budget',
-                                          __('Budget'));
+$budg = new PluginReportsDropdownCriteria(
+    $report,
+    '`glpi_infocoms`.`budgets_id`',
+    'Budget',
+    __('Budget')
+);
 
 //Display criterias form is needed
 $report->displayCriteriasForm();
 
 //If criterias have been validated
 if ($report->criteriasValidated()) {
-   $report->setSubNameAuto();
+    $report->setSubNameAuto();
 
-   $cols = [new PluginReportsColumnType('itemtype', __('Item type')),
-            new PluginReportsColumn('manufacturer', __('Manufacturer')),
-            new PluginReportsColumn('type', __('Type')),
-            new PluginReportsColumn('model', __('Model')),
-            new PluginReportsColumnTypeLink('itemid', __('Name'), 'itemtype'),
-            new PluginReportsColumn('serial', __('Serial number')),
-            new PluginReportsColumn('otherserial', __('Inventory number')),
-            new PluginReportsColumn('location', __('Location')),
-            new PluginReportsColumn('building', __('Building number')),
-            new PluginReportsColumn('room', __('Room number')),
-            new PluginReportsColumnLink('groups_id', __('Group'), 'Group'),
-            new PluginReportsColumn('state', __('Status')),
-            new PluginReportsColumn('immo_number', __('Immobilization number')),
-            new PluginReportsColumnDate('buy_date', __('Date of purchase')),
-            new PluginReportsColumnDate('use_date', __('Startup date')),
-            new PluginReportsColumnDate('warranty_date', __('Start date of warranty')),
-            new PluginReportsColumnInteger('warranty_duration', __('Warranty duration')),
-            new PluginReportsColumnInteger('warranty_info', __('Warranty information')),
-            new PluginReportsColumnLink('suppliers_id', __('Supplier'), "Supplier"),
-            new PluginReportsColumnDate('order_date', __('Order date')),
-            new PluginReportsColumn('order_number', __('Order number')),
-            new PluginReportsColumnDate('delivery_date', __('Delivery date')),
-            new PluginReportsColumn('delivery_number', __('Delivery form')),
-            new PluginReportsColumnFloat('value', __('Value')),
-            new PluginReportsColumnFloat('warranty_value', __('Warranty extension value')),
-            new PluginReportsColumnInteger('sink_time', __('Amortization duration')),
-            new PluginReportsColumnInteger('sink_type', __('Amortization type')),
-            new PluginReportsColumnFloat('sink_coeff',__('Amortization coefficient')),
-            new PluginReportsColumn('bill', __('Invoice number')),
-            new PluginReportsColumn('budget', __('Budget')),
-            new PluginReportsColumnDate('inventory_date', __('Date of last physical inventory'))];
+    $cols = [new PluginReportsColumnType('itemtype', __('Item type')),
+        new PluginReportsColumn('manufacturer', __('Manufacturer')),
+        new PluginReportsColumn('type', __('Type')),
+        new PluginReportsColumn('model', __('Model')),
+        new PluginReportsColumnTypeLink('itemid', __('Name'), 'itemtype'),
+        new PluginReportsColumn('serial', __('Serial number')),
+        new PluginReportsColumn('otherserial', __('Inventory number')),
+        new PluginReportsColumn('location', __('Location')),
+        new PluginReportsColumn('building', __('Building number')),
+        new PluginReportsColumn('room', __('Room number')),
+        new PluginReportsColumnLink('groups_id', __('Group'), 'Group'),
+        new PluginReportsColumn('state', __('Status')),
+        new PluginReportsColumn('immo_number', __('Immobilization number')),
+        new PluginReportsColumnDate('buy_date', __('Date of purchase')),
+        new PluginReportsColumnDate('use_date', __('Startup date')),
+        new PluginReportsColumnDate('warranty_date', __('Start date of warranty')),
+        new PluginReportsColumnInteger('warranty_duration', __('Warranty duration')),
+        new PluginReportsColumnInteger('warranty_info', __('Warranty information')),
+        new PluginReportsColumnLink('suppliers_id', __('Supplier'), "Supplier"),
+        new PluginReportsColumnDate('order_date', __('Order date')),
+        new PluginReportsColumn('order_number', __('Order number')),
+        new PluginReportsColumnDate('delivery_date', __('Delivery date')),
+        new PluginReportsColumn('delivery_number', __('Delivery form')),
+        new PluginReportsColumnFloat('value', __('Value')),
+        new PluginReportsColumnFloat('warranty_value', __('Warranty extension value')),
+        new PluginReportsColumnInteger('sink_time', __('Amortization duration')),
+        new PluginReportsColumnInteger('sink_type', __('Amortization type')),
+        new PluginReportsColumnFloat('sink_coeff', __('Amortization coefficient')),
+        new PluginReportsColumn('bill', __('Invoice number')),
+        new PluginReportsColumn('budget', __('Budget')),
+        new PluginReportsColumnDate('inventory_date', __('Date of last physical inventory'))];
 
-   $report->setColumns($cols);
-   $sel = $type->getParameterValue();
-   if ($sel && $sel != "all") {
-      $types = [$sel];
-   } else {
-      $types = array_diff($CFG_GLPI['infocom_types'], $ignored);
-   }
+    $report->setColumns($cols);
+    $sel = $type->getParameterValue();
+    if ($sel && $sel != "all") {
+        $types = [$sel];
+    } else {
+        $types = array_diff($CFG_GLPI['infocom_types'], $ignored);
+    }
 
-   $sql = '';
-   foreach ($types as $itemtype) {
-      $item = new $itemtype;
-      $table = $item->getTable();
+    $sql = '';
+    foreach ($types as $itemtype) {
+        $item = new $itemtype();
+        $table = $item->getTable();
 
-      $select = "SELECT '$itemtype' as itemtype,
+        $select = "SELECT '$itemtype' as itemtype,
                         `$table`.id AS itemid";
 
-      $from = "FROM `$table` ";
+        $from = "FROM `$table` ";
 
-      if ($itemtype == 'SoftwareLicense') {
-         $select .= ", `glpi_manufacturers`.`name` AS manufacturer";
-         $from   .= "LEFT JOIN `glpi_softwares`
+        if ($itemtype == 'SoftwareLicense') {
+            $select .= ", `glpi_manufacturers`.`name` AS manufacturer";
+            $from   .= "LEFT JOIN `glpi_softwares`
                         ON (`glpi_softwarelicenses`.`softwares_id` = `glpi_softwares`.`id`)
                      LEFT JOIN `glpi_manufacturers`
                         ON (`glpi_manufacturers`.`id` = `glpi_softwares`.`manufacturers_id`) ";
 
-      } else if ($item->isField('manufacturers_id')) {
-         $select .= ", `glpi_manufacturers`.`name` AS manufacturer";
-         $from   .= "LEFT JOIN `glpi_manufacturers`
+        } elseif ($item->isField('manufacturers_id')) {
+            $select .= ", `glpi_manufacturers`.`name` AS manufacturer";
+            $from   .= "LEFT JOIN `glpi_manufacturers`
                         ON (`glpi_manufacturers`.`id` = `$table`.`manufacturers_id`) ";
 
-      } else {
-         $select .= ", '' AS manufacturer";
-      }
+        } else {
+            $select .= ", '' AS manufacturer";
+        }
 
-      $typeclass = $itemtype.'Type';
-      $typetable = $dbu->getTableForItemType($typeclass);
+        $typeclass = $itemtype . 'Type';
+        $typetable = $dbu->getTableForItemType($typeclass);
 
-      if ($DB->tableExists($typetable)) {
-         $typeitem  = new $typeclass;
-         $typefkey  = $typeitem->getForeignKeyField();
+        if ($DB->tableExists($typetable)) {
+            $typeitem  = new $typeclass();
+            $typefkey  = $typeitem->getForeignKeyField();
 
-         $select .= ", `$typetable`.`name` AS type";
-         $from .= "LEFT JOIN `$typetable`
+            $select .= ", `$typetable`.`name` AS type";
+            $from .= "LEFT JOIN `$typetable`
                         ON (`$typetable`.`id` = `$table`.`$typefkey`) ";
-      } else {
-         $select .= ", '' AS type";
-      }
+        } else {
+            $select .= ", '' AS type";
+        }
 
-      $modelclass = $itemtype.'Model';
-      $modeltable = $dbu->getTableForItemType($modelclass);
-      if ($itemtype == 'SoftwareLicense') {
-         $select .= ", CONCAT(glpi_softwares.name,' ',buyversion.name) AS model";
-         $from .= "LEFT JOIN `glpi_softwareversions` AS buyversion
+        $modelclass = $itemtype . 'Model';
+        $modeltable = $dbu->getTableForItemType($modelclass);
+        if ($itemtype == 'SoftwareLicense') {
+            $select .= ", CONCAT(glpi_softwares.name,' ',buyversion.name) AS model";
+            $from .= "LEFT JOIN `glpi_softwareversions` AS buyversion
                           ON (buyversion.`id` = `glpi_softwarelicenses`.`softwareversions_id_buy`) ";
 
-      } else if ($DB->tableExists($modeltable)) {
-         $modelitem  = new $modelclass();
-         $modelitem  = $modelitem->getForeignKeyField();
+        } elseif ($DB->tableExists($modeltable)) {
+            $modelitem  = new $modelclass();
+            $modelitem  = $modelitem->getForeignKeyField();
 
-         $select .= ", `$modeltable`.`name` AS model";
-         $from .= "LEFT JOIN `$modeltable`
+            $select .= ", `$modeltable`.`name` AS model";
+            $from .= "LEFT JOIN `$modeltable`
                         ON (`$modeltable`.`id` = `$table`.`$modelitem`) ";
-      } else {
-         $select .= ", '' AS model";
-      }
+        } else {
+            $select .= ", '' AS model";
+        }
 
-      if ($item->isField('serial')) {
-         $select .= ", `$table`.`serial`";
-      } else {
-         $select .= ", '' AS `serial`";
-      }
+        if ($item->isField('serial')) {
+            $select .= ", `$table`.`serial`";
+        } else {
+            $select .= ", '' AS `serial`";
+        }
 
-      if ($item->isField('otherserial')) {
-         $select .= ", `$table`.`otherserial`";
-         $where   = "WHERE (`$table`.`otherserial` != ''
+        if ($item->isField('otherserial')) {
+            $select .= ", `$table`.`otherserial`";
+            $where   = "WHERE (`$table`.`otherserial` != ''
                             OR `glpi_infocoms`.`immo_number` !='') ";
-      } else {
-         $select .= ", '' AS `otherserial`";
-         $where   = "WHERE 1 ";
-      }
+        } else {
+            $select .= ", '' AS `otherserial`";
+            $where   = "WHERE 1 ";
+        }
 
-      if ($item->isField('groups_id')) {
-         $select .= ", `$table`.`groups_id`";
-      } else {
-         $select .= ", 0 AS `groups_id`";
-      }
+        if ($item->isField('groups_id')) {
+            $select .= ", `$table`.`groups_id`";
+        } else {
+            $select .= ", 0 AS `groups_id`";
+        }
 
-      if ($item->isField('states_id')) {
-         $select .= ", `glpi_states`.`name` AS state";
-         $from   .= "LEFT JOIN `glpi_states`
+        if ($item->isField('states_id')) {
+            $select .= ", `glpi_states`.`name` AS state";
+            $from   .= "LEFT JOIN `glpi_states`
                          ON (`glpi_states`.`id` = `$table`.`states_id`)";
-      } else {
-         $select .= ", '' AS `state`";
-      }
+        } else {
+            $select .= ", '' AS `state`";
+        }
 
-      if ($item->isField('locations_id')) {
-         $select .= ", `glpi_locations`.`completename` AS location
+        if ($item->isField('locations_id')) {
+            $select .= ", `glpi_locations`.`completename` AS location
                      , `glpi_locations`.`building`
                      , `glpi_locations`.`room`";
-         $from   .= "LEFT JOIN `glpi_locations`
+            $from   .= "LEFT JOIN `glpi_locations`
                          ON (`glpi_locations`.`id` = `$table`.`locations_id`)";
-      } else {
-         $select .= ", '' AS location, '' AS building, '' AS room";
-      }
+        } else {
+            $select .= ", '' AS location, '' AS building, '' AS room";
+        }
 
-      $select .= ", `glpi_infocoms`.*
+        $select .= ", `glpi_infocoms`.*
                   , `glpi_infocoms`.`suppliers_id` AS supplier
                   , `glpi_budgets`.`name` AS budget";
-      $from   .= "LEFT JOIN `glpi_infocoms`
+        $from   .= "LEFT JOIN `glpi_infocoms`
                       ON (`glpi_infocoms`.`itemtype` = '$itemtype'
                           AND `glpi_infocoms`.`items_id` = `$table`.`id`)
                   LEFT JOIN `glpi_budgets`
                       ON (`glpi_budgets`.`id` = `glpi_infocoms`.`budgets_id`)";
 
-      if ($item->maybeDeleted()) {
-         $where .= " AND `$table`.`is_deleted` = 0 ";
-      }
+        if ($item->maybeDeleted()) {
+            $where .= " AND `$table`.`is_deleted` = 0 ";
+        }
 
-      if ($item->maybeTemplate()) {
-         $where .= " AND `$table`.`is_template` = 0 ";
-      }
+        if ($item->maybeTemplate()) {
+            $where .= " AND `$table`.`is_template` = 0 ";
+        }
 
-      if ($item->isEntityAssign()) {
-         $where .= $dbu->getEntitiesRestrictRequest(" AND ", $table);
-      }
+        if ($item->isEntityAssign()) {
+            $where .= $dbu->getEntitiesRestrictRequest(" AND ", $table);
+        }
 
-      $where .= $budg->getSqlCriteriasRestriction();
-      $where .= $date->getSqlCriteriasRestriction();
+        $where .= $budg->getSqlCriteriasRestriction();
+        $where .= $date->getSqlCriteriasRestriction();
 
-      if ($sql) {
-         $sql .= " UNION ";
-      }
-      $sql .= "($select $from $where)";
-   }
-   $report->setGroupBy('entity');
-   $report->setSqlRequest($sql);
-   $report->execute();
+        if ($sql) {
+            $sql .= " UNION ";
+        }
+        $sql .= "($select $from $where)";
+    }
+    $report->setGroupBy('entity');
+    $report->setSqlRequest($sql);
+    $report->execute();
 
 } else {
-   Html::footer();
+    Html::footer();
 }
