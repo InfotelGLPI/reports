@@ -155,7 +155,6 @@ $criteria = [
         ],
     ],
     'WHERE' => [],
-    'ORDERBY'   => ['soft ASC, locat ASC'],
 ];
 $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
     'glpi_softwareversions'
@@ -163,7 +162,7 @@ $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
 
 $criteria['WHERE'] = $criteria['WHERE'] + $report->addNewSqlCriteriasRestriction();
 
-$criteria['ORDERBY'] = $criteria['ORDERBY'] + $report->getNewOrderBy('entity');
+$criteria = $criteria + $report->getNewOrderBy('soft, locat');
 
 $report->setSqlRequest($criteria);
 

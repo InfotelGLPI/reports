@@ -115,13 +115,14 @@ if ($report->criteriasValidated()) {
         ],
         'WHERE' => [],
         'GROUPBY'   => ['software'],
-        'ORDERBY'   => ['software'],
     ];
     $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
             'glpi_softwareversions'
         );
 
     $criteria['WHERE'] = $criteria['WHERE'] + $report->addNewSqlCriteriasRestriction();
+
+    $criteria = $criteria + $report->getNewOrderBy('software');
 
    $report->setSqlRequest($criteria);
    $report->execute();

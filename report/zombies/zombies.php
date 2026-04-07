@@ -55,7 +55,8 @@ if ($report->criteriasValidated()) {
     $report->setSubNameAuto();
     $report->delCriteria('tickets');
 
-    $cols = [new PluginReportsColumnItemCheckbox('id', 'User'),
+    $cols = [
+//        new PluginReportsColumnItemCheckbox('id', 'User'),
         new PluginReportsColumnLink('id2', __('User'), 'User', ['with_comment' => true,
             'with_navigate' => true]),
         new PluginReportsColumn('name', __('Login'), ['sorton' => 'name']),
@@ -82,8 +83,10 @@ if ($report->criteriasValidated()) {
             'glpi_users.id',
             'glpi_users.id AS id2',
             'glpi_users.name',
+            'glpi_useremails.email',
+            'glpi_users.phone',
+            'glpi_locations.completename AS location',
             'glpi_users.last_login',
-
             new QueryExpression(
                 '(SELECT COUNT(*)
               FROM glpi_tickets
@@ -107,10 +110,6 @@ if ($report->criteriasValidated()) {
               WHERE glpi_users.id = glpi_tickets_users.users_id
               AND glpi_tickets_users.type = ' . CommonITILActor::ASSIGN . ') AS nb4'
             ),
-
-            'glpi_users.phone',
-            'glpi_locations.completename AS location',
-            'glpi_useremails.email'
         ],
         'FROM' => 'glpi_users',
         'LEFT JOIN' => [
@@ -142,17 +141,18 @@ if ($report->criteriasValidated()) {
             ]
         ],
         'HAVING' => [],
-        'ORDERBY' => ['name']
     ];
 
     $criteria['WHERE'] = $criteria['WHERE'] + $report->addNewSqlCriteriasRestriction();
 
     if ($filter->getParameterValue()) {
-        $criteria['HAVING'] = $criteria['HAVING'] +  [new QueryExpression("nb1=0 AND nb2=0 AND nb3=0  AND nb4=0")];
+        $criteria['HAVING'] = $criteria['HAVING'] +  [new QueryExpression("nb1=0 AND nb2=0 AND nb3=0 AND nb4=0")];
     }
 
+    $criteria = $criteria + $report->getNewOrderBy('name');
+
     $report->setSqlRequest($criteria);
-    $report->execute(['withmassiveaction' => 'User']);
+    $report->execute();//['withmassiveaction' => 'User']
 
 } else {
     Html::Footer();

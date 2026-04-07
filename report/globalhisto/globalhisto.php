@@ -76,7 +76,7 @@ if ($report->criteriasValidated()) {
         new PluginReportsColumn('user_name', __('User')),
         new PluginReportsColumnMap(
             'linked_action',
-            _x('noun', 'Update'),
+            __('Action'),
             $columns_mappings
         )]);
 

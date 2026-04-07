@@ -395,17 +395,17 @@ class PluginReportsAutoReport extends CommonDBTM
         echo "</tr></table></div>";
     }
 
-    public static function showOutputFormat()
-    {
-        $values[Search::PDF_OUTPUT_LANDSCAPE] = __s('All pages in landscape PDF');
-        $values[Search::PDF_OUTPUT_PORTRAIT] = __s('All pages in portrait PDF');
-        $values[Search::CSV_OUTPUT] = __s('All pages in CSV');
-
-        Dropdown::showFromArray('display_type', $values);
-        echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]);
-
-        echo Html::submit(_sx('button', 'Export'), ['name' => 'export', 'class' => 'btn btn-primary']);
-    }
+//    public static function showOutputFormat()
+//    {
+//        $values[Search::PDF_OUTPUT_LANDSCAPE] = __s('All pages in landscape PDF');
+//        $values[Search::PDF_OUTPUT_PORTRAIT] = __s('All pages in portrait PDF');
+//        $values[Search::CSV_OUTPUT] = __s('All pages in CSV');
+//
+//        Dropdown::showFromArray('display_type', $values);
+//        echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]);
+//
+//        echo Html::submit(_sx('button', 'Export'), ['name' => 'export', 'class' => 'btn btn-primary']);
+//    }
 
     /**
      * Execute the report
@@ -725,7 +725,7 @@ class PluginReportsAutoReport extends CommonDBTM
         $this->manageCriteriasValues();
 
         //Display Html::header is output is HTML
-        if (isset($_POST["display_type"]) && $_POST["display_type"] != Search::HTML_OUTPUT) {
+        if (isset($_REQUEST["display_type"]) && $_REQUEST["display_type"] != Search::HTML_OUTPUT) {
             return;
         }
         if (!$HEADER_LOADED) {
@@ -988,12 +988,13 @@ class PluginReportsAutoReport extends CommonDBTM
         $order = $_REQUEST['order'];
 
         $tab = $this->getOrderByFields($default);
+        $tab = array_filter($tab);
 
         if (count($tab) > 0) {
             if ($setgroupby) {
-                $this->setNewGroupBy($tab);
+                $this->setGroupBy($tab);
             }
-            return [implode(" $order, ", $tab) . " $order"];
+            return ["ORDERBY" => implode(" $order, ", $tab) ." ".$order];
         }
         return [];
     }

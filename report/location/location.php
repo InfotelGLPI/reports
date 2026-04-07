@@ -66,13 +66,12 @@ $criteria = [
         ],
     ],
     'WHERE' => [],
-    'ORDERBY'   => [],
 ];
 $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
     'glpi_locations'
 );
 
-$criteria['ORDERBY'] = $criteria['ORDERBY'] + $report->getNewOrderBy('entity');
+$criteria = $criteria + $report->getNewOrderBy('entity,location');
 
 $report->setSqlRequest($criteria);
 

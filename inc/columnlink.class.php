@@ -66,6 +66,10 @@ class PluginReportsColumnLink extends PluginReportsColumn
             return '';
         }
 
+        if (!is_int($row[$this->name])) {
+            return '';
+        }
+
         if (!$this->obj || !$this->obj->getFromDB($row[$this->name])) {
             return $row[$this->name];
         }

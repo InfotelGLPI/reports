@@ -126,8 +126,6 @@ if ($report->criteriasValidated()
 
     $criteria['WHERE'] = $criteria['WHERE'] + $license->getNewSqlCriteriasRestriction();
 
-    $criteria['ORDERBY'] = $criteria['ORDERBY'] + $report->getNewOrderBy('license');
-
     $report->setSqlRequest($criteria);
 
     $report->execute();

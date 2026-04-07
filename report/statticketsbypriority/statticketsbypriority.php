@@ -102,7 +102,6 @@ if ($report->criteriasValidated()) {
             'glpi_tickets.status' => \Ticket::getNotSolvedStatusArray(),
             'glpi_tickets.is_deleted' => 0,
         ],
-        'ORDERBY' => [],
     ];
 
     $criteria['WHERE'] = $criteria['WHERE'] + $report->addNewSqlCriteriasRestriction();
@@ -111,7 +110,7 @@ if ($report->criteriasValidated()) {
             'glpi_tickets'
         );
 
-    $criteria['ORDERBY'] = $criteria['ORDERBY'] + $report->getNewOrderBy('priority');
+    $criteria = $criteria + $report->getNewOrderBy('priority');
 
     $report->setSqlRequest($criteria);
 

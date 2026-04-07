@@ -37,9 +37,12 @@ global $DB;
 
 $report = new PluginReportsAutoReport(__('List of groups and members', 'reports'));
 
-$report->setColumns([new PluginReportsColumn('completename', __('Entity')),
-    new PluginReportsColumnLink('groupid', __('Group'), 'Group'),
-    new PluginReportsColumnLink('userid', __('Login'), 'User'),
+$report->setColumns([new PluginReportsColumn('completename', __('Entity'),
+    ['sorton' => 'completename']),
+    new PluginReportsColumnLink('groupid', __('Group'), 'Group',
+        ['sorton' => 'groupid']),
+    new PluginReportsColumnLink('userid', __('Login'), 'User',
+        ['sorton' => 'userid']),
     new PluginReportsColumn('firstname', __('First name')),
     new PluginReportsColumn('realname', __('Surname')),
     new PluginReportsColumnDateTime('last_login', __('Last login'))]);
@@ -75,12 +78,13 @@ $criteria = [
     'WHERE' => [
         'glpi_users.is_deleted' => 0,
     ],
-    'GROUPBY'   => ['completename', 'groupid'],
-    'ORDERBY'   => ['completename', 'glpi_groups.name', 'glpi_users.name'],
+    'GROUPBY'   => ['completename', 'groupid', 'userid'],
 ];
 $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
     'glpi_groups'
 );
+
+$criteria = $criteria + $report->getNewOrderBy('completename, groupid, userid');
 
 $report->setSqlRequest($criteria);
 $report->execute();

@@ -133,15 +133,13 @@ if ($report->criteriasValidated()) {
             'glpi_tickets.is_deleted' => 0,
         ],
         'GROUPBY'   => ['glpi_entities.id'],
-        'ORDERBY'   => [],
     ];
 
     $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
         'glpi_entities'
     );
 
-
-    $criteria['ORDERBY'] = $criteria['ORDERBY'] + $report->getNewOrderBy('name');
+    $criteria = $criteria + $report->getNewOrderBy('name');
 
     $report->setSqlRequest($criteria);
 
