@@ -20,7 +20,7 @@
  along with Reports. If not, see <http://www.gnu.org/licenses/>.
 
  @package   reports
- @authors    Nelly Mahu-Lasson, Remi Collet
+ @authors    Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
  @copyright Copyright (c) 2009-2026 Reports plugin team
  @license   AGPL License 3.0 or (at your option) any later version
             http://www.gnu.org/licenses/agpl-3.0-standalone.html
@@ -44,16 +44,22 @@ function doStatBis($table, $entities, $header)
     $counts = [];
     foreach ($entities as $entity) {
         // Count for this entity
-        $sql = "SELECT `states_id`, count(*) AS cpt
-              FROM `$table`
-              WHERE `is_deleted` = '0'
-                    AND `is_template` = '0'
-                    AND `entities_id` = '$entity'
-              GROUP BY `states_id`";
+        $criteria = [
+            'SELECT' => ['states_id',
+                'COUNT' => 'id AS cpt'],
+            'FROM' => $table,
+            'WHERE' => [
+                'is_deleted' => 0,
+                'is_template' => 0,
+                'entities_id' => $entity,
+            ],
+            'GROUPBY' => ['states_id']
+        ];
 
-        $result = $DB->doQuery($sql);
+        $iterator = $DB->request($criteria);
+
         $counts[$entity] = [];
-        foreach ($result as $data) {
+        foreach ($iterator as $data) {
             $counts[$entity][$data["states_id"]] = $data["cpt"];
         }
 
@@ -116,16 +122,21 @@ function doStat($table, $entity, $header, $level = 0)
     $Ent->getFromDB($entity);
 
     // Count for this entity
-    $sql = "SELECT `states_id`, count(*) AS cpt
-           FROM `$table`
-           WHERE `is_deleted` = '0'
-                 AND `is_template` = '0'
-                 AND `entities_id` = '$entity'
-           GROUP BY `states_id`";
+    $criteria = [
+        'SELECT' => ['states_id',
+            'COUNT' => 'id AS cpt'],
+        'FROM' => $table,
+        'WHERE' => [
+            'is_deleted' => 0,
+            'is_template' => 0,
+            'entities_id' => $entity,
+        ],
+    'GROUPBY' => ['states_id']
+    ];
 
-    $result = $DB->doQuery($sql);
+    $iterator = $DB->request($criteria);
     $count  = [];
-    foreach ($result as $data) {
+     foreach ($iterator as $data) {
         $count[$data["states_id"]] = $data["cpt"];
     }
 
@@ -273,13 +284,35 @@ if (isset($_POST["type"]) && $_POST["type"] != '') {
           . "<th>&nbsp;" . __('Total') . "&nbsp;</th>"
           . "<th>&nbsp;" . __('Unknown', 'reports') . "&nbsp;</th>";
 
-    $sql = "SELECT `id`, `name`
-           FROM `glpi_states`
-           ORDER BY `id`";
-    $result = $DB->doQuery($sql);
+    $criteria = [
+        'SELECT' => [\State::getTable().'.id', \State::getTable().'.name'],
+        'FROM' => \State::getTable(),
+        'LEFT JOIN' => [
+            DropdownVisibility::getTable() => [
+                'ON' => [
+                    DropdownVisibility::getTable() => 'items_id',
+                    \State::getTable() => 'id', [
+                        'AND' => [
+                            DropdownVisibility::getTable() . '.itemtype' => \State::getType(),
+                        ],
+                    ],
+                ],
+            ],
+        ],
+        'WHERE' => [
+            DropdownVisibility::getTable() . '.itemtype' => \State::getType(),
+            DropdownVisibility::getTable() . '.visible_itemtype' => strtolower($_POST["type"]),
+            DropdownVisibility::getTable() . '.is_visible' => 1,
+        ],
+    ];
+    $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
+            \State::getTable()
+        );
+
+    $iterator = $DB->request($criteria);
 
     $header[0] = __('Unknown', 'reports');
-    while ($data = $DB->fetchArray($result)) {
+    foreach ($iterator as $data) {
         $header[$data["id"]] = $data["name"];
         echo "<th>&nbsp;" . $data["name"] . "&nbsp;</th>";
     }

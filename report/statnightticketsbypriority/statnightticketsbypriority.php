@@ -19,7 +19,7 @@
  along with Reports. If not, see <http://www.gnu.org/licenses/>.
 
  @package   reports
- @authors    Nelly Mahu-Lasson, Remi Collet, Benoit Machiavello
+ @authors    Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel, Benoit Machiavello
  @copyright Copyright (c) 2009-2026 Reports plugin team
  @license   AGPL License 3.0 or (at your option) any later version
             http://www.gnu.org/licenses/agpl-3.0-standalone.html
@@ -28,6 +28,8 @@
  @since     2009
  --------------------------------------------------------------------------
  */
+
+use Glpi\DBAL\QueryExpression;
 
 $USEDBREPLICATE         = 1;
 $DBCONNECTION_REQUIRED  = 0;
@@ -65,23 +67,68 @@ if ($report->criteriasValidated()) {
                         new PluginReportsColumn('groupname', __('Group'),
                                                 ['sorton' => '`glpi_groups_tickets`.`groups_id`, `date`'])]);
 
-   $query = "SELECT `glpi_tickets`.`priority`, `glpi_tickets`.`date` , `glpi_tickets`.`id`,
-                    `glpi_tickets`.`id` AS id2, `glpi_groups`.`name` as groupname
-             FROM `glpi_tickets`
-             LEFT JOIN `glpi_groups_tickets`
-                  ON (`glpi_groups_tickets`.`tickets_id` = `glpi_tickets`.`id`
-                      AND `glpi_groups_tickets`.`type` = '".CommonITILActor::ASSIGN."')
-             LEFT JOIN `glpi_groups` ON (`glpi_groups_tickets`.`groups_id` = `glpi_groups`.`id`)
-             WHERE `glpi_tickets`.`status` NOT IN ('".implode("', '",
-                                                              array_merge(Ticket::getSolvedStatusArray(),
-                                                                          Ticket::getClosedStatusArray()))."')
-                  AND NOT `glpi_tickets`.`is_deleted` ".
-                  $report->addSqlCriteriasRestriction() .
-                  $dbu->getEntitiesRestrictRequest(' AND ', 'glpi_tickets').
-             $report->getOrderBy('priority');
+//   $query = "SELECT `glpi_tickets`.`priority`, `glpi_tickets`.`date` , `glpi_tickets`.`id`,
+//                    `glpi_tickets`.`id` AS id2, `glpi_groups`.`name` as groupname
+//             FROM `glpi_tickets`
+//             LEFT JOIN `glpi_groups_tickets`
+//                  ON (`glpi_groups_tickets`.`tickets_id` = `glpi_tickets`.`id`
+//                      AND `glpi_groups_tickets`.`type` = '".CommonITILActor::ASSIGN."')
+//             LEFT JOIN `glpi_groups` ON (`glpi_groups_tickets`.`groups_id` = `glpi_groups`.`id`)
+//             WHERE `glpi_tickets`.`status` NOT IN ('".implode("', '",
+//                                                              array_merge(Ticket::getSolvedStatusArray(),
+//                                                                          Ticket::getClosedStatusArray()))."')
+//                  AND NOT `glpi_tickets`.`is_deleted` ".
+//                  $report->addSqlCriteriasRestriction() .
+//                  $dbu->getEntitiesRestrictRequest(' AND ', 'glpi_tickets').
+//             $report->getOrderBy('priority');
+//
 
-   $report->setSqlRequest($query);
-   $report->execute();
+    $criteria = [
+        'SELECT' => [
+            'glpi_tickets.priority',
+            'glpi_tickets.date',
+            'glpi_tickets.id',
+            'glpi_tickets.id AS id2',
+            'glpi_groups.name AS groupname',
+        ],
+        'FROM' => 'glpi_tickets',
+        'LEFT JOIN' => [
+            'glpi_groups_tickets' => [
+                'ON' => [
+                    'glpi_groups_tickets' => 'tickets_id',
+                    'glpi_tickets' => 'id',
+                    [
+                        'AND' => [
+                            'glpi_groups_tickets.type' => CommonITILActor::ASSIGN
+                        ],
+                    ],
+                ]
+            ],
+            'glpi_groups' => [
+                'ON' => [
+                    'glpi_groups_tickets' => 'groups_id',
+                    'glpi_groups' => 'id',
+                ],
+            ],
+        ],
+
+        'WHERE' => [
+            'glpi_tickets.status' => \Ticket::getNotSolvedStatusArray(),
+            'glpi_tickets.is_deleted' => 0,
+        ],
+        'ORDERBY' => ['priority'],
+    ];
+
+    $criteria['WHERE'] = $criteria['WHERE'] + $report->addNewSqlCriteriasRestriction();
+
+    $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
+            'glpi_tickets'
+        );
+
+    $report->setSqlRequest($criteria);
+
+    $report->execute();
+
 } else {
    Html::footer();
 }

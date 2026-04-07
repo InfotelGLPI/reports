@@ -20,7 +20,7 @@
  * along with Reports. If not, see <http://www.gnu.org/licenses/>.
  *
  * @package   reports
- * @authors    Nelly Mahu-Lasson, Remi Collet
+ * @authors    Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
  * @copyright Copyright (c) 2009-2026 Reports plugin team
  * @license   AGPL License 3.0 or (at your option) any later version
  * http://www.gnu.org/licenses/agpl-3.0-standalone.html
@@ -154,61 +154,61 @@ function getObjectsByGroupAndEntity($group_id, $entity)
         $item = new $itemtype();
 
         $criteria = [
-                'SELECT' => [
-                    $item->getTable() . '.id',
-                    'name',
-                    'groups_id',
-                    'serial',
-                    'otherserial',
-                    'immo_number',
-                    'suppliers_id',
-                    'buy_date',
-                ],
-                'FROM' => $item->getTable(),
-                'LEFT JOIN' => [
-                    'glpi_infocoms' => [
-                        'FKEY' => [
-                            $item->getTable() => 'id',
-                            'glpi_infocoms' => 'items_id',
-                        ],
-                        ['glpi_infocoms.itemtype' => $itemtype],
+            'SELECT' => [
+                $item->getTable() . '.id',
+                'name',
+                'groups_id',
+                'serial',
+                'otherserial',
+                'immo_number',
+                'suppliers_id',
+                'buy_date',
+            ],
+            'FROM' => $item->getTable(),
+            'LEFT JOIN' => [
+                'glpi_infocoms' => [
+                    'FKEY' => [
+                        $item->getTable() => 'id',
+                        'glpi_infocoms' => 'items_id',
                     ],
-                    'glpi_groups_items' => [
-                        'FKEY' => [
-                            $item->getTable() => 'id',
-                            'glpi_groups_items' => 'items_id',
-                        ],
-                        ['glpi_groups_items.itemtype' => $itemtype],
+                    ['glpi_infocoms.itemtype' => $itemtype],
+                ],
+                'glpi_groups_items' => [
+                    'FKEY' => [
+                        $item->getTable() => 'id',
+                        'glpi_groups_items' => 'items_id',
                     ],
+                    ['glpi_groups_items.itemtype' => $itemtype],
                 ],
-                'WHERE' => [
-                    'groups_id' => $group_id,
-                    $item->getTable() . '.entities_id' => $entity,
-                ],
-            ];
+            ],
+            'WHERE' => [
+                'groups_id' => $group_id,
+                $item->getTable() . '.entities_id' => $entity,
+            ],
+        ];
 
-            if ($item->maybeTemplate()) {
-                $criteria['WHERE'] = $criteria['WHERE'] + ['is_template' => 0];
+        if ($item->maybeTemplate()) {
+            $criteria['WHERE'] = $criteria['WHERE'] + ['is_template' => 0];
+        }
+
+        if ($item->maybeDeleted()) {
+            $criteria['WHERE'] = $criteria['WHERE'] + ['is_deleted' => 0];
+        }
+
+        $iterator = $DB->request($criteria);
+
+        if (count($iterator) > 0) {
+            if (!$display_header) {
+                echo "<br><table class='tab_cadre_fixehov'>";
+                echo "<tr><th>" . __('Type') . "</th><th>" . __('Name') . "</th>";
+                echo "<th>" . __('Serial number') . "</th><th>" . __('Inventory number') . "</th>";
+                echo "<th>" . __('Immobilization number') . "</th>";
+                echo "<th>" . __('Supplier') . "</th><th>" . __('Date of purchase') . "</th>";
+                echo "</tr>";
+                $display_header = true;
             }
-
-            if ($item->maybeDeleted()) {
-                $criteria['WHERE'] = $criteria['WHERE'] + ['is_deleted' => 0];
-            }
-
-            $iterator = $DB->request($criteria);
-
-            if (count($iterator) > 0) {
-                if (!$display_header) {
-                    echo "<br><table class='tab_cadre_fixehov'>";
-                    echo "<tr><th>" . __('Type') . "</th><th>" . __('Name') . "</th>";
-                    echo "<th>" . __('Serial number') . "</th><th>" . __('Inventory number') . "</th>";
-                    echo "<th>" . __('Immobilization number') . "</th>";
-                    echo "<th>" . __('Supplier') . "</th><th>" . __('Date of purchase') . "</th>";
-                    echo "</tr>";
-                    $display_header = true;
-                }
-                displayUserDevices($itemtype, $iterator);
-            }
+            displayUserDevices($itemtype, $iterator);
+        }
 
     }
     echo "</table>";

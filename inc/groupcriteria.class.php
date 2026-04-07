@@ -1,4 +1,5 @@
 <?php
+
 /**
  -------------------------------------------------------------------------
   LICENSE
@@ -19,7 +20,7 @@
  along with Reports. If not, see <http://www.gnu.org/licenses/>.
 
  @package   reports
- @authors    Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay
+ @authors    Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel, Alexandre Delaunay
  @copyright Copyright (c) 2009-2022 Reports plugin team
  @license   AGPL License 3.0 or (at your option) any later version
             http://www.gnu.org/licenses/agpl-3.0-standalone.html
@@ -37,19 +38,24 @@
 /**
  * Group selection criteria
  */
-class PluginReportsGroupCriteria extends PluginReportsDropdownCriteria {
+class PluginReportsGroupCriteria extends PluginReportsDropdownCriteria
+{
+    /**
+     * @param $report
+     * @param $name         (default 'groups_id')
+     * @param $label        (default '')
+     * @param $condition    (default '')
+    **/
+    public function __construct($report, $name = 'groups_id', $label = '', $condition = '')
+    {
 
-
-   /**
-    * @param $report
-    * @param $name         (default 'groups_id')
-    * @param $label        (default '')
-    * @param $condition    (default '')
-   **/
-   function __construct($report, $name='groups_id', $label='', $condition='') {
-
-      parent::__construct($report, $name, 'glpi_groups', ($label ? $label : __('Group')),
-                          $condition);
-   }
+        parent::__construct(
+            $report,
+            $name,
+            'glpi_groups',
+            ($label ? $label : __('Group')),
+            $condition
+        );
+    }
 
 }

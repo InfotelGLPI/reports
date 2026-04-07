@@ -19,7 +19,7 @@
  along with Reports. If not, see <http://www.gnu.org/licenses/>.
 
  @package   reports
- @authors    Nelly Mahu-Lasson, Remi Collet
+ @authors    Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
  @copyright Copyright (c) 2009-2026 Reports plugin team
  @license   AGPL License 3.0 or (at your option) any later version
             http://www.gnu.org/licenses/agpl-3.0-standalone.html
@@ -65,30 +65,65 @@ if ($report->criteriasValidated()) {
                         new PluginReportsColumn('location', __('Location'),
                                                 ['sorton' => 'location'])]);
 
-   $query = "SELECT `glpi_softwareversions`.`softwares_id` AS software,
-                    `glpi_softwareversions`.`id` AS version,
-                    `glpi_computers`.`id` AS computer,
-                    `state_ver`.`name` AS statever,
-                    `state_cpt`.`name` AS statecpt,
-                    `glpi_locations`.`completename` as location
-             FROM `glpi_softwareversions`
-             INNER JOIN `glpi_items_softwareversions`
-                  ON (`glpi_items_softwareversions`.`softwareversions_id`
-                        = `glpi_softwareversions`.`id`)
-             INNER JOIN `glpi_computers`
-                  ON (`glpi_items_softwareversions`.`items_id` = `glpi_computers`.`id`
-                      AND `glpi_items_softwareversions`.`itemtype` = 'Computer')
-             LEFT JOIN `glpi_locations`
-                  ON (`glpi_locations`.`id` = `glpi_computers`.`locations_id`)
-             LEFT JOIN `glpi_states` state_ver
-                  ON (`state_ver`.`id` = `glpi_softwareversions`.`states_id`)
-             LEFT JOIN `glpi_states` state_cpt
-                  ON (`state_cpt`.`id` = `glpi_computers`.`states_id`) ".
-             $dbu->getEntitiesRestrictRequest('WHERE', 'glpi_softwareversions') .
-             $report->addSqlCriteriasRestriction().
-             $report->getOrderby('software', true);
 
-   $report->setSqlRequest($query);
+    $criteria = [
+        'SELECT' => ['glpi_softwareversions.softwares_id AS software',
+            'glpi_softwareversions.id AS version',
+            'glpi_computers.id AS computer',
+            'state_ver.name AS state_ver',
+            'state_cpt.name AS state_cpt',
+            'glpi_locations.completename AS location',
+        ],
+        'FROM' => 'glpi_softwareversions',
+        'INNER JOIN'       => [
+            'glpi_items_softwareversions' => [
+                'ON' => [
+                    'glpi_softwareversions'   => 'id',
+                    'glpi_items_softwareversions'                  => 'softwareversions_id'
+                ]
+            ],
+            'glpi_computers' => [
+                'ON' => [
+                    'glpi_computers'   => 'id',
+                    'glpi_items_softwareversions'                  => 'items_id', [
+                        'AND' => [
+                            'glpi_items_softwareversions.itemtype' => 'Computer',
+                        ],
+                    ],
+                ]
+            ],
+        ],
+        'LEFT JOIN'       => [
+            'glpi_locations' => [
+                'ON' => [
+                    'glpi_computers' => 'locations_id',
+                    'glpi_locations'          => 'id',
+                ],
+            ],
+            'glpi_states AS state_ver' => [
+                'ON' => [
+                    'state_ver' => 'id',
+                    'glpi_softwareversions'          => 'states_id',
+                ],
+            ],
+            'glpi_states AS state_cpt' => [
+                'ON' => [
+                    'state_cpt' => 'id',
+                    'glpi_softwareversions'          => 'states_id',
+                ],
+            ],
+        ],
+        'WHERE' => [],
+        'GROUPBY'   => ['software'],
+        'ORDERBY'   => ['software'],
+    ];
+    $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
+            'glpi_softwareversions'
+        );
+
+    $criteria['WHERE'] = $criteria['WHERE'] + $report->addNewSqlCriteriasRestriction();
+
+   $report->setSqlRequest($criteria);
    $report->execute();
 } else {
    Html::footer();

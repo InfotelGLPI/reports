@@ -19,7 +19,7 @@
  along with Reports. If not, see <http://www.gnu.org/licenses/>.
 
  @package   reports
- @authors    Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay
+ @authors    Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel, Alexandre Delaunay
  @copyright Copyright (c) 2009-2022 Reports plugin team
  @license   AGPL License 3.0 or (at your option) any later version
             http://www.gnu.org/licenses/agpl-3.0-standalone.html
@@ -287,7 +287,7 @@ class PluginReportsProfile extends Profile
                 $mig->renameTable('glpi_plugin_reports_profiles', 'glpi_plugin_reports_oldprofiles');
                 $mig->executeMigration();
 
-                $fields = $DB->list_fields('glpi_plugin_reports_oldprofiles');
+                $fields = $DB->listFields('glpi_plugin_reports_oldprofiles');
                 unset($fields['id']);
                 unset($fields['profile']);
                 foreach ($fields as $field => $descr) {

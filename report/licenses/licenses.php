@@ -19,7 +19,7 @@
  along with Reports. If not, see <http://www.gnu.org/licenses/>.
 
  @package   reports
- @authors    Nelly Mahu-Lasson, Remi Collet
+ @authors    Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
  @copyright Copyright (c) 2009-2026 Reports plugin team
  @license   AGPL License 3.0 or (at your option) any later version
             http://www.gnu.org/licenses/agpl-3.0-standalone.html
@@ -39,7 +39,7 @@ $dbu = new DbUtils();
 //TRANS: The name of the report = Detailed license report
 $report = new PluginReportsAutoReport(__('Detailed license report', 'reports'));
 
-$license = new PluginReportsSoftwareWithLicenseCriteria($report);
+$license = new PluginReportsSoftwareWithLicenseCriteria($report, 'glpi_softwarelicenses.softwares_id');
 
 $license->setSqlField('glpi_softwarelicenses.softwares_id');
 
@@ -47,7 +47,7 @@ $report->displayCriteriasForm();
 
 // Form validate and only one software with license
 if ($report->criteriasValidated()
-    && $license->getParameterValue() >0) {
+    && $license->getParameterValue() >0 ) {
 
    $report->setSubNameAuto();
 
@@ -61,42 +61,76 @@ if ($report->criteriasValidated()
                         "comment" => __('Comments'),
                         "name"    => __('Computer')]);
 
-   $query = "SELECT `glpi_softwarelicenses`.`name` AS license,
-                    `glpi_softwarelicenses`.`serial`,
-                    `glpi_softwarelicenses`.`number` AS nombre,
-                    `glpi_softwarelicensetypes`.`name` AS type,
-                    buyversion.`name` AS buy,
-                    useversion.`name` AS used,
-                    `glpi_softwarelicenses`.`expire`,
-                    `glpi_softwarelicenses`.`comment`,
-                    `glpi_computers`.`name`
-             FROM `glpi_softwarelicenses`
-             LEFT JOIN `glpi_softwares`
-                  ON (`glpi_softwarelicenses`.`softwares_id` = `glpi_softwares`.`id`)
-             LEFT JOIN `glpi_items_softwarelicenses`
-                  ON (`glpi_softwarelicenses`.`id`
-                        = `glpi_items_softwarelicenses`.`softwarelicenses_id`)
-             LEFT JOIN `glpi_computers`
-                  ON (`glpi_computers`.`id` = `glpi_items_softwarelicenses`.`items_id`
-                      AND `glpi_items_softwarelicenses`.`itemtype` = 'Computer')
-             LEFT JOIN `glpi_softwareversions` AS buyversion
-                  ON (buyversion.`id` = `glpi_softwarelicenses`.`softwareversions_id_buy`)
-             LEFT JOIN `glpi_softwareversions` AS useversion
-                  ON (useversion.`id` = `glpi_softwarelicenses`.`softwareversions_id_use`)
-             LEFT JOIN `glpi_softwarelicensetypes`
-                  ON (`glpi_softwarelicensetypes`.`id`
-                        =`glpi_softwarelicenses`.`softwarelicensetypes_id`)
-             LEFT JOIN `glpi_entities`
-                  ON (`glpi_softwares`.`entities_id` = `glpi_entities`.`id`)".
-             $report->addSqlCriteriasRestriction("WHERE")."
-                   AND `glpi_softwares`.`is_deleted` = '0'
-                   AND `glpi_softwares`.`is_template` = '0' " .
-                   $dbu->getEntitiesRestrictRequest(' AND ', 'glpi_softwares') ."
-             ORDER BY license";
+    $criteria = [
+        'SELECT' => ['glpi_softwarelicenses.name AS license',
+            'glpi_softwarelicenses.serial AS serial',
+            'glpi_softwarelicenses.number AS nombre',
+            'glpi_softwarelicensetypes.name AS type',
+            'buyversion.name AS buy',
+            'useversion.name AS used',
+            'glpi_softwarelicenses.expire AS expire',
+            'glpi_softwarelicenses.comment AS comment',
+            'glpi_computers.id AS name',
+        ],
+        'FROM' => 'glpi_softwarelicenses',
+        'LEFT JOIN'       => [
+            'glpi_softwares' => [
+                'ON' => [
+                    'glpi_softwarelicenses' => 'softwares_id',
+                    'glpi_softwares'          => 'id',
+                ],
+            ],
+            'glpi_items_softwarelicenses' => [
+                'ON' => [
+                    'glpi_items_softwarelicenses' => 'softwarelicenses_id',
+                    'glpi_softwarelicenses'          => 'id',
+                ],
+            ],
+            'glpi_computers' => [
+                'ON' => [
+                    'glpi_computers'   => 'id',
+                    'glpi_items_softwarelicenses'                  => 'items_id', [
+                        'AND' => [
+                            'glpi_items_softwarelicenses.itemtype' => 'Computer',
+                        ],
+                    ],
+                ]
+            ],
+            'glpi_softwareversions AS buyversion' => [
+                'ON' => [
+                    'glpi_softwarelicenses' => 'softwareversions_id_buy',
+                    'buyversion'          => 'id',
+                ],
+            ],
+            'glpi_softwareversions AS useversion' => [
+                'ON' => [
+                    'glpi_softwarelicenses' => 'softwareversions_id_use',
+                    'useversion'          => 'id',
+                ],
+            ],
+            'glpi_softwarelicensetypes' => [
+                'ON' => [
+                    'glpi_softwarelicenses' => 'softwarelicensetypes_id',
+                    'glpi_softwarelicensetypes'          => 'id',
+                ],
+            ],
+        ],
+        'WHERE' => ['glpi_softwares.is_deleted = 0',
+            'glpi_softwares.is_template = 0'],
+        'GROUPBY'   => ['license'],
+        'ORDERBY'   => ['license'],
+    ];
+    $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
+            'glpi_softwares'
+        );
 
-   $report->setGroupBy("license");
-   $report->setSqlRequest($query);
-   $report->execute();
+    $criteria['WHERE'] = $criteria['WHERE'] + $license->getNewSqlCriteriasRestriction();
+
+    $criteria['ORDERBY'] = $criteria['ORDERBY'] + $report->getNewOrderBy('license');
+
+    $report->setSqlRequest($criteria);
+
+    $report->execute();
 
 } else {
    Html::footer();

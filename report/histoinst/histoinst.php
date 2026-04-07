@@ -19,7 +19,7 @@
  along with Reports. If not, see <http://www.gnu.org/licenses/>.
 
  @package   reports
- @authors    Nelly Mahu-Lasson, Remi Collet
+ @authors    Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
  @copyright Copyright (c) 2009-2026 Reports plugin team
  @license   AGPL License 3.0 or (at your option) any later version
             http://www.gnu.org/licenses/agpl-3.0-standalone.html
@@ -59,17 +59,17 @@ echo "<tr class='tab_bg_2'><th>". __('Update date') . "</th>" .
       "<th>". __("Computer's name") . "</th>".
       "<th>". sprintf(__('%1$s (%2$s)'), _n('Software', 'Software', 1), __('version'))."</th></tr>\n";
 
-$sql = "SELECT  `glpi_logs`.`date_mod` AS dat, `linked_action`, `itemtype`, `itemtype_link`,
-               `old_value`, `new_value`, `glpi_computers`.`id` AS cid, `name`, `user_name`,
-               `items_id`, `entities_id`
-        FROM `glpi_logs`
-        LEFT JOIN `glpi_computers` ON (`glpi_logs`.`items_id` = `glpi_computers`.`id`)
-        WHERE `glpi_logs`.`date_mod` > DATE_SUB(Now(), INTERVAL 21 DAY)
-              AND `itemtype` = 'Computer'
-              AND `linked_action` = '" .Log::HISTORY_INSTALL_SOFTWARE ."'
-              AND `entities_id` = '" . $_SESSION["glpiactive_entity"] ."'
-        ORDER BY `glpi_logs`.`id` DESC
-        LIMIT 0,200";
+//$sql = "SELECT  `glpi_logs`.`date_mod` AS dat, `linked_action`, `itemtype`, `itemtype_link`,
+//               `old_value`, `new_value`, `glpi_computers`.`id` AS cid, `name`, `user_name`,
+//               `items_id`, `entities_id`
+//        FROM `glpi_logs`
+//        LEFT JOIN `glpi_computers` ON (`glpi_logs`.`items_id` = `glpi_computers`.`id`)
+//        WHERE `glpi_logs`.`date_mod` > DATE_SUB(Now(), INTERVAL 21 DAY)
+//              AND `itemtype` = 'Computer'
+//              AND `linked_action` = '" .Log::HISTORY_INSTALL_SOFTWARE ."'
+//              AND `entities_id` = '" . $_SESSION["glpiactive_entity"] ."'
+//        ORDER BY `glpi_logs`.`id` DESC
+//        LIMIT 0,200";
 
 $criteria = [
     'SELECT' => ['glpi_logs.date_mod AS dat',
@@ -111,7 +111,6 @@ $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
     );
 
 $iterator = $DB->request($criteria);
-
 
 $prev = "";
 $class = "tab_bg_2";

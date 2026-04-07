@@ -20,7 +20,7 @@
  along with Reports. If not, see <http://www.gnu.org/licenses/>.
 
  @package   reports
- @authors    Nelly Mahu-Lasson, Remi Collet
+ @authors    Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
  @copyright Copyright (c) 2009-2026 Reports plugin team
  @license   AGPL License 3.0 or (at your option) any later version
             http://www.gnu.org/licenses/agpl-3.0-standalone.html
@@ -35,6 +35,9 @@
  *    Big UNION to have a report including all inventory
  * ----------------------------------------------------------------------
  */
+
+use Glpi\DBAL\QueryExpression;
+use Glpi\DBAL\QueryUnion;
 
 $USEDBREPLICATE         = 1;
 $DBCONNECTION_REQUIRED  = 0;
@@ -51,7 +54,7 @@ $dbu = new DbUtils();
  * - etc
  *
  */
-//TRANS: The name of the report = Financial information
+
 $report = new PluginReportsAutoReport(__('Financial information', 'reports'));
 
 $ignored = ['Cartridge', 'CartridgeItem', 'Consumable', 'ConsumableItem', 'Software', 'Line',
@@ -117,30 +120,55 @@ if ($report->criteriasValidated()) {
         $types = array_diff($CFG_GLPI['infocom_types'], $ignored);
     }
 
-    $sql = '';
+    $queries = [];
+
     foreach ($types as $itemtype) {
         $item = new $itemtype();
         $table = $item->getTable();
 
-        $select = "SELECT '$itemtype' as itemtype,
-                        `$table`.id AS itemid";
+        $criteria['SELECT'] = [
+            new QueryExpression("'$itemtype' AS listitemtype"),
+            $table . '.id AS itemid',
+        ];
 
-        $from = "FROM `$table` ";
+        $criteria['FROM'] = [$table];
+        $criteria['LEFT JOIN'] = [];
 
-        if ($itemtype == 'SoftwareLicense') {
-            $select .= ", `glpi_manufacturers`.`name` AS manufacturer";
-            $from   .= "LEFT JOIN `glpi_softwares`
-                        ON (`glpi_softwarelicenses`.`softwares_id` = `glpi_softwares`.`id`)
-                     LEFT JOIN `glpi_manufacturers`
-                        ON (`glpi_manufacturers`.`id` = `glpi_softwares`.`manufacturers_id`) ";
 
-        } elseif ($item->isField('manufacturers_id')) {
-            $select .= ", `glpi_manufacturers`.`name` AS manufacturer";
-            $from   .= "LEFT JOIN `glpi_manufacturers`
-                        ON (`glpi_manufacturers`.`id` = `$table`.`manufacturers_id`) ";
+        //        if ($itemtype == 'SoftwareLicense') {
+        //            $criteria['SELECT'] = array_merge($criteria['SELECT'],['glpi_manufacturers.name AS manufacturer']);
+        //
+        //            $criteria['LEFT JOIN'] = $criteria['LEFT JOIN'] + [
+        //                    'glpi_softwares' => [
+        //                        'ON' => [
+        //                            'glpi_softwarelicenses' => 'softwares_id',
+        //                            'glpi_softwares'          => 'id',
+        //                        ],
+        //                    ],
+        //                    'glpi_manufacturers' => [
+        //                        'ON' => [
+        //                            'glpi_softwares' => 'manufacturers_id',
+        //                            'glpi_manufacturers'          => 'id',
+        //                        ],
+        //                    ],
+        //                ];
+        //
+        //        }
 
+        if ($item->isField('manufacturers_id')) {
+
+            $criteria['SELECT'] = array_merge($criteria['SELECT'], ['glpi_manufacturers.name AS manufacturer']);
+
+            $criteria['LEFT JOIN'] = $criteria['LEFT JOIN'] + [
+                'glpi_manufacturers' => [
+                    'ON' => [
+                        $table => 'manufacturers_id',
+                        'glpi_manufacturers'          => 'id',
+                    ],
+                ],
+            ];
         } else {
-            $select .= ", '' AS manufacturer";
+            $criteria['SELECT'] = array_merge($criteria['SELECT'], [new QueryExpression("'' AS manufacturer")]);
         }
 
         $typeclass = $itemtype . 'Type';
@@ -150,101 +178,167 @@ if ($report->criteriasValidated()) {
             $typeitem  = new $typeclass();
             $typefkey  = $typeitem->getForeignKeyField();
 
-            $select .= ", `$typetable`.`name` AS type";
-            $from .= "LEFT JOIN `$typetable`
-                        ON (`$typetable`.`id` = `$table`.`$typefkey`) ";
+            $criteria['SELECT'] = array_merge($criteria['SELECT'], [$typetable . '.name AS type']);
+            $criteria['LEFT JOIN'] = $criteria['LEFT JOIN'] + [
+                $typetable => [
+                    'ON' => [
+                        $table => $typefkey,
+                        $typetable          => 'id',
+                    ],
+                ],
+            ];
         } else {
-            $select .= ", '' AS type";
+            $criteria['SELECT'] = array_merge($criteria['SELECT'], [new QueryExpression("'' AS type")]);
         }
 
         $modelclass = $itemtype . 'Model';
         $modeltable = $dbu->getTableForItemType($modelclass);
-        if ($itemtype == 'SoftwareLicense') {
-            $select .= ", CONCAT(glpi_softwares.name,' ',buyversion.name) AS model";
-            $from .= "LEFT JOIN `glpi_softwareversions` AS buyversion
-                          ON (buyversion.`id` = `glpi_softwarelicenses`.`softwareversions_id_buy`) ";
-
-        } elseif ($DB->tableExists($modeltable)) {
+        //        if ($itemtype == 'SoftwareLicense') {
+        //
+        //            $criteria['SELECT'] = array_merge($criteria['SELECT'],[ QueryFunction::concat(["glpi_softwares.name", new QueryExpression($DB::quoteValue(' ')), "buyversion.name"], 'model'),]);
+        //
+        //            $criteria['LEFT JOIN'] = $criteria['LEFT JOIN'] + [
+        //                    'glpi_softwareversions AS buyversion' => [
+        //                        'ON' => [
+        //                            'glpi_softwarelicenses' => 'softwareversions_id_buy',
+        //                            'buyversion'          => 'id',
+        //                        ],
+        //                    ],
+        //                ];
+        //
+        //        }
+        if ($DB->tableExists($modeltable)) {
             $modelitem  = new $modelclass();
             $modelitem  = $modelitem->getForeignKeyField();
 
-            $select .= ", `$modeltable`.`name` AS model";
-            $from .= "LEFT JOIN `$modeltable`
-                        ON (`$modeltable`.`id` = `$table`.`$modelitem`) ";
+            $criteria['SELECT'] = array_merge($criteria['SELECT'], [$modeltable . '.name AS model']);
+
+            $criteria['LEFT JOIN'] = $criteria['LEFT JOIN'] + [
+                $modeltable => [
+                    'ON' => [
+                        $table => $modelitem,
+                        $modeltable          => 'id',
+                    ],
+                ],
+            ];
         } else {
-            $select .= ", '' AS model";
+            $criteria['SELECT'] = array_merge($criteria['SELECT'], [new QueryExpression("'' AS model")]);
         }
 
         if ($item->isField('serial')) {
-            $select .= ", `$table`.`serial`";
+            $criteria['SELECT'] = array_merge($criteria['SELECT'], [$table . '.serial']);
         } else {
-            $select .= ", '' AS `serial`";
+            $criteria['SELECT'] = array_merge($criteria['SELECT'], [new QueryExpression("'' AS serial")]);
         }
 
+        $criteria['WHERE'] = [];
         if ($item->isField('otherserial')) {
-            $select .= ", `$table`.`otherserial`";
-            $where   = "WHERE (`$table`.`otherserial` != ''
-                            OR `glpi_infocoms`.`immo_number` !='') ";
+
+            $criteria['SELECT'] = array_merge($criteria['SELECT'], [$table . '.otherserial']);
+
+            $criteria['WHERE'] = $criteria['WHERE'] + ['NOT' => [$table . '.otherserial' => null,
+                'glpi_infocoms.immo_number' => null]];
         } else {
-            $select .= ", '' AS `otherserial`";
-            $where   = "WHERE 1 ";
+            $criteria['SELECT'] = array_merge($criteria['SELECT'], [new QueryExpression("'' AS otherserial")]);
         }
 
-        if ($item->isField('groups_id')) {
-            $select .= ", `$table`.`groups_id`";
-        } else {
-            $select .= ", 0 AS `groups_id`";
-        }
+        $criteria['SELECT'] = array_merge($criteria['SELECT'], ['glpi_groups_items.groups_id']);
+
+        $criteria['LEFT JOIN'] = $criteria['LEFT JOIN'] + ['glpi_groups_items' => [
+                'ON' => [
+                    $table   => 'id',
+                    'glpi_groups_items'                  => 'items_id', [
+                        'AND' => [
+                            'glpi_groups_items.itemtype' => $itemtype,
+                        ],
+                    ],
+                ]
+            ]
+        ];
 
         if ($item->isField('states_id')) {
-            $select .= ", `glpi_states`.`name` AS state";
-            $from   .= "LEFT JOIN `glpi_states`
-                         ON (`glpi_states`.`id` = `$table`.`states_id`)";
+            $criteria['SELECT'] = array_merge($criteria['SELECT'], ['glpi_states.name AS state']);
+            $criteria['LEFT JOIN'] = $criteria['LEFT JOIN'] + [
+                'glpi_states' => [
+                    'ON' => [
+                        'glpi_states'   => 'id',
+                        $table                => 'states_id',
+                    ],
+                ],
+            ];
         } else {
-            $select .= ", '' AS `state`";
+            $criteria['SELECT'] = array_merge($criteria['SELECT'], [new QueryExpression("'' AS state")]);
         }
 
         if ($item->isField('locations_id')) {
-            $select .= ", `glpi_locations`.`completename` AS location
-                     , `glpi_locations`.`building`
-                     , `glpi_locations`.`room`";
-            $from   .= "LEFT JOIN `glpi_locations`
-                         ON (`glpi_locations`.`id` = `$table`.`locations_id`)";
+            $criteria['SELECT'] = array_merge($criteria['SELECT'], ['glpi_locations.completename AS location',
+                'glpi_locations.building',
+                'glpi_locations.room']);
+
+            $criteria['LEFT JOIN'] = $criteria['LEFT JOIN'] + [
+                'glpi_locations' => [
+                    'ON' => [
+                        'glpi_locations'   => 'id',
+                        $table             => 'locations_id',
+                    ],
+                ],
+            ];
         } else {
-            $select .= ", '' AS location, '' AS building, '' AS room";
+            $criteria['SELECT'] = array_merge($criteria['SELECT'], [new QueryExpression("'' AS location"),
+                new QueryExpression("'' AS building"),
+                new QueryExpression("'' AS room")]);
         }
 
-        $select .= ", `glpi_infocoms`.*
-                  , `glpi_infocoms`.`suppliers_id` AS supplier
-                  , `glpi_budgets`.`name` AS budget";
-        $from   .= "LEFT JOIN `glpi_infocoms`
-                      ON (`glpi_infocoms`.`itemtype` = '$itemtype'
-                          AND `glpi_infocoms`.`items_id` = `$table`.`id`)
-                  LEFT JOIN `glpi_budgets`
-                      ON (`glpi_budgets`.`id` = `glpi_infocoms`.`budgets_id`)";
+        $criteria['SELECT'] = array_merge($criteria['SELECT'], ['glpi_infocoms.*',
+            'glpi_infocoms.suppliers_id AS supplier',
+            'glpi_budgets.name AS budget']);
+
+        $criteria['LEFT JOIN'] = $criteria['LEFT JOIN'] + [
+            'glpi_infocoms' => [
+                'ON' => [
+                    $table          => 'id',
+                    'glpi_infocoms' => 'items_id', [
+                        'AND' => [
+                            'glpi_infocoms.itemtype' => $itemtype,
+                        ],
+                    ],
+                ],
+            ],
+            'glpi_budgets' => [
+                'ON' => [
+                    'glpi_budgets'   => 'id',
+                    'glpi_infocoms'  => 'budgets_id',
+                ],
+            ],
+        ];
 
         if ($item->maybeDeleted()) {
-            $where .= " AND `$table`.`is_deleted` = 0 ";
+            $criteria['WHERE'] = $criteria['WHERE'] + [$table . '.is_deleted' => 0];
         }
 
         if ($item->maybeTemplate()) {
-            $where .= " AND `$table`.`is_template` = 0 ";
+            $criteria['WHERE'] = $criteria['WHERE'] + [$table . '.is_template' => 0];
         }
 
         if ($item->isEntityAssign()) {
-            $where .= $dbu->getEntitiesRestrictRequest(" AND ", $table);
+            $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
+                $table
+            );
         }
 
-        $where .= $budg->getSqlCriteriasRestriction();
-        $where .= $date->getSqlCriteriasRestriction();
+        $criteria['WHERE'] = $criteria['WHERE'] + $budg->getNewSqlCriteriasRestriction();
 
-        if ($sql) {
-            $sql .= " UNION ";
-        }
-        $sql .= "($select $from $where)";
+        $criteria['WHERE'] = $criteria['WHERE'] + $date->getNewSqlCriteriasRestriction();
+
+        $queries[] = $criteria;
     }
-    $report->setGroupBy('entity');
-    $report->setSqlRequest($sql);
+
+
+    $union = new QueryUnion($queries, true);
+
+    $req = ['FROM' => $union];
+    $report->setSqlRequest($req);
+
     $report->execute();
 
 } else {

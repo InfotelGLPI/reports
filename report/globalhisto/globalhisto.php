@@ -1,4 +1,5 @@
 <?php
+
 /**
  -------------------------------------------------------------------------
   LICENSE
@@ -19,7 +20,7 @@
  along with Reports. If not, see <http://www.gnu.org/licenses/>.
 
  @package   reports
- @authors    Nelly Mahu-Lasson, Remi Collet
+ @authors    Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
  @copyright Copyright (c) 2009-2026 Reports plugin team
  @license   AGPL License 3.0 or (at your option) any later version
             http://www.gnu.org/licenses/agpl-3.0-standalone.html
@@ -48,45 +49,48 @@ $report->displayCriteriasForm();
 
 //If criterias have been validated
 if ($report->criteriasValidated()) {
-   $report->setSubNameAuto();
+    $report->setSubNameAuto();
 
-   //Colunmns mappings if needed
-   $columns_mappings =
-      ['0'                               => '',
-       Log::HISTORY_ADD_DEVICE           => Log::getLinkedActionLabel(Log::HISTORY_ADD_DEVICE),
-       Log::HISTORY_UPDATE_DEVICE        => Log::getLinkedActionLabel(Log::HISTORY_UPDATE_DEVICE),
-       Log::HISTORY_DELETE_DEVICE        => Log::getLinkedActionLabel(Log::HISTORY_DELETE_DEVICE),
-       Log::HISTORY_INSTALL_SOFTWARE     => Log::getLinkedActionLabel(Log::HISTORY_INSTALL_SOFTWARE),
-       Log::HISTORY_UNINSTALL_SOFTWARE   => Log::getLinkedActionLabel(Log::HISTORY_UNINSTALL_SOFTWARE),
-       Log::HISTORY_DISCONNECT_DEVICE    => Log::getLinkedActionLabel(Log::HISTORY_DISCONNECT_DEVICE),
-       Log::HISTORY_CONNECT_DEVICE       => Log::getLinkedActionLabel(Log::HISTORY_CONNECT_DEVICE),
-       Log::HISTORY_LOCK_DEVICE          => Log::getLinkedActionLabel(Log::HISTORY_LOCK_DEVICE),
-       Log::HISTORY_UNLOCK_DEVICE        => Log::getLinkedActionLabel(Log::HISTORY_UNLOCK_DEVICE),
-       Log::HISTORY_LOG_SIMPLE_MESSAGE   => Log::getLinkedActionLabel(Log::HISTORY_LOG_SIMPLE_MESSAGE),
-       Log::HISTORY_DELETE_ITEM          => Log::getLinkedActionLabel(Log::HISTORY_DELETE_ITEM),
-       Log::HISTORY_RESTORE_ITEM         => Log::getLinkedActionLabel(Log::HISTORY_RESTORE_ITEM),
-       Log::HISTORY_ADD_RELATION         => Log::getLinkedActionLabel(Log::HISTORY_ADD_RELATION),
-       Log::HISTORY_DEL_RELATION         => Log::getLinkedActionLabel(Log::HISTORY_DEL_RELATION),
-       Log::HISTORY_CREATE_ITEM          => Log::getLinkedActionLabel(Log::HISTORY_CREATE_ITEM)];
+    //Colunmns mappings if needed
+    $columns_mappings
+       = ['0'                               => '',
+           Log::HISTORY_ADD_DEVICE           => Log::getLinkedActionLabel(Log::HISTORY_ADD_DEVICE),
+           Log::HISTORY_UPDATE_DEVICE        => Log::getLinkedActionLabel(Log::HISTORY_UPDATE_DEVICE),
+           Log::HISTORY_DELETE_DEVICE        => Log::getLinkedActionLabel(Log::HISTORY_DELETE_DEVICE),
+           Log::HISTORY_INSTALL_SOFTWARE     => Log::getLinkedActionLabel(Log::HISTORY_INSTALL_SOFTWARE),
+           Log::HISTORY_UNINSTALL_SOFTWARE   => Log::getLinkedActionLabel(Log::HISTORY_UNINSTALL_SOFTWARE),
+           Log::HISTORY_DISCONNECT_DEVICE    => Log::getLinkedActionLabel(Log::HISTORY_DISCONNECT_DEVICE),
+           Log::HISTORY_CONNECT_DEVICE       => Log::getLinkedActionLabel(Log::HISTORY_CONNECT_DEVICE),
+           Log::HISTORY_LOCK_DEVICE          => Log::getLinkedActionLabel(Log::HISTORY_LOCK_DEVICE),
+           Log::HISTORY_UNLOCK_DEVICE        => Log::getLinkedActionLabel(Log::HISTORY_UNLOCK_DEVICE),
+           Log::HISTORY_LOG_SIMPLE_MESSAGE   => Log::getLinkedActionLabel(Log::HISTORY_LOG_SIMPLE_MESSAGE),
+           Log::HISTORY_DELETE_ITEM          => Log::getLinkedActionLabel(Log::HISTORY_DELETE_ITEM),
+           Log::HISTORY_RESTORE_ITEM         => Log::getLinkedActionLabel(Log::HISTORY_RESTORE_ITEM),
+           Log::HISTORY_ADD_RELATION         => Log::getLinkedActionLabel(Log::HISTORY_ADD_RELATION),
+           Log::HISTORY_DEL_RELATION         => Log::getLinkedActionLabel(Log::HISTORY_DEL_RELATION),
+           Log::HISTORY_CREATE_ITEM          => Log::getLinkedActionLabel(Log::HISTORY_CREATE_ITEM)];
 
-   //Names of the columns to be displayed
-   $report->setColumns([new PluginReportsColumn('id', __('ID')),
-                        new PluginReportsColumnDate('date_mod', __('Date')),
-                        new PluginReportsColumn('user_name', __('User')),
-                        new PluginReportsColumnMap('linked_action', _x('noun','Update'),
-                                                   $columns_mappings)]);
+    //Names of the columns to be displayed
+    $report->setColumns([new PluginReportsColumn('id', __('ID')),
+        new PluginReportsColumnDate('date_mod', __('Date')),
+        new PluginReportsColumn('user_name', __('User')),
+        new PluginReportsColumnMap(
+            'linked_action',
+            _x('noun', 'Update'),
+            $columns_mappings
+        )]);
 
     $criteria = [
         'SELECT' => ['id', 'date_mod', 'user_name', 'linked_action'],
         'FROM' => 'glpi_logs',
         'WHERE' => [],
-        'ORDERBY' => 'date_mod'
+        'ORDERBY' => 'date_mod',
     ];
 
     $criteria['WHERE'] = $criteria['WHERE'] +  $report->addNewSqlCriteriasRestriction();
 
-   $report->setSqlRequest($criteria);
-   $report->execute();
+    $report->setSqlRequest($criteria);
+    $report->execute();
 } else {
-   Html::footer();
+    Html::footer();
 }

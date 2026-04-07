@@ -19,7 +19,7 @@
  along with Reports. If not, see <http://www.gnu.org/licenses/>.
 
  @package   reports
- @authors    Nelly Mahu-Lasson, Remi Collet
+ @authors    Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
  @copyright Copyright (c) 2009-2026 Reports plugin team
  @license   AGPL License 3.0 or (at your option) any later version
             http://www.gnu.org/licenses/agpl-3.0-standalone.html
@@ -75,19 +75,38 @@ if ($report->criteriasValidated()) {
 
    $report->setColumns($cols);
 
+   $itemtypes = ['Cartridge', 'CartridgeItem', 'Consumable', 'ConsumableItem',
+       'Software', 'Line', 'Certificate', 'Appliance', 'Domain',
+       'Item_DeviceSimcard', 'SoftwareLicense'];
    // Build SQL request
-   $sql = "SELECT *
-           FROM `glpi_infocoms`
-           WHERE `itemtype` NOT IN ('Cartridge', 'CartridgeItem', 'Consumable', 'ConsumableItem',
-                                    'Software', 'Line', 'Certificate', 'Appliance', 'Domain',
-                                    'Item_DeviceSimcard', 'SoftwareLicense')".
-           $report->addSqlCriteriasRestriction().
-           $dbu->getEntitiesRestrictRequest('AND', 'glpi_infocoms').
-          "ORDER BY `itemtype`";
+//   $sql = "SELECT *
+//           FROM `glpi_infocoms`
+//           WHERE `itemtype` NOT IN ()".
+//           $report->addSqlCriteriasRestriction().
+//           $dbu->getEntitiesRestrictRequest('AND', 'glpi_infocoms').
+//          "ORDER BY `itemtype`";
 
-   $report->setGroupBy('itemtype');
-   $report->setSqlRequest($sql);
-   $report->execute();
+//   $report->execute();
+
+    $criteria = [
+        'SELECT' => ['*'],
+        'FROM' => 'glpi_infocoms',
+        'WHERE' =>
+            ['itemtype' => ['NOT IN', $itemtypes]],
+        'ORDERBY'   => ['itemtype'],
+    ];
+
+    $criteria['WHERE'] = $criteria['WHERE'] + $report->addNewSqlCriteriasRestriction();
+
+    $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
+            'glpi_infocoms'
+        );
+
+    $report->setGroupBy(['itemtype']);
+
+    $report->setSqlRequest($criteria);
+
+    $report->execute();
 
 } else {
    Html::footer();

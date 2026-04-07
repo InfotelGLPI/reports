@@ -19,7 +19,7 @@
  along with Reports. If not, see <http://www.gnu.org/licenses/>.
 
  @package   reports
- @authors    Nelly Mahu-Lasson, Remi Collet
+ @authors    Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
  @copyright Copyright (c) 2009-2022 Reports plugin team
  @license   AGPL License 3.0 or (at your option) any later version
             http://www.gnu.org/licenses/agpl-3.0-standalone.html
@@ -34,7 +34,7 @@ function plugin_reports_install()
 {
     global $DB;
 
-    $migration = new Migration('1.15.0');
+    $migration = new Migration('2.0.0');
 
    // config of doublon report is now in glpi_blacklists
     if ($DB->tableExists("glpi_plugin_reports_doublons_backlists")) {
@@ -59,9 +59,6 @@ function plugin_reports_install()
         $migration->dropTable('glpi_plugin_reports_doublons_backlists');
     }
 
-   // No autoload when plugin is not activated
-    include_once(Plugin::getPhpDir('reports')."/inc/profile.class.php");
-
     PluginReportsProfile::install($migration);
 
     $migration->executeMigration();
@@ -73,10 +70,7 @@ function plugin_reports_install()
 function plugin_reports_uninstall()
 {
 
-    $migration = new Migration('1.15.0');
-
-   // No autoload when plugin is not activated (if dessactivation before uninstall)
-    include_once(Plugin::getPhpDir('reports')."/inc/profile.class.php");
+    $migration = new Migration('2.0.0');
 
     return PluginReportsProfile::uninstall($migration);
 
