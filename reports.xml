@@ -3,36 +3,36 @@
    <name>reports</name>
    <key>reports</key>
    <state>stable</state>
-   <logo>https://raw.githubusercontent.com/yllen/reports/master/report_page.png</logo>
+   <logo>https://raw.githubusercontent.com/InfotelGLPI/reports/master/report_page.png</logo>
    <description>
       <short>
-         <fr><![CDATA[Rapports. Ce plugin fournit des rapports supplémentaires. Il permet également 
+         <fr><![CDATA[Rapports. Ce plugin fournit des rapports supplémentaires. Il permet également
          d’ajouter très facilement de nouveaux rapports.]]></fr>
-         <en><![CDATA[Reports. This plugin enables additional reports. It also allow you to add new 
+         <en><![CDATA[Reports. This plugin enables additional reports. It also allow you to add new
          reports in a simply way.]]></en>
          <cs><![CDATA[Výkazy. Tento zásuvný modul přidává další hlášení. Také vám umožní snadno přidat nové.]]></cs>
       </short>
       <long>
-         <fr><![CDATA[Ce plugin fournit des rapports supplémentaires.<br />Fonctionnalités 
-         principales :<br />-Il permet d’ajouter très facilement de nouveaux rapports (via l’ajout 
+         <fr><![CDATA[Ce plugin fournit des rapports supplémentaires.<br />Fonctionnalités
+         principales :<br />-Il permet d’ajouter très facilement de nouveaux rapports (via l’ajout
          d’un fichier PHP pour le rapport et un fichier de langue associé).<br />-Il prend en charge
-          la gestion de droits de tout nouveau rapport ajouté.<br />-Il fournit quelques rapports 
-         (pour exemple)<br />Rapports disponibles dans la version 1.3.0 :<br />-Arborescence des 
+          la gestion de droits de tout nouveau rapport ajouté.<br />-Il fournit quelques rapports
+         (pour exemple)<br />Rapports disponibles dans la version 1.3.0 :<br />-Arborescence des
          lieux<br />-Catalogue des règles<br />-Historique des dernières installations de logiciels
          <br />-Historique des dernières modifications de matériels<br />-Informations financières
          <br />-Liste des groupes et membres<br />-Liste des licences par expiration<br />-Liste des
-          équipements par groupe<br />-Nombre d’équipements par entité<br />-Nombre d’équipements 
+          équipements par groupe<br />-Nombre d’équipements par entité<br />-Nombre d’équipements
           par lieu<br />-Ordinateurs en doublons<br />-Etat détaillé des licences]]></fr>
-         <en><![CDATA[This plugin enables additional reports.<br />Main features :<br />-It also 
-         plugin allow you to add new reports in a simply way (one PHP script for the report and one 
-         for the translation).<br />-It handle the right for each new report<br />-It provides some 
-         new reports (as sample)<br />Reports available in version 1.3.0 :<br />-Detailed license 
-         report<br />-Duplicate computers<br />-Financial information<br />-History of last 
-         hardware’s installations<br />-History of last software’s installations<br />-Licenses by 
-         expiration date<br />-List all devices of a group, order by users<br />-List of groups and 
+         <en><![CDATA[This plugin enables additional reports.<br />Main features :<br />-It also
+         plugin allow you to add new reports in a simply way (one PHP script for the report and one
+         for the translation).<br />-It handle the right for each new report<br />-It provides some
+         new reports (as sample)<br />Reports available in version 1.3.0 :<br />-Detailed license
+         report<br />-Duplicate computers<br />-Financial information<br />-History of last
+         hardware’s installations<br />-History of last software’s installations<br />-Licenses by
+         expiration date<br />-List all devices of a group, order by users<br />-List of groups and
          members<br />-Location tree<br />-Number of equipments by location<br />-Number of items by
           entity<br />-Rule’s catalog]]></en>
-         <cs><![CDATA[Tento zásuvný modul přidává další hlášení.<br />Hlavní funkce :<br />-Také 
+         <cs><![CDATA[Tento zásuvný modul přidává další hlášení.<br />Hlavní funkce :<br />-Také
          umožňuje snadno přidávat nová hlášení (jeden PHP skript pro výkaz a jeden pro překlady).
          <br />-Obsluhuje práva na každý z nových výkazů<br />-Poskytuje některé nové výkazy (pro ukázku)
          <br />Výkazy, které jsou k dispozici ve verzi 1.3.0 :<br />-Podrobný výkaz o licencích<br />
@@ -43,13 +43,20 @@
          <br />-Katalog pravidla]]></cs>
       </long>
    </description>
-   <homepage>https://github.com/yllen/reports</homepage>
-   <download>https://github.com/yllen/reports/releases</download>
+   <homepage>https://github.com/InfotelGLPI/reports</homepage>
+   <download>https://github.com/InfotelGLPI/reports/releases</download>
    <authors>
+       <author>Xavier Caillaud</author>
+       <author>Infotel</author>
       <author>Nelly Mahu-Lasson</author>
       <author>Remi Collet </author>
    </authors>
    <versions>
+       <version>
+           <num>1.2.0</num>
+           <compatibility>~11.0.0</compatibility>
+           <download_url>https://github.com/InfotelGLPI/reports/releases/download/1.2.0/glpi-releases-1.2.0.tar.bz2</download_url>
+       </version>
       <version>
           <num>1.16.0</num>
           <compatibility>~10.0.0</compatibility>
