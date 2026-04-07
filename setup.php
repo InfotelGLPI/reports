@@ -35,6 +35,7 @@ define("REPORTS_NO_ENTITY_RESTRICTION", 0);
 define("REPORTS_CURRENT_ENTITY", 1);
 define("REPORTS_SUB_ENTITIES", 2);
 
+define('PLUGIN_REPORTS_VERSION', '2.0.1');
 
 function plugin_init_reports()
 {
@@ -104,7 +105,7 @@ function plugin_version_reports()
 {
 
     return ['name'           => _n('Report', 'Reports', 2),
-           'version'        => '2.0.0',
+           'version'        => PLUGIN_REPORTS_VERSION,
            'author'         => "<a href='https://blogglpi.infotel.com'>Infotel</a>, Xavier CAILLAUD, Nelly MAHU-LASSON, Remi COLLET",
            'license'        => 'GPLv3+',
            'homepage'       => 'https://github.com/InfotelGLPI/reports',
