@@ -1,4 +1,5 @@
 <?php
+
 /**
  -------------------------------------------------------------------------
   LICENSE
@@ -33,123 +34,97 @@
 /**
  * Search for reports in all activated plugins
  *
- * @return tab : an array which contains all the reports found (name => plugin)
+ * @return array - an array which contains all the reports found (name => plugin)
 **/
-function searchReport($all = false) {
-   global $DB;
+function searchReport($all = false)
+{
+    global $DB;
 
-   $tab = [];
-   $filter = ['FROM' => 'glpi_plugins',
-       'WHERE' => ['state' => Plugin::ACTIVATED]];
-   if ($all) {
-      $filter = "";
-   }
-   foreach ($DB->request($filter) as $plug) {
-      foreach (glob(Plugin::getPhpDir($plug['directory'])."/report/*", GLOB_ONLYDIR) as $path) {
-         $tab[basename($path)] = $plug['directory'];
-         includeLocales(basename($path), $plug['directory']);
-      }
-   }
-   return $tab;
+    $tab = [];
+    $filter = ['FROM' => 'glpi_plugins',
+        'WHERE' => ['state' => Plugin::ACTIVATED]];
+    if ($all) {
+        $filter = "";
+    }
+    foreach ($DB->request($filter) as $plug) {
+        foreach (glob(Plugin::getPhpDir($plug['directory']) . "/report/*", GLOB_ONLYDIR) as $path) {
+            $tab[basename($path)] = $plug['directory'];
+            includeLocales(basename($path), $plug['directory']);
+        }
+    }
+
+    return $tab;
 }
 
 
 /**
  * Include locales for a specific report
  *
- * @param $report_name  the name of the report to use
- * @param $plugin       plugins name (default 'reports')
+ * @param $report_name  - the name of the report to use
+ * @param $plugin       - plugins name (default 'reports')
  *
  * @return boolean, true if locale found
 **/
-function includeLocales($report_name, $plugin='reports') {
-   global $CFG_GLPI, $LANG;
+function includeLocales($report_name, $plugin = 'reports')
+{
+    global $LANG;
 
-   $prefix = Plugin::getPhpDir($plugin). "/report/". $report_name ."/" . $report_name;
+    $plugin_key = 'plugin_' . $plugin;
 
-   if (isset ($_SESSION["glpilanguage"])
-       && file_exists($prefix . "." . $_SESSION["glpilanguage"].".php")) {
+    if (!isset($LANG[$plugin_key])) {
+        $LANG[$plugin_key] = [];
+    }
 
-      include_once  ($prefix . "." . $_SESSION["glpilanguage"].".php");
+    $locale_loaded = false;
 
-   } else if (file_exists($prefix . ".en_GB.php")) {
-      include_once  ($prefix . ".en_GB.php");
+    // Ensure $LANG entry is set with the report title from translation
+    if (!isset($LANG[$plugin_key][$report_name])) {
+        $name = $report_name . '_report_title';
 
-   } else {
-      // At least defined report name
-      $name = $report_name.'_report_title';
-      $LANG['plugin_'.$plugin][$report_name] = __($report_name.'_report_title', $plugin);
-      // For dev
-      if (($_SESSION['glpi_use_mode'] == Session::DEBUG_MODE)
-          && ($LANG['plugin_'.$plugin][$report_name] == $report_name.'_report_title')) {
-         Toolbox::logInFile('php-errors',
-                            "includeLocales($name, $plugin) => not found\n");
-      }
-  //    return false;
-   }
+        $LANG[$plugin_key][$report_name] = __($name, $plugin);
+        // For dev: log if translation key not found
+        if (($_SESSION['glpi_use_mode'] == Session::DEBUG_MODE)
+            && ($LANG[$plugin_key][$report_name] == $name)) {
+            Toolbox::logInFile(
+                'php-errors',
+                "includeLocales($name, $plugin) => translation key not found\n"
+            );
+        }
+    }
 
-   return true;
+    return $locale_loaded;
 }
 
 
-/**
- * Manage display and export of an sql query
- *
- * @param $name             name of the report
- * @param $sql              the sql query to execute
- * @param $cols     array   which contains the columns and their name to display
- * @param $subname          second level of name to display (default '')
- * @param $group    array   which contains all the fields to use in GROUP BY sql instruction
-**/
-function simpleReport($name, $sql, $cols=[], $subname="", $group=[]) {
-   global $DB, $CFG_GLPI;
+function getPriorityLabelsArray()
+{
 
-   $report = new AutoReport($name);
-
-   if (count($cols)) {
-      $report->setColumns($cols);
-   }
-
-   if (!empty($subname)) {
-      $report->setSubName($subname);
-   }
-
-   if (count($group)) {
-      $report->setGroupBy($group);
-   }
-
-   $report->setSqlRequest($sql);
-   $report->execute();
+    return ["1" => Ticket::getPriorityName(1),
+        "2" => Ticket::getPriorityName(2),
+        "3" => Ticket::getPriorityName(3),
+        "4" => Ticket::getPriorityName(4),
+        "5" => Ticket::getPriorityName(5),
+        "6" => Ticket::getPriorityName(6)];
 }
 
 
-function getPriorityLabelsArray() {
+function getImpactLabelsArray()
+{
 
-   return ["1" => Ticket::getPriorityName(1),
-           "2" => Ticket::getPriorityName(2),
-           "3" => Ticket::getPriorityName(3),
-           "4" => Ticket::getPriorityName(4),
-           "5" => Ticket::getPriorityName(5),
-           "6" => Ticket::getPriorityName(6)];
+    return ["1" => Ticket::getImpactName(1),
+        "2" => Ticket::getImpactName(2),
+        "3" => Ticket::getImpactName(3),
+        "4" => Ticket::getImpactName(4),
+        "5" => Ticket::getImpactName(5)];
 }
 
 
-function getImpactLabelsArray() {
+function getUrgencyLabelsArray()
+{
 
-   return ["1" => Ticket::getImpactName(1),
-           "2" => Ticket::getImpactName(2),
-           "3" => Ticket::getImpactName(3),
-           "4" => Ticket::getImpactName(4),
-           "5" => Ticket::getImpactName(5)];
+    return ["1" => Ticket::getUrgencyName(1),
+        "2" => Ticket::getUrgencyName(2),
+        "3" => Ticket::getUrgencyName(3),
+        "4" => Ticket::getUrgencyName(4),
+        "5" => Ticket::getUrgencyName(5)];
 }
-
-
-function getUrgencyLabelsArray() {
-
-   return ["1" => Ticket::getUrgencyName(1),
-           "2" => Ticket::getUrgencyName(2),
-           "3" => Ticket::getUrgencyName(3),
-           "4" => Ticket::getUrgencyName(4),
-           "5" => Ticket::getUrgencyName(5)];
-}
-

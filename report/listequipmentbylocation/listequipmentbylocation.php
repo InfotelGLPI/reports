@@ -39,10 +39,9 @@ $DBCONNECTION_REQUIRED = 0;
 global $DB, $CFG_GLPI;
 
 
-//TRANS: The name of the report = List of equipments by location
 $report = new PluginReportsAutoReport(__('List of equipments by location', 'reports'));
-$loc = new PluginReportsLocationCriteria($report);
 
+$loc = new PluginReportsLocationCriteria($report);
 
 $ignored = [
     'Cartridge',
@@ -91,6 +90,7 @@ $report->displayCriteriasForm();
 //If criterias have been validated
 if ($report->criteriasValidated()
     && $loc->getParameterValue() != 0) {
+
     $report->setSubNameAuto();
 
     $queries[] = getSqlSubRequest("Computer", $loc, new Computer());
@@ -105,9 +105,10 @@ if ($report->criteriasValidated()
 
     $req = ['FROM' => $union];
 
-//    $report->setGroupBy("entity", "itemtype");
     $report->setSqlRequest($req);
+
     $report->execute();
+
 } else {
     echo "<div class='alert alert-danger center'>" . __('Location not selected', 'reports') . "</div>";
     Html::footer();
@@ -161,7 +162,6 @@ function getSqlSubRequest($itemtype, $loc, $obj)
             $criteria['SELECT'] = array_merge($criteria['SELECT'],[new QueryExpression("' ' AS $alias")]);
         }
     }
-
 
     if ($obj->isEntityAssign()) {
         $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(

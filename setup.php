@@ -58,8 +58,7 @@ function plugin_init_reports()
 
     $PLUGIN_HOOKS['menu_entry']['reports'] = false;
 
-    $rightreport = [];
-    $rightstats  = [];
+    $reports_titles = PluginReportsReport::getAllReportsTitles();
 
     foreach (searchReport() as $report => $plug) {
         $field = 'plugin_reports_'.$report;
@@ -67,7 +66,13 @@ function plugin_init_reports()
             $field = 'plugin_reports_'.$plug."_".$report;
         }
         if (Session::haveRight($field, READ)) {
-            $tmp = $LANG["plugin_$plug"][$report];
+
+            if (isset($reports_titles[$report])) {
+                $tmp = $reports_titles[$report];
+            } else {
+                $tmp = $LANG["plugin_$plug"][$report];
+            }
+
            //If the report's name contains 'stat' then display it in the statistics page
            //(instead of Report page)
             if (isStat($report)) {

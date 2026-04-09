@@ -63,7 +63,7 @@ if (isset($_POST['delete']) && $report) {
 
 $tab = $prof->updatePluginRights();
 
-echo "<form method='post' action=\"" . $_SERVER["PHP_SELF"] . "\">";
+echo "<form method='post' action=\"" . $_SERVER["REQUEST_URI"] . "\">";
 echo "<table class='tab_cadre'>";
 echo "<tr><th class='center'>" . __('Reports plugin configuration', 'reports') . "</th></tr>";
 echo "<tr><th>" . __('Rights management by report', 'reports') . "</th></tr>\n";
@@ -75,6 +75,8 @@ $result = $DB->request(
         'FROM' => 'glpi_profiles',
         'ORDER'  => 'name']
 );
+
+$reports_names = PluginReportsReport::getAllReportsTitles();
 
 echo "<select name='report'>";
 $plugname = [];
@@ -90,7 +92,12 @@ foreach ($tab as $key => $plug) {
     $section = (isStat($mod) ? sprintf(__('%1$s - %2$s'), __('Assistance'), __('Statistics'))
                             : sprintf(__('%1$s - %2$s'), __('Tools'), __('Report', 'Reports', 2)));
 
-    $rap[$plug][$section][$mod] = $LANG["plugin_$plug"][$key];
+    if (isset($reports_names[$key])) {
+        $rap[$plug][$section][$mod] = $reports_names[$key];
+    } else {
+        $rap[$plug][$section][$mod] = $LANG["plugin_$plug"][$key];
+    }
+
 }
 
 $tab = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";

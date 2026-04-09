@@ -43,7 +43,7 @@ $computer->checkGlobal(READ);
 $dbu      = new DbUtils();
 
 //TRANS: The name of the report = Duplicate computers
-Html::header(__('Duplicate computers', 'report'), $_SERVER['PHP_SELF'], "utils", "report");
+Html::header(__('Duplicate computers', 'reports'), $_SERVER['PHP_SELF'], "utils", "report");
 
 Report::title();
 
