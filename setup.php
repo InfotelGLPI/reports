@@ -35,7 +35,7 @@ define("REPORTS_NO_ENTITY_RESTRICTION", 0);
 define("REPORTS_CURRENT_ENTITY", 1);
 define("REPORTS_SUB_ENTITIES", 2);
 
-define('PLUGIN_REPORTS_VERSION', '2.0.1');
+define('PLUGIN_REPORTS_VERSION', '2.0.2');
 
 function plugin_init_reports()
 {
