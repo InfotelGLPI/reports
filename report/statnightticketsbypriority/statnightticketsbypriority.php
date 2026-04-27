@@ -30,6 +30,13 @@
  */
 
 use Glpi\DBAL\QueryExpression;
+use GlpiPlugin\Reports\AutoReport;
+use GlpiPlugin\Reports\Column;
+use GlpiPlugin\Reports\ColumnDateTime;
+use GlpiPlugin\Reports\ColumnLink;
+use GlpiPlugin\Reports\ColumnMap;
+use GlpiPlugin\Reports\DateIntervalCriteria;
+use GlpiPlugin\Reports\TimeIntervalCriteria;
 
 $USEDBREPLICATE         = 1;
 $DBCONNECTION_REQUIRED  = 0;
@@ -39,12 +46,12 @@ global $DB, $CFG_GLPI;
 $dbu = new DbUtils();
 
 //TRANS: The name of the report = Tickets opened at night, sorted by priority
-$report = new PluginReportsAutoReport(__('Tickets opened at night, sorted by priority', 'reports'));
+$report = new AutoReport(__('Tickets opened at night, sorted by priority', 'reports'));
 
 //Report's search criterias
-new PluginReportsDateIntervalCriteria($report, '`glpi_tickets`.`date`', __('Opening date'));
+new DateIntervalCriteria($report, '`glpi_tickets`.`date`', __('Opening date'));
 
-$timeInterval = new PluginReportsTimeIntervalCriteria($report, '`glpi_tickets`.`date`');
+$timeInterval = new TimeIntervalCriteria($report, '`glpi_tickets`.`date`');
 
 //Criterias default values
 $timeInterval->setStartTime($CFG_GLPI['planning_end']);
@@ -58,13 +65,13 @@ if ($report->criteriasValidated()) {
    $report->setSubNameAuto();
 
    //Names of the columns to be displayed
-   $report->setColumns([new PluginReportsColumnMap('priority', __('Priority'), [],
+   $report->setColumns([new ColumnMap('priority', __('Priority'), [],
                                                    ['sorton' => '`priority`, `date`']),
-                        new PluginReportsColumnDateTime('date', __('Opening date'),
+                        new ColumnDateTime('date', __('Opening date'),
                                                         ['sorton' => '`date`']),
-                        new PluginReportsColumn('id2', __('ID')),
-                        new PluginReportsColumnLink('id', __('Title'), 'Ticket'),
-                        new PluginReportsColumn('groupname', __('Group'),
+                        new Column('id2', __('ID')),
+                        new ColumnLink('id', __('Title'), 'Ticket'),
+                        new Column('groupname', __('Group'),
                                                 ['sorton' => '`glpi_groups_tickets`.`groups_id`, `date`'])]);
 
 //   $query = "SELECT `glpi_tickets`.`priority`, `glpi_tickets`.`date` , `glpi_tickets`.`id`,
@@ -130,6 +137,6 @@ if ($report->criteriasValidated()) {
 
     $report->execute();
 
-} else {
-   Html::footer();
 }
+
+$report->footer();

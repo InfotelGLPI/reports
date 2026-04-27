@@ -31,6 +31,10 @@
 */
 
 use Glpi\DBAL\QueryExpression;
+use GlpiPlugin\Reports\AutoReport;
+use GlpiPlugin\Reports\DateIntervalCriteria;
+use GlpiPlugin\Reports\DropdownCriteria;
+use GlpiPlugin\Reports\ItemTypeCriteria;
 
 $USEDBREPLICATE         = 1;
 $DBCONNECTION_REQUIRED  = 1;
@@ -41,17 +45,17 @@ global $DB;
 $dbu = new DbUtils();
 
 //TRANS: The name of the report = Time before equipment start-up
-$report = new PluginReportsAutoReport(__('Time before equipment start-up', 'reports'));
+$report = new AutoReport(__('Time before equipment start-up', 'reports'));
 
 //Report's search criterias
-$date = new PluginReportsDateIntervalCriteria($report, 'buy_date');
+$date = new DateIntervalCriteria($report, 'buy_date');
 
 $ignored = ['Cartridge', 'CartridgeItem', 'Consumable', 'ConsumableItem', 'Software', 'Line',
     'Certificate', 'Appliance', 'Domain', 'Item_DeviceSimcard', 'SoftwareLicense'];
 
-$type = new PluginReportsItemTypeCriteria($report, 'itemtype', '', 'infocom_types', $ignored);
+$type = new ItemTypeCriteria($report, 'itemtype', '', 'infocom_types', $ignored);
 
-$budg = new PluginReportsDropdownCriteria($report, 'budgets_id', 'glpi_budgets', __('Budget'));
+$budg = new DropdownCriteria($report, 'budgets_id', 'glpi_budgets', __('Budget'));
 
 //Display criterias form is needed
 $report->displayCriteriasForm();

@@ -30,9 +30,10 @@
  --------------------------------------------------------------------------
  */
 
-Session::checkRight('profile', READ);
+use GlpiPlugin\Reports\Profile;
+use GlpiPlugin\Reports\Report;
 
-Plugin::load('reports', true);
+Session::checkRight('profile', READ);
 
 Html::header(
     __('Reports plugin configuration', 'reports'),
@@ -43,14 +44,13 @@ Html::header(
 
 global $DB, $LANG;
 
-require_once "../inc/profile.class.php";
 
 $report = '';
 if (isset($_POST['report'])) {
     $report = $_POST['report'];
 }
 
-$prof = new PluginReportsProfile();
+$prof = new Profile();
 
 if (isset($_POST['delete']) && $report) {
     $profile_right = new ProfileRight();
@@ -58,7 +58,7 @@ if (isset($_POST['delete']) && $report) {
     ProfileRight::addProfileRights(["plugin_reports_$report"]);
 } elseif (isset($_POST['update']) && $report) {
     Session::checkRight('profile', UPDATE);
-    PluginReportsProfile::updateForReport($_POST);
+    Profile::updateForReport($_POST);
 }
 
 $tab = $prof->updatePluginRights();
@@ -76,7 +76,7 @@ $result = $DB->request(
         'ORDER'  => 'name']
 );
 
-$reports_names = PluginReportsReport::getAllReportsTitles();
+$reports_names = Report::getAllReportsTitles();
 
 echo "<select name='report'>";
 $plugname = [];
@@ -120,7 +120,7 @@ echo "</td></tr></table>";
 Html::closeForm();
 
 if ($report) {
-    PluginReportsProfile::showForReport($report);
+    Profile::showForReport($report);
 }
 
 Html::footer();

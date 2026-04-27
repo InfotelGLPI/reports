@@ -29,7 +29,9 @@
  --------------------------------------------------------------------------
 */
 
-include_once(Plugin::getPhpDir('reports')."/inc/function.php");
+use GlpiPlugin\Reports\Profile;
+use GlpiPlugin\Reports\Report;
+use GlpiPlugin\Reports\Stat;
 
 define("REPORTS_NO_ENTITY_RESTRICTION", 0);
 define("REPORTS_CURRENT_ENTITY", 1);
@@ -43,14 +45,12 @@ function plugin_init_reports()
 
     $PLUGIN_HOOKS['csrf_compliant']['reports'] = true;
 
-    $plugin = new plugin;
-
    //Define only for bookmarks
-    Plugin::registerClass('PluginReportsReport');
+    Plugin::registerClass(Report::class);
 
-    Plugin::registerClass('PluginReportsStat');
+    Plugin::registerClass(Stat::class);
 
-    Plugin::registerClass('PluginReportsProfile', ['addtabon' => ['Profile']]);
+    Plugin::registerClass(Profile::class, ['addtabon' => ['Profile']]);
 
     if (Session::haveRight("config", UPDATE)) {
         $PLUGIN_HOOKS['config_page']['reports']     = 'front/report.form.php';
@@ -58,9 +58,9 @@ function plugin_init_reports()
 
     $PLUGIN_HOOKS['menu_entry']['reports'] = false;
 
-    $reports_titles = PluginReportsReport::getAllReportsTitles();
+    $reports_titles = Report::getAllReportsTitles();
 
-    foreach (searchReport() as $report => $plug) {
+    foreach (Report::searchReport() as $report => $plug) {
         $field = 'plugin_reports_'.$report;
         if ($plug != 'reports') {
             $field = 'plugin_reports_'.$plug."_".$report;

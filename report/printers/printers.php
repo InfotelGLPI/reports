@@ -30,6 +30,14 @@
  * --------------------------------------------------------------------------
  */
 
+use GlpiPlugin\Reports\AutoReport;
+use GlpiPlugin\Reports\Column;
+use GlpiPlugin\Reports\ColumnDate;
+use GlpiPlugin\Reports\ColumnInteger;
+use GlpiPlugin\Reports\ColumnLink;
+use GlpiPlugin\Reports\GroupCriteria;
+use GlpiPlugin\Reports\LocationCriteria;
+
 $USEDBREPLICATE = 1;
 $DBCONNECTION_REQUIRED = 0;
 
@@ -38,11 +46,11 @@ global $DB;
 $dbu = new DbUtils();
 
 //TRANS: The name of the report = Printers
-$report = new PluginReportsAutoReport(__('Printers', 'reports'));
+$report = new AutoReport(__('Printers', 'reports'));
 
 // Definition of the criteria
-$grpcrit = new PluginReportsGroupCriteria($report, 'glpi_groups_items.groups_id', '', 'is_itemgroup');
-$loccrit = new PluginReportsLocationCriteria($report, 'glpi_printers.locations_id');
+$grpcrit = new GroupCriteria($report, 'glpi_groups_items.groups_id', '', 'is_itemgroup');
+$loccrit = new LocationCriteria($report, 'glpi_printers.locations_id');
 
 //Display criterias form is needed
 $report->displayCriteriasForm();
@@ -51,7 +59,7 @@ $report->displayCriteriasForm();
 $report->setSubNameAuto();
 
 $cols = [
-    new PluginReportsColumnLink(
+    new ColumnLink(
         'id',
         __('Name'),
         'Printer',
@@ -60,44 +68,44 @@ $cols = [
             'sorton' => 'glpi_printers.name'
         ]
     ),
-    new PluginReportsColumn('state', __('Status')),
-    new PluginReportsColumn('manu', __('Manufacturer')),
-    new PluginReportsColumn(
+    new Column('state', __('Status')),
+    new Column('manu', __('Manufacturer')),
+    new Column(
         'model',
         __('Model'),
         ['sorton' => 'glpi_manufacturers.name, glpi_printermodels.name']
     ),
-    new PluginReportsColumn('serial', __('Serial number')),
-    new PluginReportsColumn('otherserial', __('Inventory number')),
-    new PluginReportsColumn('immo_number', __('Immobilization number')),
-    new PluginReportsColumnDate(
+    new Column('serial', __('Serial number')),
+    new Column('otherserial', __('Inventory number')),
+    new Column('immo_number', __('Immobilization number')),
+    new ColumnDate(
         'buy_date',
         __('Date of purchase'),
         ['sorton' => 'glpi_infocoms.buy_date']
     ),
-    new PluginReportsColumnDate(
+    new ColumnDate(
         'use_date',
         __('Startup date'),
         ['sorton' => 'glpi_infocoms.use_date']
     ),
-    new PluginReportsColumnInteger('last_pages_counter', __('Printed pages')),
-    new PluginReportsColumnLink('user', __('User'), 'User'),
-    new PluginReportsColumnLink(
+    new ColumnInteger('last_pages_counter', __('Printed pages')),
+    new ColumnLink('user', __('User'), 'User'),
+    new ColumnLink(
         'groupe',
         __('Group'),
         'Group',
         ['sorton' => 'glpi_groups.name']
     ),
-    //            new PluginReportsColumnInteger('compgrp', __('Computers in the group', 'reports')),
-    //            new PluginReportsColumnInteger('usergrp', __('Users in the group', 'reports')),
-    new PluginReportsColumnLink(
+    //            new ColumnInteger('compgrp', __('Computers in the group', 'reports')),
+    //            new ColumnInteger('usergrp', __('Users in the group', 'reports')),
+    new ColumnLink(
         'location',
         __('Location'),
         'Location',
         ['sorton' => 'glpi_locations.completename']
     ),
-    //            new PluginReportsColumnInteger('comploc', __('Computers in the location', 'reports')),
-    //            new PluginReportsColumnInteger('userloc', __('Users in the location', 'reports'))
+    //            new ColumnInteger('comploc', __('Computers in the location', 'reports')),
+    //            new ColumnInteger('userloc', __('Users in the location', 'reports'))
 ];
 
 $report->setColumns($cols);
@@ -299,4 +307,4 @@ $report->setSqlRequest($criteria);
 
 $report->execute();
 
-
+$report->footer();

@@ -31,16 +31,23 @@
  */
 
 
+use GlpiPlugin\Reports\AutoReport;
+use GlpiPlugin\Reports\Column;
+use GlpiPlugin\Reports\ColumnDateTime;
+use GlpiPlugin\Reports\ColumnLink;
+use GlpiPlugin\Reports\DateIntervalCriteria;
+use GlpiPlugin\Reports\ItemTypeCriteria;
+
 $USEDBREPLICATE       = 1;
 $DBCONNECION_REQUIRED = 0;
 
 $dbu = new DbUtils();
 
 //TRANS: The name of the report = List of transfered objects
-$report = new PluginReportsAutoReport(__('List of transfered objects', 'reports'));
+$report = new AutoReport(__('List of transfered objects', 'reports'));
 
 // Search criterias
-new PluginReportsDateIntervalCriteria($report, "`glpi_logs`.`date_mod`");
+new DateIntervalCriteria($report, "`glpi_logs`.`date_mod`");
 
 $types = [];
 foreach (['CartridgeItem', 'Computer', 'Enclosure', 'Monitor', 'NetworkEquipment',
@@ -51,7 +58,7 @@ foreach (['CartridgeItem', 'Computer', 'Enclosure', 'Monitor', 'NetworkEquipment
 }
 
 ksort($types);
-$typecritera = new PluginReportsItemTypeCriteria($report, "itemtype", __('Type'), $types);
+$typecritera = new ItemTypeCriteria($report, "itemtype", __('Type'), $types);
 
 $report->displayCriteriasForm();
 
@@ -60,16 +67,16 @@ if ($report->criteriasValidated()) {
     $itemtype = $_POST['itemtype'];
     $table = $dbu->getTableForItemType($itemtype);
 
-    $columns = [new PluginReportsColumnLink(
+    $columns = [new ColumnLink(
         'items_id',
         __('Name'),
         $itemtype,
         ['with_comment' => 1]
     ),
-        new PluginReportsColumn('otherserial', __('Inventory number')),
-        new PluginReportsColumn('old_value', __('Source entity', 'reports')),
-        new PluginReportsColumn('new_value', __('Target entity', 'reports')),
-        new PluginReportsColumnDateTime('date_mod', __('Transfert date', 'reports'))];
+        new Column('otherserial', __('Inventory number')),
+        new Column('old_value', __('Source entity', 'reports')),
+        new Column('new_value', __('Target entity', 'reports')),
+        new ColumnDateTime('date_mod', __('Transfert date', 'reports'))];
     $report->setColumns($columns);
 
     $otherserial = '';
@@ -113,6 +120,6 @@ if ($report->criteriasValidated()) {
 
     $report->execute();
 
-} else {
-    Html::footer();
 }
+
+$report->footer();

@@ -32,6 +32,13 @@
 
 use Glpi\DBAL\QueryExpression;
 use Glpi\DBAL\QueryUnion;
+use GlpiPlugin\Reports\AutoReport;
+use GlpiPlugin\Reports\Column;
+use GlpiPlugin\Reports\ColumnModelType;
+use GlpiPlugin\Reports\ColumnType;
+use GlpiPlugin\Reports\ColumnTypeLink;
+use GlpiPlugin\Reports\ColumnTypeType;
+use GlpiPlugin\Reports\LocationCriteria;
 
 $USEDBREPLICATE = 1;
 $DBCONNECTION_REQUIRED = 0;
@@ -39,9 +46,9 @@ $DBCONNECTION_REQUIRED = 0;
 global $DB, $CFG_GLPI;
 
 
-$report = new PluginReportsAutoReport(__('List of equipments by location', 'reports'));
+$report = new AutoReport(__('List of equipments by location', 'reports'));
 
-$loc = new PluginReportsLocationCriteria($report);
+$loc = new LocationCriteria($report);
 
 $ignored = [
     'Cartridge',
@@ -59,23 +66,23 @@ $ignored = [
 
 $report->setColumns(
     [
-        new PluginReportsColumnType('itemtype', __('Type'), $ignored),
-        new PluginReportsColumnTypeLink(
+        new ColumnType('itemtype', __('Type'), $ignored),
+        new ColumnTypeLink(
             'items_id',
             __('Item'),
             'itemtype',
             ['with_comment' => 1]
         ),
-        new PluginReportsColumn('statename', __('Status')),
-        new PluginReportsColumn('serial', __('Serial number')),
-        new PluginReportsColumn('otherserial', __('Inventory number')),
-        new PluginReportsColumnModelType(
+        new Column('statename', __('Status')),
+        new Column('serial', __('Serial number')),
+        new Column('otherserial', __('Inventory number')),
+        new ColumnModelType(
             'models_id',
             __('Model'),
             'itemtype',
             ['with_comment' => 1]
         ),
-        new PluginReportsColumnTypeType(
+        new ColumnTypeType(
             'types_id',
             __('Type'),
             'itemtype',
@@ -111,8 +118,9 @@ if ($report->criteriasValidated()
 
 } else {
     echo "<div class='alert alert-danger center'>" . __('Location not selected', 'reports') . "</div>";
-    Html::footer();
 }
+
+$report->footer();
 
 
 function getSqlSubRequest($itemtype, $loc, $obj)

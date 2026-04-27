@@ -32,35 +32,8 @@
 
 function plugin_reports_install()
 {
-    global $DB;
 
-    $migration = new Migration('2.0.0');
-
-   // config of doublon report is now in glpi_blacklists
-    if ($DB->tableExists("glpi_plugin_reports_doublons_backlists")) {
-//        if ($result = $DB->request(['FROM' => 'glpi_plugin_reports_doublons_backlists'])) {
-//            if (count($result) > 0) {
-//                foreach ($result as $data) {
-//                    if ($data['type'] == 1) {
-//                        $type = 2;
-//                    } elseif ($data['type'] == 2) {
-//                        $type = 1;
-//                    } else {
-//                        $type = $data['type'];
-//                    }
-//                    $query = "INSERT INTO `glpi_blacklists`
-//                             (`type`, `name`, `value`, `comment`)
-//                          VALUES (".$type.", '".$data['addr']."', '".$data['addr']."',
-//                                  '".$data['comment']."')";
-//                    $DB->doQuery($query);
-//                }
-//            }
-//        }
-        $migration->dropTable('glpi_plugin_reports_doublons_backlists');
-    }
-
-    PluginReportsProfile::install($migration);
-
+    $migration = new Migration(PLUGIN_REPORTS_VERSION);
     $migration->executeMigration();
 
     return true;
@@ -70,10 +43,7 @@ function plugin_reports_install()
 function plugin_reports_uninstall()
 {
 
-    $migration = new Migration('2.0.0');
-
-    return PluginReportsProfile::uninstall($migration);
-
+    $migration = new Migration(PLUGIN_REPORTS_VERSION);
     $migration->executeMigration();
 
     return true;

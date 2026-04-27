@@ -34,14 +34,17 @@ $DBCONNECTION_REQUIRED  = 1;
 
 use Glpi\DBAL\QueryExpression;
 use Glpi\DBAL\QuerySubQuery;
+use GlpiPlugin\Reports\AutoReport;
+use GlpiPlugin\Reports\Column;
+use GlpiPlugin\Reports\DateIntervalCriteria;
 
 global $DB;
 
 //titre du rapport dans la liste de selection,  soit en dur ici, soit mettre à jour la variable dans les fichiers de traduction;
-$report = new PluginReportsAutoReport(__('Tasks list per user', 'reports'));
+$report = new AutoReport(__('Tasks list per user', 'reports'));
 
 //critère de selection;
-$date = new PluginReportsDateIntervalCriteria($report, '`glpi_tickettasks`.`date`', __('Tasks created', 'reports'));
+$date = new DateIntervalCriteria($report, '`glpi_tickettasks`.`date`', __('Tasks created', 'reports'));
 
 $report->displayCriteriasForm();
 
@@ -49,12 +52,12 @@ $display_type = Search::HTML_OUTPUT;
 
 if ($report->criteriasValidated()) {
 
-    $cols = [new PluginReportsColumn('realname', __('User')),
-            new PluginReportsColumn('date', __('Date')),
-            new PluginReportsColumn('ticketid', __('Ticket task id')),
-            new PluginReportsColumn('duree', __('Duration')),
-            new PluginReportsColumn('nbretask', __('Number created tasks', 'reports')),
-            new PluginReportsColumn('total', __('Total duration'))
+    $cols = [new Column('realname', __('User')),
+            new Column('date', __('Date')),
+            new Column('ticketid', __('Ticket task id')),
+            new Column('duree', __('Duration')),
+            new Column('nbretask', __('Number created tasks', 'reports')),
+            new Column('total', __('Total duration'))
     ];
 
     $report->setColumns($cols);
@@ -133,6 +136,6 @@ if ($report->criteriasValidated()) {
 
     $report->execute();
 
-} else {
-    Html::footer();
 }
+
+$report->footer();

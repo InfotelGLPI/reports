@@ -46,7 +46,9 @@ $_GET = getValues($_GET, $_POST);
 
 displaySearchForm();
 
-$where = ['entities_id' => [$_SESSION["glpiactive_entity"]]];
+$where = ['entities_id' => $_SESSION["glpiactive_entity"],
+    'is_itemgroup' => 1
+];
 if (isset($_GET["groups_id"]) && $_GET["groups_id"]) {
     $where = [
         'entities_id' => [$_SESSION["glpiactive_entity"]],

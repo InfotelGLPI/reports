@@ -30,6 +30,13 @@
  */
 
 use Glpi\DBAL\QueryExpression;
+use GlpiPlugin\Reports\AutoReport;
+use GlpiPlugin\Reports\Column;
+use GlpiPlugin\Reports\ColumnDateTime;
+use GlpiPlugin\Reports\ColumnLink;
+use GlpiPlugin\Reports\ColumnMap;
+use GlpiPlugin\Reports\DateIntervalCriteria;
+use GlpiPlugin\Reports\TicketStatusCriteria;
 
 $USEDBREPLICATE = 1;
 $DBCONNECTION_REQUIRED = 0;
@@ -39,11 +46,11 @@ global $DB;
 $dbu = new DbUtils();
 
 //TRANS: The name of the report = Tickets no closed, sorted by priority
-$report = new PluginReportsAutoReport(__('Tickets no closed, sorted by priority', 'reports'));
+$report = new AutoReport(__('Tickets no closed, sorted by priority', 'reports'));
 
 //Report's search criterias
-new PluginReportsDateIntervalCriteria($report, '`glpi_tickets`.`date`', __('Opening date'));
-new PluginReportsTicketStatusCriteria($report);
+new DateIntervalCriteria($report, '`glpi_tickets`.`date`', __('Opening date'));
+new TicketStatusCriteria($report);
 
 //Display criterias form is needed
 $report->displayCriteriasForm();
@@ -54,15 +61,15 @@ if ($report->criteriasValidated()) {
 
     //Names of the columns to be displayed
     $report->setColumns([
-        new PluginReportsColumnMap('priority', __('Priority'), [],
+        new ColumnMap('priority', __('Priority'), [],
             ['sorton' => '`priority`, `date`']),
-        new PluginReportsColumnDateTime(
+        new ColumnDateTime(
             'date', __('Opening date'),
             ['sorton' => '`date`']
         ),
-        new PluginReportsColumn('id2', __('ID')),
-        new PluginReportsColumnLink('id', __('Title'), 'Ticket'),
-        new PluginReportsColumn(
+        new Column('id2', __('ID')),
+        new ColumnLink('id', __('Title'), 'Ticket'),
+        new Column(
             'groupname', __('Assigned to groups'),
             ['sorton' => '`glpi_groups_tickets`.`groups_id`, `date`']
         )
@@ -115,6 +122,6 @@ if ($report->criteriasValidated()) {
     $report->setSqlRequest($criteria);
 
     $report->execute();
-} else {
-    Html::footer();
 }
+
+$report->footer();

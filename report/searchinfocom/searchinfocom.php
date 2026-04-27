@@ -29,6 +29,16 @@
  --------------------------------------------------------------------------
  */
 
+use GlpiPlugin\Reports\AutoReport;
+use GlpiPlugin\Reports\Column;
+use GlpiPlugin\Reports\ColumnDate;
+use GlpiPlugin\Reports\ColumnLink;
+use GlpiPlugin\Reports\ColumnType;
+use GlpiPlugin\Reports\ColumnTypeLink;
+use GlpiPlugin\Reports\DateIntervalCriteria;
+use GlpiPlugin\Reports\DropdownCriteria;
+use GlpiPlugin\Reports\TextCriteria;
+
 $USEDBREPLICATE         = 1;
 $DBCONNECTION_REQUIRED  = 0;
 
@@ -37,18 +47,18 @@ global $DB;
 $dbu = new DbUtils();
 
 //TRANS: The name of the report = Search in the financial information (plural)
-$report = new PluginReportsAutoReport(__('Search in the financial information', 'reports'));
+$report = new AutoReport(__('Search in the financial information', 'reports'));
 
 //Report's search criterias
-new PluginReportsDateIntervalCriteria($report, 'order_date', __('Order date'));
-new PluginReportsDateIntervalCriteria($report, 'buy_date', __('Date of purchase'));
-new PluginReportsDateIntervalCriteria($report, 'delivery_date', __('Delivery date'));
-new PluginReportsDateIntervalCriteria($report, 'use_date', __('Startup date'));
-new PluginReportsDateIntervalCriteria($report, 'inventory_date', __('Date of last physical inventory'));
-new PluginReportsTextCriteria($report, 'immo_number', __('Immobilization number'));
-new PluginReportsTextCriteria($report, 'order_number', __('Order number'));
-new PluginReportsTextCriteria($report, 'delivery_number', __('Delivery form'));
-new PluginReportsDropdownCriteria($report, 'budgets_id', 'glpi_budgets', __('Budget'));
+new DateIntervalCriteria($report, 'order_date', __('Order date'));
+new DateIntervalCriteria($report, 'buy_date', __('Date of purchase'));
+new DateIntervalCriteria($report, 'delivery_date', __('Delivery date'));
+new DateIntervalCriteria($report, 'use_date', __('Startup date'));
+new DateIntervalCriteria($report, 'inventory_date', __('Date of last physical inventory'));
+new TextCriteria($report, 'immo_number', __('Immobilization number'));
+new TextCriteria($report, 'order_number', __('Order number'));
+new TextCriteria($report, 'delivery_number', __('Delivery form'));
+new DropdownCriteria($report, 'budgets_id', 'glpi_budgets', __('Budget'));
 
 //Display criterias form is needed
 $report->displayCriteriasForm();
@@ -60,18 +70,18 @@ if ($report->criteriasValidated()) {
    $report->setSubNameAuto();
 
    // Report Columns
-   $cols = [new PluginReportsColumnType('itemtype', __('Type')),
-            new PluginReportsColumnTypeLink('items_id', __('Item'), 'itemtype',
+   $cols = [new ColumnType('itemtype', __('Type')),
+            new ColumnTypeLink('items_id', __('Item'), 'itemtype',
                                             ['with_comment' => 1]),
-            new PluginReportsColumnDate('order_date', __('Order date')),
-            new PluginReportsColumn('order_number', __('Order number')),
-            new PluginReportsColumnDate('buy_date', __('Date of purchase')),
-            new PluginReportsColumn('delivery_date', __('Delivery date')),
-            new PluginReportsColumn('delivery_number', __('Delivery form')),
-            new PluginReportsColumn('immo_number', __('Immobilization number')),
-            new PluginReportsColumnDate('use_date', __('Startup date')),
-            new PluginReportsColumnDate('inventory_date', __('Date of last physical inventory')),
-            new PluginReportsColumnLink('budgets_id', __('Budget'), 'Budget')];
+            new ColumnDate('order_date', __('Order date')),
+            new Column('order_number', __('Order number')),
+            new ColumnDate('buy_date', __('Date of purchase')),
+            new Column('delivery_date', __('Delivery date')),
+            new Column('delivery_number', __('Delivery form')),
+            new Column('immo_number', __('Immobilization number')),
+            new ColumnDate('use_date', __('Startup date')),
+            new ColumnDate('inventory_date', __('Date of last physical inventory')),
+            new ColumnLink('budgets_id', __('Budget'), 'Budget')];
 
    $report->setColumns($cols);
 
@@ -108,6 +118,6 @@ if ($report->criteriasValidated()) {
 
     $report->execute();
 
-} else {
-   Html::footer();
 }
+
+$report->footer();

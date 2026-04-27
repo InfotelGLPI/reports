@@ -30,22 +30,27 @@
  --------------------------------------------------------------------------
  */
 
+use GlpiPlugin\Reports\AutoReport;
+use GlpiPlugin\Reports\Column;
+use GlpiPlugin\Reports\ColumnDateTime;
+use GlpiPlugin\Reports\ColumnLink;
+
 $USEDBREPLICATE        = 1;
 $DBCONNECTION_REQUIRED = 0;
 
 global $DB;
 
-$report = new PluginReportsAutoReport(__('List of groups and members', 'reports'));
+$report = new AutoReport(__('List of groups and members', 'reports'));
 
-$report->setColumns([new PluginReportsColumn('completename', __('Entity'),
+$report->setColumns([new Column('completename', __('Entity'),
     ['sorton' => 'completename']),
-    new PluginReportsColumnLink('groupid', __('Group'), 'Group',
+    new ColumnLink('groupid', __('Group'), 'Group',
         ['sorton' => 'groupid']),
-    new PluginReportsColumnLink('userid', __('Login'), 'User',
+    new ColumnLink('userid', __('Login'), 'User',
         ['sorton' => 'userid']),
-    new PluginReportsColumn('firstname', __('First name')),
-    new PluginReportsColumn('realname', __('Surname')),
-    new PluginReportsColumnDateTime('last_login', __('Last login'))]);
+    new Column('firstname', __('First name')),
+    new Column('realname', __('Surname')),
+    new ColumnDateTime('last_login', __('Last login'))]);
 
 $criteria = [
     'SELECT' => ['glpi_entities.completename',
@@ -88,3 +93,5 @@ $criteria = $criteria + $report->getNewOrderBy('completename, groupid, userid');
 
 $report->setSqlRequest($criteria);
 $report->execute();
+
+$report->footer();

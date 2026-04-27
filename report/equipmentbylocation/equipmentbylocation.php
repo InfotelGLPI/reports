@@ -31,24 +31,27 @@
  */
 
 use Glpi\DBAL\QueryExpression;
+use GlpiPlugin\Reports\AutoReport;
+use GlpiPlugin\Reports\Column;
+use GlpiPlugin\Reports\ColumnInteger;
 
 $USEDBREPLICATE         = 1;
 $DBCONNECTION_REQUIRED  = 0;
 
 global $DB;
 
-$report = new PluginReportsAutoReport(__('Number of equipments by location', 'reports'));
+$report = new AutoReport(__('Number of equipments by location', 'reports'));
 
 $dbu = new DbUtils();
 
-$report->setColumns([new PluginReportsColumn('entity', __('Entity')),
-    new PluginReportsColumn('location', __('Location')),
-    new PluginReportsColumnInteger('computernumber', _n('Computer', 'Computers', 2)),
-    new PluginReportsColumnInteger('networknumber', _n('Network', 'Networks', 2)),
-    new PluginReportsColumnInteger('monitornumber', _n('Monitor', 'Monitors', 2)),
-    new PluginReportsColumnInteger('printernumber', _n('Printer', 'Printers', 2)),
-    new PluginReportsColumnInteger('peripheralnumber', _n('Device', 'Devices', 2)),
-    new PluginReportsColumnInteger('phonenumber', _n('Phone', 'Phones', 2))]);
+$report->setColumns([new Column('entity', __('Entity')),
+    new Column('location', __('Location')),
+    new ColumnInteger('computernumber', _n('Computer', 'Computers', 2)),
+    new ColumnInteger('networknumber', _n('Network', 'Networks', 2)),
+    new ColumnInteger('monitornumber', _n('Monitor', 'Monitors', 2)),
+    new ColumnInteger('printernumber', _n('Printer', 'Printers', 2)),
+    new ColumnInteger('peripheralnumber', _n('Device', 'Devices', 2)),
+    new ColumnInteger('phonenumber', _n('Phone', 'Phones', 2))]);
 
 $criteria = [
     'SELECT' => [
@@ -169,3 +172,5 @@ $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
 $report->setSqlRequest($criteria);
 
 $report->execute();
+
+$report->footer();

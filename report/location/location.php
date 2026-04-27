@@ -30,20 +30,24 @@
  --------------------------------------------------------------------------
  */
 
+use GlpiPlugin\Reports\AutoReport;
+use GlpiPlugin\Reports\Column;
+use GlpiPlugin\Reports\ColumnLink;
+
 $USEDBREPLICATE        = 1;
 $DBCONNECTION_REQUIRED = 0; // not really a big SQL request
 
 global $DB;
 
-$report = new PluginReportsAutoReport(__('Location tree', 'reports'));
+$report = new AutoReport(__('Location tree', 'reports'));
 
-$report->setColumns([new PluginReportsColumn(
+$report->setColumns([new Column(
     'entity',
     __('Entity'),
     ['sorton' => 'entity,location']
 ),
-    new PluginReportsColumn('location', __('Location'), ['sorton' => 'location']),
-    new PluginReportsColumnLink(
+    new Column('location', __('Location'), ['sorton' => 'location']),
+    new ColumnLink(
         'link',
         _n('Link', 'Links', 2, 'reports'),
         'Location',
@@ -76,3 +80,5 @@ $criteria = $criteria + $report->getNewOrderBy('entity,location');
 $report->setSqlRequest($criteria);
 
 $report->execute();
+
+$report->footer();

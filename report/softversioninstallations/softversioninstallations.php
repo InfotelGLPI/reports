@@ -29,6 +29,11 @@
  --------------------------------------------------------------------------
  */
 
+use GlpiPlugin\Reports\AutoReport;
+use GlpiPlugin\Reports\Column;
+use GlpiPlugin\Reports\ColumnLink;
+use GlpiPlugin\Reports\StatusCriteria;
+
 $USEDBREPLICATE         = 1;
 $DBCONNECTION_REQUIRED  = 0;
 
@@ -37,13 +42,13 @@ global $DB;
 $dbu = new DbUtils();
 
 //TRANS: The name of the report = Not installed important software (plural)
-$report   = new PluginReportsAutoReport(__('Software version installations', 'reports'));
+$report   = new AutoReport(__('Software version installations', 'reports'));
 
-$statever = new PluginReportsStatusCriteria($report, 'statever',
+$statever = new StatusCriteria($report, 'statever',
                                             __('Software version status', 'reports'));
 $statever->setSqlField('glpi_softwareversions.states_id');
 
-$statecpt = new PluginReportsStatusCriteria($report, 'statecpt',
+$statecpt = new StatusCriteria($report, 'statecpt',
                                             __('Computer status', 'reports'));
 $statecpt->setSqlField('glpi_computers.states_id');
 
@@ -55,14 +60,14 @@ if ($report->criteriasValidated()) {
 
    $report->setSubNameAuto();
 
-   $report->setColumns([new PluginReportsColumnLink('software', _n('Software', 'Software', 1),
+   $report->setColumns([new ColumnLink('software', _n('Software', 'Software', 1),
                                                     'Software', ['sorton' => 'software,version']),
-                        new PluginReportsColumnLink('version', __('Version'), 'SoftwareVersion'),
-                        new PluginReportsColumn('statever', __('Status')),
-                        new PluginReportsColumnLink('computer', __('Computer'),'Computer',
+                        new ColumnLink('version', __('Version'), 'SoftwareVersion'),
+                        new Column('statever', __('Status')),
+                        new ColumnLink('computer', __('Computer'),'Computer',
                                                     ['sorton' => 'glpi_computers.name']),
-                        new PluginReportsColumn('statecpt', __('Status')),
-                        new PluginReportsColumn('location', __('Location'),
+                        new Column('statecpt', __('Status')),
+                        new Column('location', __('Location'),
                                                 ['sorton' => 'location'])]);
 
 
@@ -126,6 +131,6 @@ if ($report->criteriasValidated()) {
 
    $report->setSqlRequest($criteria);
    $report->execute();
-} else {
-   Html::footer();
 }
+
+$report->footer();

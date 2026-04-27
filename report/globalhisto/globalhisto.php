@@ -30,19 +30,25 @@
  --------------------------------------------------------------------------
  */
 
+use GlpiPlugin\Reports\AutoReport;
+use GlpiPlugin\Reports\Column;
+use GlpiPlugin\Reports\ColumnDate;
+use GlpiPlugin\Reports\ColumnMap;
+use GlpiPlugin\Reports\DateIntervalCriteria;
+
 $USEDBREPLICATE         = 1;
 $DBCONNECTION_REQUIRED  = 0; // not really a big SQL request
 
 global $DB;
 
-$report = new PluginReportsAutoReport(__('Global History (for Test / example only)', 'reports'));
+$report = new AutoReport(__('Global History (for Test / example only)', 'reports'));
 
 //Report's search criterias
 //Possible current values are :
 // - date-interval
 // - time-interval
 // - group
-new PluginReportsDateIntervalCriteria($report, "date_mod");
+new DateIntervalCriteria($report, "date_mod");
 
 //Display criterias form is needed
 $report->displayCriteriasForm();
@@ -71,10 +77,10 @@ if ($report->criteriasValidated()) {
            Log::HISTORY_CREATE_ITEM          => Log::getLinkedActionLabel(Log::HISTORY_CREATE_ITEM)];
 
     //Names of the columns to be displayed
-    $report->setColumns([new PluginReportsColumn('id', __('ID')),
-        new PluginReportsColumnDate('date_mod', __('Date')),
-        new PluginReportsColumn('user_name', __('User')),
-        new PluginReportsColumnMap(
+    $report->setColumns([new Column('id', __('ID')),
+        new ColumnDate('date_mod', __('Date')),
+        new Column('user_name', __('User')),
+        new ColumnMap(
             'linked_action',
             __('Action'),
             $columns_mappings
@@ -91,6 +97,6 @@ if ($report->criteriasValidated()) {
 
     $report->setSqlRequest($criteria);
     $report->execute();
-} else {
-    Html::footer();
 }
+
+$report->footer();

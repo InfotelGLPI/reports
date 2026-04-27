@@ -32,6 +32,7 @@
 
 use Glpi\DBAL\QueryExpression;
 use Glpi\DBAL\QueryFunction;
+use GlpiPlugin\Reports\AutoReport;
 
 $USEDBREPLICATE         = 1;
 $DBCONNECTION_REQUIRED  = 0;
@@ -40,7 +41,7 @@ global $DB;
 $dbu = new DbUtils();
 
 //TRANS: The name of the report = Licenses by expiration date
-$report = new PluginReportsAutoReport(__('Licenses by expiration date', 'reports'));
+$report = new AutoReport(__('Licenses by expiration date', 'reports'));
 
 $report->setColumns(['expire'       => __('Valid to', 'reports'),
     'name'         => __('License name'),
@@ -122,3 +123,5 @@ $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
 $report->setSqlRequest($criteria);
 
 $report->execute();
+
+$report->footer();

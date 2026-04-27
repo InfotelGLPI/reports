@@ -29,6 +29,11 @@
  --------------------------------------------------------------------------
  */
 
+use GlpiPlugin\Reports\AutoReport;
+use GlpiPlugin\Reports\Column;
+use GlpiPlugin\Reports\ColumnLink;
+use GlpiPlugin\Reports\TextCriteria;
+
 $USEDBREPLICATE        = 1;
 $DBCONNECTION_REQUIRED = 0;
 
@@ -37,8 +42,8 @@ global $DB;
 $dbu = new DbUtils();
 
 //TRANS: The name of the report = Detailed report of software installation by status
-$report = new PluginReportsAutoReport(__('Detailed report of software installation by status', 'reports'));
-$soft   = new PluginReportsTextCriteria($report, 'software', _n('Software', 'Software', 1));
+$report = new AutoReport(__('Detailed report of software installation by status', 'reports'));
+$soft   = new TextCriteria($report, 'software', _n('Software', 'Software', 1));
 $soft->setSqlField('glpi_softwares.name');
 
 $report->displayCriteriasForm();
@@ -48,14 +53,14 @@ if ($report->criteriasValidated()) {
 
    $report->setSubNameAuto();
 
-   $report->setColumns([new PluginReportsColumnLink('computer', __('Computer'),'Computer',
+   $report->setColumns([new ColumnLink('computer', __('Computer'),'Computer',
                                                     ['sorton' => 'glpi_computers.name']),
-                        new PluginReportsColumn('operatingsystems', __('Operating system'),
+                        new Column('operatingsystems', __('Operating system'),
                                                 ['sorton' => 'operatingsystems']),
-                        new PluginReportsColumn('state', __('Status'), ['sorton' => 'state']),
-                        new PluginReportsColumn('entity', __('Entity'),
+                        new Column('state', __('Status'), ['sorton' => 'state']),
+                        new Column('entity', __('Entity'),
                                                 ['sorton' => 'entity,location']),
-                        new PluginReportsColumn('location',
+                        new Column('location',
                                                 sprintf(__('%1$s - %2$s'), __('Location'),
                                                          __('Computer')),
                                                 ['sorton' => 'location'])]);
@@ -98,6 +103,6 @@ if ($report->criteriasValidated()) {
 
    $report->setSqlRequest($query);
    $report->execute();
-} else {
-   Html::footer();
 }
+
+$report->footer();

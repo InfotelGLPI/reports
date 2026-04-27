@@ -30,27 +30,35 @@
  --------------------------------------------------------------------------
  */
 
+use GlpiPlugin\Reports\AutoReport;
+use GlpiPlugin\Reports\Column;
+use GlpiPlugin\Reports\ColumnLink;
+use GlpiPlugin\Reports\LocationCriteria;
+use GlpiPlugin\Reports\SoftwareCategoriesCriteria;
+use GlpiPlugin\Reports\SoftwareCriteria;
+use GlpiPlugin\Reports\StatusCriteria;
+
 $USEDBREPLICATE         = 1;
 $DBCONNECTION_REQUIRED  = 0;
 
 $dbu = new DbUtils();
 
-$report = new PluginReportsAutoReport(__('Applications by locations and versions', 'reports'));
+$report = new AutoReport(__('Applications by locations and versions', 'reports'));
 
-$softwarecategories = new PluginReportsSoftwareCategoriesCriteria(
+$softwarecategories = new SoftwareCategoriesCriteria(
     $report,
     'softwarecategories',
     __('Software category')
 );
 $softwarecategories->setSqlField('glpi_softwarecategories.id');
 
-$software = new PluginReportsSoftwareCriteria($report, 'software', __('Application', 'reports'));
+$software = new SoftwareCriteria($report, 'software', __('Application', 'reports'));
 $software->setSqlField('glpi_softwares.id');
 
-$statecpt = new PluginReportsStatusCriteria($report, 'statecpt', __('Computer status', 'reports'));
+$statecpt = new StatusCriteria($report, 'statecpt', __('Computer status', 'reports'));
 $statecpt->setSqlField('glpi_computers.states_id');
 
-$location = new PluginReportsLocationCriteria($report, 'location', _n('Location', 'Locations', 1));
+$location = new LocationCriteria($report, 'location', _n('Location', 'Locations', 1));
 $location->setSqlField('glpi_computers.locations_id');
 
 
@@ -60,31 +68,31 @@ $report->displayCriteriasForm();
 //if ($report->criteriasValidated()) {
 $report->setSubNameAuto();
 
-$report->setColumns([new PluginReportsColumnLink(
+$report->setColumns([new ColumnLink(
     'soft',
     _n('Software', 'Software', 1),
     'Software',
     ['sorton' => 'soft,version']
 ),
-    new PluginReportsColumnLink(
+    new ColumnLink(
         'locat',
         _n('Location', 'Locations', 1),
         'Location',
         ['sorton' => 'glpi_locations.name']
     ),
-    new PluginReportsColumnLink(
+    new ColumnLink(
         'computer',
         _n('Computer', 'Computers', 1),
         'Computer',
         ['sorton' => 'glpi_computers.name']
     ),
-    new PluginReportsColumn('statecpt', _n('Status', 'Statuses', 1)),
-    new PluginReportsColumnLink(
+    new Column('statecpt', _n('Status', 'Statuses', 1)),
+    new ColumnLink(
         'version',
         __('Version'),
         'SoftwareVersion'
     ),
-    new PluginReportsColumnLink(
+    new ColumnLink(
         'user',
         _n('User', 'Users', 1),
         'User',
@@ -167,6 +175,5 @@ $criteria = $criteria + $report->getNewOrderBy('soft, locat');
 $report->setSqlRequest($criteria);
 
 $report->execute();
-//} else {
-//    Html::footer();
-//}
+
+$report->footer();

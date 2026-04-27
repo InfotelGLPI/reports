@@ -29,6 +29,9 @@
  --------------------------------------------------------------------------
  */
 
+use GlpiPlugin\Reports\AutoReport;
+use GlpiPlugin\Reports\SoftwareWithLicenseCriteria;
+
 $USEDBREPLICATE        = 1;
 $DBCONNECTION_REQUIRED = 0;
 
@@ -37,9 +40,9 @@ global $DB;
 $dbu = new DbUtils();
 
 //TRANS: The name of the report = Detailed license report
-$report = new PluginReportsAutoReport(__('Detailed license report', 'reports'));
+$report = new AutoReport(__('Detailed license report', 'reports'));
 
-$license = new PluginReportsSoftwareWithLicenseCriteria($report, 'glpi_softwarelicenses.softwares_id');
+$license = new SoftwareWithLicenseCriteria($report, 'glpi_softwarelicenses.softwares_id');
 
 $license->setSqlField('glpi_softwarelicenses.softwares_id');
 
@@ -130,6 +133,6 @@ if ($report->criteriasValidated()
 
     $report->execute();
 
-} else {
-   Html::footer();
 }
+
+$report->footer();

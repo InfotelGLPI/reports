@@ -31,6 +31,11 @@
 */
 
 use Glpi\DBAL\QuerySubQuery;
+use GlpiPlugin\Reports\AutoReport;
+use GlpiPlugin\Reports\Column;
+use GlpiPlugin\Reports\ColumnDateTime;
+use GlpiPlugin\Reports\ColumnInteger;
+use GlpiPlugin\Reports\DropdownCriteria;
 
 //	Options for GLPI 0.71 and newer : need slave db to access the report
 $USEDBREPLICATE         = 1;
@@ -41,10 +46,10 @@ global $DB;
 
 $dbu = new DbUtils();
 
-$report = new PluginReportsAutoReport(__('Helpdesk requesters and tickets by entity', 'reports'));
+$report = new AutoReport(__('Helpdesk requesters and tickets by entity', 'reports'));
 
 //Report's search criterias
-$prof = new PluginReportsDropdownCriteria(
+$prof = new DropdownCriteria(
     $report,
     'profiles_id',
     'glpi_profiles',
@@ -59,29 +64,29 @@ if ($report->criteriasValidated()) {
     $report->setSubNameAuto();
 
     //Names of the columns to be displayed
-    $cols = [new PluginReportsColumn(
+    $cols = [new Column(
         'name',
         __('Entity'),
         ['sorton' => '`glpi_entities`.`completename`']
     ),
-        new PluginReportsColumnInteger(
+        new ColumnInteger(
             'nbusers',
             __('Users count', 'reports'),
             ['withtotal' => true,
                 'sorton'    => 'nbusers']
         ),
-        new PluginReportsColumnInteger(
+        new ColumnInteger(
             'number',
             __('Tickets count', 'reports'),
             ['withtotal' => true,
                 'sorton'    => 'number']
         ),
-        new PluginReportsColumnDateTime(
+        new ColumnDateTime(
             'mindate',
             __('Older', 'reports'),
             ['sorton' => 'mindate']
         ),
-        new PluginReportsColumnDateTime(
+        new ColumnDateTime(
             'maxdate',
             __('Newer', 'reports'),
             ['sorton' => 'maxdate']
@@ -146,6 +151,6 @@ if ($report->criteriasValidated()) {
     $report->execute(['withtotal' => true]);
 
 
-} else {
-    Html::footer();
 }
+
+$report->footer();

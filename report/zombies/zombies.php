@@ -32,6 +32,13 @@
 
 use Glpi\DBAL\QueryExpression;
 use Glpi\DBAL\QuerySubQuery;
+use GlpiPlugin\Reports\ArrayCriteria;
+use GlpiPlugin\Reports\AutoReport;
+use GlpiPlugin\Reports\Column;
+use GlpiPlugin\Reports\ColumnDate;
+use GlpiPlugin\Reports\ColumnInteger;
+use GlpiPlugin\Reports\ColumnLink;
+use GlpiPlugin\Reports\TextCriteria;
 
 $USEDBREPLICATE         = 0;
 $DBCONNECTION_REQUIRED  = 0;
@@ -39,13 +46,13 @@ $DBCONNECTION_REQUIRED  = 0;
 global $DB;
 
 //TRANS: The name of the report = Users with no right
-$report = new PluginReportsAutoReport(__('Users with no right', 'reports'));
+$report = new AutoReport(__('Users with no right', 'reports'));
 
-$name = new PluginReportsTextCriteria($report, 'name', __('Login'));
+$name = new TextCriteria($report, 'name', __('Login'));
 
 $tab = [0 => __('No'),
     1 => __('Yes')];
-$filter = new PluginReportsArrayCriteria($report, 'tickets', __('With no ticket', 'reports'), $tab);
+$filter = new ArrayCriteria($report, 'tickets', __('With no ticket', 'reports'), $tab);
 
 //Display criterias form is needed
 $report->displayCriteriasForm();
@@ -56,23 +63,23 @@ if ($report->criteriasValidated()) {
     $report->delCriteria('tickets');
 
     $cols = [
-//        new PluginReportsColumnItemCheckbox('id', 'User'),
-        new PluginReportsColumnLink('id2', __('User'), 'User', ['with_comment' => true,
+//        new ColumnItemCheckbox('id', 'User'),
+        new ColumnLink('id2', __('User'), 'User', ['with_comment' => true,
             'with_navigate' => true]),
-        new PluginReportsColumn('name', __('Login'), ['sorton' => 'name']),
-        new PluginReportsColumn('email', __('Email')),
-        new PluginReportsColumn('phone', __('Phone')),
-        new PluginReportsColumn('location', __('Location')),
-        new PluginReportsColumnDate('last_login', __('Last login'), ['sorton' => 'last_login'])];
+        new Column('name', __('Login'), ['sorton' => 'name']),
+        new Column('email', __('Email')),
+        new Column('phone', __('Phone')),
+        new Column('location', __('Location')),
+        new ColumnDate('last_login', __('Last login'), ['sorton' => 'last_login'])];
 
     if (!$filter->getParameterValue()) {
-        $cols[] = new PluginReportsColumnInteger('nb1', __('Writer'), ['with_zero' => false,
+        $cols[] = new ColumnInteger('nb1', __('Writer'), ['with_zero' => false,
             'sorton'    => 'nb1']);
-        $cols[] = new PluginReportsColumnInteger('nb2', __('Requester'), ['with_zero' => false,
+        $cols[] = new ColumnInteger('nb2', __('Requester'), ['with_zero' => false,
             'sorton'    => 'nb2']);
-        $cols[] = new PluginReportsColumnInteger('nb3', __('Observer'), ['with_zero' => false,
+        $cols[] = new ColumnInteger('nb3', __('Observer'), ['with_zero' => false,
             'sorton'    => 'nb3']);
-        $cols[] = new PluginReportsColumnInteger('nb4', __('Technician'), ['with_zero' => false,
+        $cols[] = new ColumnInteger('nb4', __('Technician'), ['with_zero' => false,
             'sorton'    => 'nb4']);
     }
 
@@ -154,6 +161,6 @@ if ($report->criteriasValidated()) {
     $report->setSqlRequest($criteria);
     $report->execute();//['withmassiveaction' => 'User']
 
-} else {
-    Html::Footer();
 }
+
+$report->footer();

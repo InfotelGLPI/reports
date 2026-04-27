@@ -38,6 +38,17 @@
 
 use Glpi\DBAL\QueryExpression;
 use Glpi\DBAL\QueryUnion;
+use GlpiPlugin\Reports\AutoReport;
+use GlpiPlugin\Reports\Column;
+use GlpiPlugin\Reports\ColumnDate;
+use GlpiPlugin\Reports\ColumnFloat;
+use GlpiPlugin\Reports\ColumnInteger;
+use GlpiPlugin\Reports\ColumnLink;
+use GlpiPlugin\Reports\ColumnType;
+use GlpiPlugin\Reports\ColumnTypeLink;
+use GlpiPlugin\Reports\DateIntervalCriteria;
+use GlpiPlugin\Reports\DropdownCriteria;
+use GlpiPlugin\Reports\ItemTypeCriteria;
 
 $USEDBREPLICATE         = 1;
 $DBCONNECTION_REQUIRED  = 0;
@@ -55,18 +66,18 @@ $dbu = new DbUtils();
  *
  */
 
-$report = new PluginReportsAutoReport(__('Financial information', 'reports'));
+$report = new AutoReport(__('Financial information', 'reports'));
 
 $ignored = ['Cartridge', 'CartridgeItem', 'Consumable', 'ConsumableItem', 'Software', 'Line',
     'Certificate', 'Appliance', 'Domain', 'Item_DeviceSimcard', 'SoftwareLicense'];
 
-$date = new PluginReportsDateIntervalCriteria(
+$date = new DateIntervalCriteria(
     $report,
     '`glpi_infocoms`.`buy_date`',
     __('Date of purchase')
 );
-$type = new PluginReportsItemTypeCriteria($report, 'itemtype', '', 'infocom_types', $ignored);
-$budg = new PluginReportsDropdownCriteria(
+$type = new ItemTypeCriteria($report, 'itemtype', '', 'infocom_types', $ignored);
+$budg = new DropdownCriteria(
     $report,
     '`glpi_infocoms`.`budgets_id`',
     'Budget',
@@ -80,37 +91,37 @@ $report->displayCriteriasForm();
 if ($report->criteriasValidated()) {
     $report->setSubNameAuto();
 
-    $cols = [new PluginReportsColumnType('itemtype', __('Item type')),
-        new PluginReportsColumn('manufacturer', __('Manufacturer')),
-        new PluginReportsColumn('type', __('Type')),
-        new PluginReportsColumn('model', __('Model')),
-        new PluginReportsColumnTypeLink('itemid', __('Name'), 'itemtype'),
-        new PluginReportsColumn('serial', __('Serial number')),
-        new PluginReportsColumn('otherserial', __('Inventory number')),
-        new PluginReportsColumn('location', __('Location')),
-        new PluginReportsColumn('building', __('Building number')),
-        new PluginReportsColumn('room', __('Room number')),
-        new PluginReportsColumnLink('groups_id', __('Group'), 'Group'),
-        new PluginReportsColumn('state', __('Status')),
-        new PluginReportsColumn('immo_number', __('Immobilization number')),
-        new PluginReportsColumnDate('buy_date', __('Date of purchase')),
-        new PluginReportsColumnDate('use_date', __('Startup date')),
-        new PluginReportsColumnDate('warranty_date', __('Start date of warranty')),
-        new PluginReportsColumnInteger('warranty_duration', __('Warranty duration')),
-        new PluginReportsColumnInteger('warranty_info', __('Warranty information')),
-        new PluginReportsColumnLink('suppliers_id', __('Supplier'), "Supplier"),
-        new PluginReportsColumnDate('order_date', __('Order date')),
-        new PluginReportsColumn('order_number', __('Order number')),
-        new PluginReportsColumnDate('delivery_date', __('Delivery date')),
-        new PluginReportsColumn('delivery_number', __('Delivery form')),
-        new PluginReportsColumnFloat('value', __('Value')),
-        new PluginReportsColumnFloat('warranty_value', __('Warranty extension value')),
-        new PluginReportsColumnInteger('sink_time', __('Amortization duration')),
-        new PluginReportsColumnInteger('sink_type', __('Amortization type')),
-        new PluginReportsColumnFloat('sink_coeff', __('Amortization coefficient')),
-        new PluginReportsColumn('bill', __('Invoice number')),
-        new PluginReportsColumn('budget', __('Budget')),
-        new PluginReportsColumnDate('inventory_date', __('Date of last physical inventory'))];
+    $cols = [new ColumnType('itemtype', __('Item type')),
+        new Column('manufacturer', __('Manufacturer')),
+        new Column('type', __('Type')),
+        new Column('model', __('Model')),
+        new ColumnTypeLink('itemid', __('Name'), 'itemtype'),
+        new Column('serial', __('Serial number')),
+        new Column('otherserial', __('Inventory number')),
+        new Column('location', __('Location')),
+        new Column('building', __('Building number')),
+        new Column('room', __('Room number')),
+        new ColumnLink('groups_id', __('Group'), 'Group'),
+        new Column('state', __('Status')),
+        new Column('immo_number', __('Immobilization number')),
+        new ColumnDate('buy_date', __('Date of purchase')),
+        new ColumnDate('use_date', __('Startup date')),
+        new ColumnDate('warranty_date', __('Start date of warranty')),
+        new ColumnInteger('warranty_duration', __('Warranty duration')),
+        new ColumnInteger('warranty_info', __('Warranty information')),
+        new ColumnLink('suppliers_id', __('Supplier'), "Supplier"),
+        new ColumnDate('order_date', __('Order date')),
+        new Column('order_number', __('Order number')),
+        new ColumnDate('delivery_date', __('Delivery date')),
+        new Column('delivery_number', __('Delivery form')),
+        new ColumnFloat('value', __('Value')),
+        new ColumnFloat('warranty_value', __('Warranty extension value')),
+        new ColumnInteger('sink_time', __('Amortization duration')),
+        new ColumnInteger('sink_type', __('Amortization type')),
+        new ColumnFloat('sink_coeff', __('Amortization coefficient')),
+        new Column('bill', __('Invoice number')),
+        new Column('budget', __('Budget')),
+        new ColumnDate('inventory_date', __('Date of last physical inventory'))];
 
     $report->setColumns($cols);
     $sel = $type->getParameterValue();
@@ -341,6 +352,6 @@ if ($report->criteriasValidated()) {
 
     $report->execute();
 
-} else {
-    Html::footer();
 }
+
+$report->footer();
