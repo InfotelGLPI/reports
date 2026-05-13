@@ -32,19 +32,11 @@
 
 function plugin_reports_install()
 {
-
-    $migration = new Migration(PLUGIN_REPORTS_VERSION);
-    $migration->executeMigration();
-
     return true;
 }
 
 
 function plugin_reports_uninstall()
 {
-
-    $migration = new Migration(PLUGIN_REPORTS_VERSION);
-    $migration->executeMigration();
-
     return true;
 }

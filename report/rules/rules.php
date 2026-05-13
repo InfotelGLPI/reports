@@ -98,7 +98,8 @@ Html::header(__("Rule's catalog", 'reports'), $_SERVER['PHP_SELF'], "utils", "re
 
 Report::title();
 
-$type = (isset($_GET["type"]) ? $_GET["type"] : "");
+$allowed_types = ['ldap', 'soft', ''];
+$type = (isset($_GET["type"]) && in_array($_GET["type"], $allowed_types, true)) ? $_GET["type"] : "";
 
 if ($type == "ldap") {
    $rulecollection = new RuleRightCollection();

@@ -117,7 +117,7 @@ foreach ($iterator as $data) {
         }
         $prev = $data["dat"] . $data["name"];
         echo "<tr class='" . $class . " top'><td>" . Html::convDateTime($data["dat"]) . "</td>"
-              . "<td>" . $data["user_name"] . "&nbsp;</td>"
+              . "<td>" . htmlescape($data["user_name"]) . "&nbsp;</td>"
               . "<td><a href='" . Toolbox::getItemTypeFormURL('Computer') . "?id=" . $data["cid"] . "'>"
               . $data["name"] . "</a></td><td>";
         $prevclass = $class;

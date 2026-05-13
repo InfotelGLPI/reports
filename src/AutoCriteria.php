@@ -181,7 +181,8 @@ abstract class AutoCriteria
     **/
     public function getSqlCriteriasRestriction($link = 'AND')
     {
-        return $link . " " . $this->getSqlField() . "='" . $this->parameters[$this->getName()] . "' ";
+        global $DB;
+        return $link . " " . $this->getSqlField() . "='" . $DB->escape($this->parameters[$this->getName()]) . "' ";
     }
 
     /**

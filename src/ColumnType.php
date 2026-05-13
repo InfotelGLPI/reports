@@ -57,7 +57,7 @@ class ColumnType extends Column {
 
       if (is_null($this->obj)
           || get_class($this->obj) != $row[$this->name]) {
-         $this->obj = new $row[$this->name]();
+         $this->obj = $value;
       }
 
       return $this->obj->getTypeName();

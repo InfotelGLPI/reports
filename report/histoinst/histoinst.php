@@ -127,13 +127,13 @@ foreach ($iterator as $data) {
       $prev = $data["dat"].$data["name"];
       echo "<tr class='" . $class . " top'>".
             "<td class='center'>". Html::convDateTime($data["dat"]) . "</td>" .
-            "<td>". $data["user_name"] . "&nbsp;</td>".
+            "<td>". htmlescape($data["user_name"]) . "&nbsp;</td>".
             "<td><a href='". Toolbox::getItemTypeFormURL('Computer') . "?id=" . $data["cid"]."'>" .
                   $data["name"] . "</a></td>".
             "<td>";
       $class = ($class=="tab_bg_2" ? "tab_bg_1" : "tab_bg_2");
    }
-   echo $data["new_value"];
+   echo htmlescape($data["new_value"]);
 }
 
 if (!empty($prev)) {

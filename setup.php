@@ -29,6 +29,7 @@
  --------------------------------------------------------------------------
 */
 
+use Glpi\Plugin\Hooks;
 use GlpiPlugin\Reports\Profile;
 use GlpiPlugin\Reports\Report;
 use GlpiPlugin\Reports\Stat;
@@ -43,8 +44,6 @@ function plugin_init_reports()
 {
     global $PLUGIN_HOOKS, $LANG;
 
-    $PLUGIN_HOOKS['csrf_compliant']['reports'] = true;
-
    //Define only for bookmarks
     Plugin::registerClass(Report::class);
 
@@ -53,7 +52,7 @@ function plugin_init_reports()
     Plugin::registerClass(Profile::class, ['addtabon' => ['Profile']]);
 
     if (Session::haveRight("config", UPDATE)) {
-        $PLUGIN_HOOKS['config_page']['reports']     = 'front/report.form.php';
+        $PLUGIN_HOOKS[Hooks::CONFIG_PAGE]['reports']     = 'front/report.form.php';
     }
 
     $PLUGIN_HOOKS['menu_entry']['reports'] = false;
@@ -76,10 +75,10 @@ function plugin_init_reports()
            //If the report's name contains 'stat' then display it in the statistics page
            //(instead of Report page)
             if (isStat($report)) {
-                if (!isset($PLUGIN_HOOKS['stats'][$plug])) {
-                    $PLUGIN_HOOKS['stats'][$plug] = [];
+                if (!isset($PLUGIN_HOOKS[Hooks::STATS][$plug])) {
+                    $PLUGIN_HOOKS[Hooks::STATS][$plug] = [];
                 }
-                $PLUGIN_HOOKS['stats'][$plug]["report/$report/$report.php"] = $tmp;
+                $PLUGIN_HOOKS[Hooks::STATS][$plug]["report/$report/$report.php"] = $tmp;
             } else {
                 if (!isset($PLUGIN_HOOKS['reports'][$plug])) {
                     $PLUGIN_HOOKS['reports'][$plug] = [];

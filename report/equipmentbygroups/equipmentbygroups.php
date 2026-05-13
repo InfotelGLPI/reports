@@ -33,6 +33,8 @@
 $USEDBREPLICATE = 1;
 $DBCONNECTION_REQUIRED = 0; // Not really a big SQL request
 
+Session::checkRight("plugin_reports_equipmentbygroups", READ);
+
 Html::header(__('List all devices of a group, ordered by users', 'reports'), $_SERVER['PHP_SELF'], "utils", "report");
 
 Report::title();

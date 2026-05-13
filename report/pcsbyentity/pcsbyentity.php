@@ -277,7 +277,7 @@ Html::closeForm();
 echo "</div>\n";
 
 // --------------- Result -------------
-if (isset($_POST["type"]) && $_POST["type"] != '') {
+if (isset($_POST["type"]) && $_POST["type"] != '' && array_key_exists($_POST["type"], $choix)) {
     echo "<br><table class='tab_cadre'>\n";
 
     echo "<tr><th>" . __('Entity') . "</th>"

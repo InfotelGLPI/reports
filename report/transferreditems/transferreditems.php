@@ -65,6 +65,10 @@ $report->displayCriteriasForm();
 // Declare columns
 if ($report->criteriasValidated()) {
     $itemtype = $_POST['itemtype'];
+    if (!array_key_exists($itemtype, $types)) {
+        Html::footer();
+        exit;
+    }
     $table = $dbu->getTableForItemType($itemtype);
 
     $columns = [new ColumnLink(
