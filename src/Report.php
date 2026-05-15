@@ -116,14 +116,7 @@ class Report extends CommonDBTM
             $name = $report_name . '_report_title';
 
             $LANG[$plugin_key][$report_name] = __($name, $plugin);
-            // For dev: log if translation key not found
-            if (($_SESSION['glpi_use_mode'] == Session::DEBUG_MODE)
-                && ($LANG[$plugin_key][$report_name] == $name)) {
-                Toolbox::logInFile(
-                    'php-errors',
-                    "includeLocales($name, $plugin) => translation key not found\n"
-                );
-            }
+
         }
 
         return $locale_loaded;
