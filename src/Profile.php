@@ -92,7 +92,7 @@ class Profile extends \Profile
         $canedit = Session::haveRight('profile', UPDATE);
 
         if ($canedit) {
-            echo "<form action='" . $_SERVER['PHP_SELF'] . "' method='post'>\n";
+            echo "<form action='" . $_SERVER['REQUEST_URI'] . "' method='post'>\n";
         }
 
         echo "<br><table class='tab_cadre_fixehov'>\n";
