@@ -1,6 +1,7 @@
 <?php
-/**
--------------------------------------------------------------------------
+
+/*
+ -------------------------------------------------------------------------
   LICENSE
 
  This file is part of Reports plugin for GLPI.
@@ -19,7 +20,7 @@
  along with Reports. If not, see <http://www.gnu.org/licenses/>.
 
  @package   reports
- @authors    Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
+ @authors   Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
  @copyright Copyright (c) 2009-2026 Reports plugin team
  @license   AGPL License 3.0 or (at your option) any later version
             http://www.gnu.org/licenses/agpl-3.0-standalone.html
@@ -27,7 +28,7 @@
  @link      http://www.glpi-project.org/
  @since     2009
  --------------------------------------------------------------------------
-*/
+ */
 
 $USEDBREPLICATE         = 1;
 $DBCONNECTION_REQUIRED  = 1;

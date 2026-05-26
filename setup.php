@@ -1,5 +1,6 @@
 <?php
-/**
+
+/*
  -------------------------------------------------------------------------
   LICENSE
 
@@ -19,15 +20,15 @@
  along with Reports. If not, see <http://www.gnu.org/licenses/>.
 
  @package   reports
- @authors    Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel, Alexandre Delaunay
- @copyright Copyright (c) 2009-2022 Reports plugin team
+ @authors   Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
+ @copyright Copyright (c) 2009-2026 Reports plugin team
  @license   AGPL License 3.0 or (at your option) any later version
             http://www.gnu.org/licenses/agpl-3.0-standalone.html
- @link      https://forge.glpi-project.org/projects/reports
+ @link      https://github.com/InfotelGLPI/reports
  @link      http://www.glpi-project.org/
  @since     2009
  --------------------------------------------------------------------------
-*/
+ */
 
 use Glpi\Plugin\Hooks;
 use GlpiPlugin\Reports\Profile;
