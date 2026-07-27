@@ -1,0 +1,505 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Function __ invoked with 3 parameters, 1\-2 required\.$#'
+			identifier: arguments.count
+			count: 2
+			path: front/report.form.php
+
+		-
+			message: '#^Missing PHPDoc tag @var for global variable \$LANG$#'
+			identifier: glpi.missingGlobalVarType
+			count: 1
+			path: front/report.form.php
+
+		-
+			message: '#^Function isStat\(\) should return false but returns true\.$#'
+			identifier: return.type
+			count: 1
+			path: setup.php
+
+		-
+			message: '#^Missing PHPDoc tag @var for global variable \$LANG$#'
+			identifier: glpi.missingGlobalVarType
+			count: 1
+			path: setup.php
+
+		-
+			message: '#^Method GlpiPlugin\\Reports\\ArrayCriteria\:\:getSqlCriteriasRestriction\(\) has invalid return type GlpiPlugin\\Reports\\a\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/ArrayCriteria.php
+
+		-
+			message: '#^Method GlpiPlugin\\Reports\\ArrayCriteria\:\:getSqlCriteriasRestriction\(\) should return GlpiPlugin\\Reports\\a but returns string\.$#'
+			identifier: return.type
+			count: 2
+			path: src/ArrayCriteria.php
+
+		-
+			message: '#^Method GlpiPlugin\\Reports\\AutoCriteria\:\:getSqlCriteriasRestriction\(\) has invalid return type GlpiPlugin\\Reports\\a\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/AutoCriteria.php
+
+		-
+			message: '#^Method GlpiPlugin\\Reports\\AutoCriteria\:\:getSqlCriteriasRestriction\(\) should return GlpiPlugin\\Reports\\a but returns string\.$#'
+			identifier: return.type
+			count: 1
+			path: src/AutoCriteria.php
+
+		-
+			message: '#^PHPDoc tag @return has invalid value \(\- label associated with the criteria\)\: Unexpected token "\-", expected type at offset 131 on line 6$#'
+			identifier: phpDoc.parseError
+			count: 1
+			path: src/AutoCriteria.php
+
+		-
+			message: '#^PHPDoc tag @return has invalid value \(\- sql request\)\: Unexpected token "\-", expected type at offset 175 on line 6$#'
+			identifier: phpDoc.parseError
+			count: 1
+			path: src/AutoCriteria.php
+
+		-
+			message: '#^PHPDoc tag @return has invalid value \(\- the bookmark''s url associated with the criteria\)\: Unexpected token "\-", expected type at offset 74 on line 4$#'
+			identifier: phpDoc.parseError
+			count: 1
+			path: src/AutoCriteria.php
+
+		-
+			message: '#^PHPDoc tag @return has invalid value \(\- the parameter''s value\)\: Unexpected token "\-", expected type at offset 113 on line 6$#'
+			identifier: phpDoc.parseError
+			count: 1
+			path: src/AutoCriteria.php
+
+		-
+			message: '#^PHPDoc tag @return has invalid value \(\- the parameters\)\: Unexpected token "\-", expected type at offset 85 on line 4$#'
+			identifier: phpDoc.parseError
+			count: 1
+			path: src/AutoCriteria.php
+
+		-
+			message: '#^PHPDoc tag @return has invalid value \(\- the sql_field associated with the criteria\)\: Unexpected token "\-", expected type at offset 76 on line 4$#'
+			identifier: phpDoc.parseError
+			count: 1
+			path: src/AutoCriteria.php
+
+		-
+			message: '#^PHPDoc tag @return has invalid value \(criteria''s name\)\: Unexpected token "''s", expected TOKEN_HORIZONTAL_WS at offset 61 on line 4$#'
+			identifier: phpDoc.parseError
+			count: 1
+			path: src/AutoCriteria.php
+
+		-
+			message: '#^Access to an undefined property GlpiPlugin\\Reports\\AutoReport\:\:\$plug\.$#'
+			identifier: property.notFound
+			count: 6
+			path: src/AutoReport.php
+
+		-
+			message: '#^Binary operation "\." between \(int\|string\) and array\{\(int\|string\)\} results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: src/AutoReport.php
+
+		-
+			message: '#^Function __ invoked with 3 parameters, 1\-2 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: src/AutoReport.php
+
+		-
+			message: '#^Method GlpiPlugin\\Reports\\AutoReport\:\:criteriasValidated\(\) should return true but returns bool\.$#'
+			identifier: return.type
+			count: 1
+			path: src/AutoReport.php
+
+		-
+			message: '#^Missing PHPDoc tag @var for global variable \$HEADER_LOADED$#'
+			identifier: glpi.missingGlobalVarType
+			count: 2
+			path: src/AutoReport.php
+
+		-
+			message: '#^PHPDoc tag @param has invalid value \(\- subname the report''s subname to display\)\: Unexpected token "\-", expected type at offset 57 on line 4$#'
+			identifier: phpDoc.parseError
+			count: 1
+			path: src/AutoReport.php
+
+		-
+			message: '#^PHPDoc tag @param has invalid value \(link with previous condition\)\: Unexpected token "with", expected variable at offset 81 on line 3$#'
+			identifier: phpDoc.parseError
+			count: 2
+			path: src/AutoReport.php
+
+		-
+			message: '#^PHPDoc tag @param has invalid value \(sql the sql request as a string\)\: Unexpected token "the", expected variable at offset 60 on line 3$#'
+			identifier: phpDoc.parseError
+			count: 1
+			path: src/AutoReport.php
+
+		-
+			message: '#^PHPDoc tag @return has invalid value \(\[\]\)\: Unexpected token "\[", expected type at offset 193 on line 7$#'
+			identifier: phpDoc.parseError
+			count: 1
+			path: src/AutoReport.php
+
+		-
+			message: '#^Parameter \#1 \$itemtype of static method Dropdown\:\:showOutputFormat\(\) expects class\-string\<CommonDBTM\>\|null, int\<min, \-1\>\|int\<1, max\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/AutoReport.php
+
+		-
+			message: '#^Parameter \#5 \$item_type_output of static method GlpiPlugin\\Reports\\AutoReport\:\:printPager\(\) expects int, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/AutoReport.php
+
+		-
+			message: '#^Property GlpiPlugin\\Reports\\AutoReport\:\:\$columns_mapping is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/AutoReport.php
+
+		-
+			message: '#^Property GlpiPlugin\\Reports\\AutoReport\:\:\$group_by is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/AutoReport.php
+
+		-
+			message: '#^Static method Glpi\\Search\\Output\\HTMLSearchOutput\:\:showEndLine\(\) invoked with 1 parameter, 0 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: src/AutoReport.php
+
+		-
+			message: '#^Undefined variable\: \$values$#'
+			identifier: variable.undefined
+			count: 2
+			path: src/AutoReport.php
+
+		-
+			message: '#^Variable \$headers might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: src/AutoReport.php
+
+		-
+			message: '#^Variable \$num might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: src/AutoReport.php
+
+		-
+			message: '#^Variable \$output_type on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
+			path: src/AutoReport.php
+
+		-
+			message: '#^Variable \$output_type on left side of \?\? is never defined\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
+			path: src/AutoReport.php
+
+		-
+			message: '#^Variable \$rows might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: src/AutoReport.php
+
+		-
+			message: '#^Variable \$values in isset\(\) is never defined\.$#'
+			identifier: isset.variable
+			count: 2
+			path: src/AutoReport.php
+
+		-
+			message: '#^Access to constant HTML_OUTPUT on an unknown class GlpiPlugin\\Reports\\Search\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Column.php
+
+		-
+			message: '#^Property GlpiPlugin\\Reports\\Column\:\:\$extrabold is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Column.php
+
+		-
+			message: '#^Property GlpiPlugin\\Reports\\Column\:\:\$extrafine is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Column.php
+
+		-
+			message: '#^Access to an undefined property GlpiPlugin\\Reports\\ColumnDropdownLinkedType\:\:\$suffix\.$#'
+			identifier: property.notFound
+			count: 2
+			path: src/ColumnDropdownLinkedType.php
+
+		-
+			message: '#^Instantiating an object from an unrestricted dynamic string is forbidden \(see https\://github\.com/glpi\-project/phpstan\-glpi\?tab\=readme\-ov\-file\#forbiddynamicinstantiationrule\)\.$#'
+			identifier: glpi.forbidDynamicInstantiation
+			count: 1
+			path: src/ColumnDropdownLinkedType.php
+
+		-
+			message: '#^Property GlpiPlugin\\Reports\\ColumnDropdownLinkedType\:\:\$type_suffix is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/ColumnDropdownLinkedType.php
+
+		-
+			message: '#^Property GlpiPlugin\\Reports\\ColumnDropdownLinkedType\:\:\$with_comment is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/ColumnDropdownLinkedType.php
+
+		-
+			message: '#^Property GlpiPlugin\\Reports\\ColumnItemCheckbox\:\:\$with_comment is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/ColumnItemCheckbox.php
+
+		-
+			message: '#^Property GlpiPlugin\\Reports\\ColumnLink\:\:\$with_comment is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/ColumnLink.php
+
+		-
+			message: '#^Access to an undefined property GlpiPlugin\\Reports\\ColumnTimestamp\:\:\$export_timestamp\.$#'
+			identifier: property.notFound
+			count: 3
+			path: src/ColumnTimestamp.php
+
+		-
+			message: '#^Property GlpiPlugin\\Reports\\ColumnTypeLink\:\:\$with_comment is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/ColumnTypeLink.php
+
+		-
+			message: '#^Method GlpiPlugin\\Reports\\DateIntervalCriteria\:\:getSqlCriteriasRestriction\(\) has invalid return type GlpiPlugin\\Reports\\a\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/DateIntervalCriteria.php
+
+		-
+			message: '#^Method GlpiPlugin\\Reports\\DateIntervalCriteria\:\:getSqlCriteriasRestriction\(\) should return GlpiPlugin\\Reports\\a but returns string\.$#'
+			identifier: return.type
+			count: 2
+			path: src/DateIntervalCriteria.php
+
+		-
+			message: '#^Access to private property \$criterias_labels of parent class GlpiPlugin\\Reports\\AutoCriteria\.$#'
+			identifier: property.private
+			count: 2
+			path: src/DropdownCriteria.php
+
+		-
+			message: '#^Expression in empty\(\) is not falsy\.$#'
+			identifier: empty.expr
+			count: 1
+			path: src/DropdownCriteria.php
+
+		-
+			message: '#^If condition is always true\.$#'
+			identifier: if.alwaysTrue
+			count: 1
+			path: src/DropdownCriteria.php
+
+		-
+			message: '#^Method GlpiPlugin\\Reports\\DropdownCriteria\:\:getSqlCriteriasRestriction\(\) has invalid return type GlpiPlugin\\Reports\\a\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/DropdownCriteria.php
+
+		-
+			message: '#^Method GlpiPlugin\\Reports\\DropdownCriteria\:\:getSqlCriteriasRestriction\(\) should return GlpiPlugin\\Reports\\a but returns string\.$#'
+			identifier: return.type
+			count: 3
+			path: src/DropdownCriteria.php
+
+		-
+			message: '#^Result of \|\| is always true\.$#'
+			identifier: booleanOr.alwaysTrue
+			count: 1
+			path: src/DropdownCriteria.php
+
+		-
+			message: '#^Access to private property \$criterias_labels of parent class GlpiPlugin\\Reports\\AutoCriteria\.$#'
+			identifier: property.private
+			count: 2
+			path: src/DropdownMultipleCriteria.php
+
+		-
+			message: '#^Expression in empty\(\) is not falsy\.$#'
+			identifier: empty.expr
+			count: 1
+			path: src/DropdownMultipleCriteria.php
+
+		-
+			message: '#^If condition is always true\.$#'
+			identifier: if.alwaysTrue
+			count: 1
+			path: src/DropdownMultipleCriteria.php
+
+		-
+			message: '#^Method GlpiPlugin\\Reports\\DropdownMultipleCriteria\:\:getSqlCriteriasRestriction\(\) has invalid return type GlpiPlugin\\Reports\\a\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/DropdownMultipleCriteria.php
+
+		-
+			message: '#^Method GlpiPlugin\\Reports\\DropdownMultipleCriteria\:\:getSqlCriteriasRestriction\(\) should return GlpiPlugin\\Reports\\a but returns string\.$#'
+			identifier: return.type
+			count: 3
+			path: src/DropdownMultipleCriteria.php
+
+		-
+			message: '#^PHPDoc tag @return has invalid value \(\- the bookmark''s url associated with the criteria\)\: Unexpected token "\-", expected type at offset 74 on line 4$#'
+			identifier: phpDoc.parseError
+			count: 1
+			path: src/DropdownMultipleCriteria.php
+
+		-
+			message: '#^Result of \|\| is always true\.$#'
+			identifier: booleanOr.alwaysTrue
+			count: 1
+			path: src/DropdownMultipleCriteria.php
+
+		-
+			message: '#^Access to an undefined property GlpiPlugin\\Reports\\IntegerCriteria\:\:\$unit\.$#'
+			identifier: property.notFound
+			count: 3
+			path: src/IntegerCriteria.php
+
+		-
+			message: '#^Method GlpiPlugin\\Reports\\IntegerCriteria\:\:getSqlCriteriasRestriction\(\) has invalid return type GlpiPlugin\\Reports\\a\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/IntegerCriteria.php
+
+		-
+			message: '#^Method GlpiPlugin\\Reports\\IntegerCriteria\:\:getSqlCriteriasRestriction\(\) should return GlpiPlugin\\Reports\\a but returns string\.$#'
+			identifier: return.type
+			count: 1
+			path: src/IntegerCriteria.php
+
+		-
+			message: '#^Method GlpiPlugin\\Reports\\PriorityCriteria\:\:getSqlCriteriasRestriction\(\) has invalid return type GlpiPlugin\\Reports\\a\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/PriorityCriteria.php
+
+		-
+			message: '#^Method GlpiPlugin\\Reports\\PriorityCriteria\:\:getSqlCriteriasRestriction\(\) should return GlpiPlugin\\Reports\\a but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: src/PriorityCriteria.php
+
+		-
+			message: '#^Method GlpiPlugin\\Reports\\PriorityCriteria\:\:getSqlCriteriasRestriction\(\) should return GlpiPlugin\\Reports\\a but returns string\.$#'
+			identifier: return.type
+			count: 2
+			path: src/PriorityCriteria.php
+
+		-
+			message: '#^Static method CommonITILObject\:\:dropdownPriority\(\) invoked with 3 parameters, 0\-1 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: src/PriorityCriteria.php
+
+		-
+			message: '#^Call to an undefined method CommonGLPI\:\:getField\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: src/Profile.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 1
+			path: src/Profile.php
+
+		-
+			message: '#^Missing PHPDoc tag @var for global variable \$LANG$#'
+			identifier: glpi.missingGlobalVarType
+			count: 1
+			path: src/Profile.php
+
+		-
+			message: '#^Parameter \#1 \$prof of static method GlpiPlugin\\Reports\\Profile\:\:showForProfile\(\) expects Profile, CommonGLPI given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Profile.php
+
+		-
+			message: '#^Missing PHPDoc tag @var for global variable \$LANG$#'
+			identifier: glpi.missingGlobalVarType
+			count: 1
+			path: src/Report.php
+
+		-
+			message: '#^PHPDoc tag @return has invalid value \(boolean, true if locale found\)\: Unexpected token ",", expected TOKEN_HORIZONTAL_WS at offset 208 on line 7$#'
+			identifier: phpDoc.parseError
+			count: 1
+			path: src/Report.php
+
+		-
+			message: '#^Function n not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: src/SoftwareCategoriesCriteria.php
+
+		-
+			message: '#^Method GlpiPlugin\\Reports\\TextCriteria\:\:getSqlCriteriasRestriction\(\) has invalid return type GlpiPlugin\\Reports\\a\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/TextCriteria.php
+
+		-
+			message: '#^Method GlpiPlugin\\Reports\\TextCriteria\:\:getSqlCriteriasRestriction\(\) should return GlpiPlugin\\Reports\\a but returns string\.$#'
+			identifier: return.type
+			count: 2
+			path: src/TextCriteria.php
+
+		-
+			message: '#^Method GlpiPlugin\\Reports\\TicketStatusCriteria\:\:getSqlCriteriasRestriction\(\) has invalid return type GlpiPlugin\\Reports\\a\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/TicketStatusCriteria.php
+
+		-
+			message: '#^Method GlpiPlugin\\Reports\\TicketStatusCriteria\:\:getSqlCriteriasRestriction\(\) should return GlpiPlugin\\Reports\\a but returns string\.$#'
+			identifier: return.type
+			count: 2
+			path: src/TicketStatusCriteria.php
+
+		-
+			message: '#^Property GlpiPlugin\\Reports\\TicketStatusCriteria\:\:\$choice is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/TicketStatusCriteria.php
+
+		-
+			message: '#^Variable \$tab might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: src/TicketStatusCriteria.php
+
+		-
+			message: '#^Method GlpiPlugin\\Reports\\TimeIntervalCriteria\:\:getSqlCriteriasRestriction\(\) has invalid return type GlpiPlugin\\Reports\\a\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/TimeIntervalCriteria.php
+
+		-
+			message: '#^Method GlpiPlugin\\Reports\\TimeIntervalCriteria\:\:getSqlCriteriasRestriction\(\) should return GlpiPlugin\\Reports\\a but returns string\.$#'
+			identifier: return.type
+			count: 2
+			path: src/TimeIntervalCriteria.php

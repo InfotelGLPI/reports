@@ -46,6 +46,9 @@ global $DB;
 $dbu = new DbUtils();
 
 //TRANS: The name of the report = Printers
+// Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
+Session::checkRight("plugin_reports_printers", READ);
+
 $report = new AutoReport(__('Printers', 'reports'));
 
 // Definition of the criteria

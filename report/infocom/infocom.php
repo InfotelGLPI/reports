@@ -66,6 +66,9 @@ $dbu = new DbUtils();
  *
  */
 
+// Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
+Session::checkRight("plugin_reports_infocom", READ);
+
 $report = new AutoReport(__('Financial information', 'reports'));
 
 $ignored = ['Cartridge', 'CartridgeItem', 'Consumable', 'ConsumableItem', 'Software', 'Line',
@@ -125,10 +128,14 @@ if ($report->criteriasValidated()) {
 
     $report->setColumns($cols);
     $sel = $type->getParameterValue();
-    if ($sel && $sel != "all") {
+    // Whitelist the user-supplied itemtype against the allowed infocom types before it reaches
+    // new $itemtype() and the QueryExpression: this prevents arbitrary class instantiation and
+    // bypass of the $ignored list (mirrors transferreditems.php / pcsbyentity.php).
+    $allowed_types = array_diff($CFG_GLPI['infocom_types'], $ignored);
+    if ($sel && $sel != "all" && in_array($sel, $allowed_types, true)) {
         $types = [$sel];
     } else {
-        $types = array_diff($CFG_GLPI['infocom_types'], $ignored);
+        $types = $allowed_types;
     }
 
     $queries = [];

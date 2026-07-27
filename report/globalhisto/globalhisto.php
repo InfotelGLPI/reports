@@ -41,6 +41,9 @@ $DBCONNECTION_REQUIRED  = 0; // not really a big SQL request
 
 global $DB;
 
+// Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
+Session::checkRight("plugin_reports_globalhisto", READ);
+
 $report = new AutoReport(__('Global History (for Test / example only)', 'reports'));
 
 //Report's search criterias

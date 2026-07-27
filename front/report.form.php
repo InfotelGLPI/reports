@@ -30,6 +30,7 @@
  --------------------------------------------------------------------------
  */
 
+use Glpi\Application\View\TemplateRenderer;
 use GlpiPlugin\Reports\Profile;
 use GlpiPlugin\Reports\Report;
 
@@ -53,6 +54,10 @@ if (isset($_POST['report'])) {
 $prof = new Profile();
 
 if (isset($_POST['delete']) && $report) {
+    // Broken access control: this branch mutates profile rights for every profile at once
+    // (deleteByCriteria then re-add with default access), so it must require write access on
+    // "profile" like the update branch — the page-level READ check is not enough.
+    Session::checkRight('profile', UPDATE);
     $profile_right = new ProfileRight();
     $profile_right->deleteByCriteria(['name' => "plugin_reports_$report"]);
     ProfileRight::addProfileRights(["plugin_reports_$report"]);
@@ -63,22 +68,11 @@ if (isset($_POST['delete']) && $report) {
 
 $tab = $prof->updatePluginRights();
 
-echo "<form method='post' action=\"" . $_SERVER["REQUEST_URI"] . "\">";
-echo "<table class='tab_cadre'>";
-echo "<tr><th class='center'>" . __('Reports plugin configuration', 'reports') . "</th></tr>";
-echo "<tr><th>" . __('Rights management by report', 'reports') . "</th></tr>\n";
-
-echo "<tr class='tab_bg_1'><td>" . __('Report', 'Reports', 1) . "&nbsp; ";
-
-$result = $DB->request(
-    ['SELECT' => ['id', 'name'],
-        'FROM' => 'glpi_profiles',
-        'ORDER'  => 'name']
-);
-
 $reports_names = Report::getAllReportsTitles();
 
-echo "<select name='report'>";
+// Build the grouped option tree (plugin > section > options) consumed by the Twig template.
+// Labels/values are user- or plugin-provided, so they are output through Twig auto-escaping.
+$indent   = "\u{00a0}\u{00a0}\u{00a0}\u{00a0}\u{00a0}";
 $plugname = [];
 $rap      = [];
 foreach ($tab as $key => $plug) {
@@ -97,27 +91,38 @@ foreach ($tab as $key => $plug) {
     } else {
         $rap[$plug][$section][$mod] = $LANG["plugin_$plug"][$key];
     }
-
 }
 
-$tab = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
-foreach ($rap as $plug => $tmp1) {
-    echo '<optgroup label="' . sprintf(__('%1$s - %2$s'), __('Plugins'), $plugname[$plug]) . '">';
-    foreach ($tmp1 as $section => $tmp2) {
-        echo '<optgroup label="' . $tab . "&raquo;&nbsp;" . $section . '">';
-        foreach ($tmp2 as $mod => $name) {
-            echo "<option value='$mod' " . ($report == "$mod" ? "selected" : "") . ">{$tab}{$tab}$name</option>\n";
+$option_groups = [];
+foreach ($rap as $plug => $sections) {
+    $group = [
+        'label'    => sprintf(__('%1$s - %2$s'), __('Plugins'), $plugname[$plug]),
+        'sections' => [],
+    ];
+    foreach ($sections as $section => $options) {
+        $section_data = [
+            'label'   => $indent . "\u{00bb}\u{00a0}" . $section,
+            'options' => [],
+        ];
+        foreach ($options as $mod => $name) {
+            $section_data['options'][] = [
+                'value'    => $mod,
+                'label'    => $indent . $indent . $name,
+                'selected' => ($report == "$mod"),
+            ];
         }
-        echo "</optgroup>\n";
+        $group['sections'][] = $section_data;
     }
-    echo "</optgroup>\n";
+    $option_groups[] = $group;
 }
 
-echo "</select><td>";
-echo Html::submit(_sx('button', 'Post'), ['class' => 'btn btn-primary']);
-//echo "<td><input type='submit' value='"._sx('button', 'Post')."' class='submit' ></td></tr>";
-echo "</td></tr></table>";
-Html::closeForm();
+TemplateRenderer::getInstance()->display('@reports/report_config.html.twig', [
+    'action'        => $_SERVER['REQUEST_URI'],
+    'title'         => __('Reports plugin configuration', 'reports'),
+    'rights_title'  => __('Rights management by report', 'reports'),
+    'report_label'  => __('Report', 'Reports', 1),
+    'option_groups' => $option_groups,
+]);
 
 if ($report) {
     Profile::showForReport($report);

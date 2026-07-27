@@ -41,6 +41,9 @@ global $DB;
 $dbu = new DbUtils();
 
 //TRANS: The name of the report = Licenses by expiration date
+// Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
+Session::checkRight("plugin_reports_licensesexpires", READ);
+
 $report = new AutoReport(__('Licenses by expiration date', 'reports'));
 
 $report->setColumns(['expire'       => __('Valid to', 'reports'),

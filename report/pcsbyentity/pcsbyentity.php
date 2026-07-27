@@ -88,7 +88,7 @@ function doStatBis($table, $entities, $header)
 
             echo "<tr class='tab_bg_2'><td class='left'>";
             if ($entity) {
-                echo $Ent->fields["name"];
+                echo htmlescape($Ent->fields["name"]);
             } else {
                 echo __('Root entity');
             }
@@ -156,7 +156,7 @@ function doStat($table, $entity, $header, $level = 0)
             echo "&nbsp;&nbsp;&nbsp;";
         }
         if ($entity) {
-            echo $Ent->fields["name"];
+            echo htmlescape($Ent->fields["name"]);
         } else {
             echo __('Root entity');
         }
@@ -181,7 +181,7 @@ function doStat($table, $entity, $header, $level = 0)
         echo __('Total');
 
         if ($entity) {
-            echo "&nbsp;" . $Ent->fields["name"];
+            echo "&nbsp;" . htmlescape($Ent->fields["name"]);
         } else {
             echo "&nbsp;" . __('Root entity');
         }
@@ -231,7 +231,7 @@ Report::title();
 echo "<div class='center'>";
 
 // ---------- Form ------------
-echo "<form action='" . $_SERVER["REQUEST_URI"] . "' method='post'>";
+echo "<form action='" . htmlescape($_SERVER["REQUEST_URI"]) . "' method='post'>";
 echo "<table class='tab_cadre' cellpadding='5'>\n";
 echo "<tr class='tab_bg_1 center'><th colspan='2'>" . __('Number of items by entity', 'reports')
       . "</th></tr>\n";
@@ -314,7 +314,7 @@ if (isset($_POST["type"]) && $_POST["type"] != '' && array_key_exists($_POST["ty
     $header[0] = __('Unknown', 'reports');
     foreach ($iterator as $data) {
         $header[$data["id"]] = $data["name"];
-        echo "<th>&nbsp;" . $data["name"] . "&nbsp;</th>";
+        echo "<th>&nbsp;" . htmlescape($data["name"]) . "&nbsp;</th>";
     }
     echo "</tr>\n";
 

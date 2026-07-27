@@ -33,6 +33,7 @@
 namespace GlpiPlugin\Reports;
 
 use CommonGLPI;
+use Glpi\Application\View\TemplateRenderer;
 use Html;
 use Migration;
 use ProfileRight;
@@ -48,30 +49,22 @@ class Profile extends \Profile
     public static function showForProfile(\Profile $prof)
     {
 
-        $canedit = Session::haveRightsOr(self::$rightname, [CREATE, UPDATE, PURGE]);
-
-        if ($canedit) {
-            echo "<form method='post' action='" . $prof->getFormURL() . "'>";
+        if (!$prof instanceof \Profile || !self::canView()) {
+            return false;
         }
 
-        $rights = self::getAllRights();
-        $prof->displayRightsChoiceMatrix(
-            $rights,
-            ['canedit'       => $canedit,
-                'default_class' => 'tab_bg_2',
-                'title'         => __(
-                    'Rights management by profile',
-                    'reports'
-                )]
-        );
-        if ($canedit) {
-            echo "<div class='center'>";
-            echo Html::hidden('id', ['value' => $prof->getField('id')]);
-            echo Html::submit(_sx('button', 'Save'), ['name' => 'update']);
-            echo "</div>\n";
-            Html::closeForm();
-        }
-        echo "</div>";
+        $profile = new \Profile();
+        $profile->getFromDB($prof->getID());
+
+        $rights = self::getAllRights(true);
+
+        $twig = TemplateRenderer::getInstance();
+        $twig->display('@reports/profile.html.twig', [
+            'id' => $prof->getID(),
+            'profile' => $profile,
+            'title' => self::getTypeName(Session::getPluralNumber()),
+            'rights' => $rights,
+        ]);
     }
 
 
@@ -91,28 +84,25 @@ class Profile extends \Profile
         $current = self::getAllProfilesRights(['name' => 'plugin_reports_'.$report]);
         $canedit = Session::haveRight('profile', UPDATE);
 
-        if ($canedit) {
-            echo "<form action='" . $_SERVER['PHP_SELF'] . "' method='post'>\n";
-        }
-
-        echo "<br><table class='tab_cadre_fixehov'>\n";
-        echo "<tr><th colspan='2'>" . __('Profiles rights', 'reports') . "</th></tr>\n";
-
-        foreach ($DB->request(
-            ['SELECT' => ['id', 'name'],
-            'FROM' => 'glpi_profiles',
-            'ORDER'  => 'name']) as $data) {
-            echo "<tr class='tab_bg_2'><td>" . $data['name'] . "&nbsp: </td><td>";
-
+        $profiles = [];
+        foreach ($DB->request([
+            'SELECT' => ['id', 'name'],
+            'FROM'   => 'glpi_profiles',
+            'ORDER'  => 'name',
+        ]) as $data) {
             $profrights = ProfileRight::getProfileRights($data['id'], ['statistic', 'reports']);
             $canstat    = (isset($profrights['statistic']) && $profrights['statistic']);
             $canreport  = (isset($profrights['reports'])   && $profrights['reports']);
 
-            if ((isStat($report) && $canstat)
-             || (!isStat($report) && $canreport)) {
+            $canaccess = (isStat($report) && $canstat) || (!isStat($report) && $canreport);
+
+            // Capture the GLPI right dropdown (or the hidden "no access" field) as already-safe
+            // HTML so the Twig template can output it via |raw while auto-escaping the rest.
+            ob_start();
+            if ($canaccess) {
                 \Profile::dropdownRight(
                     $data['id'],
-                    ['value'    => ($current[$data['id']] ?? 0),
+                    ['value'   => ($current[$data['id']] ?? 0),
                         'nonone'  => 0,
                         'noread'  => 0,
                         'nowrite' => 1]
@@ -120,29 +110,30 @@ class Profile extends \Profile
             } else {
                 // Can't access because missing right from GLPI core
                 echo Html::hidden($data['id'], ['value' => 'NULL']);
-                echo __('No access') . " *";
             }
-            echo "</td></tr>\n";
-        }
-        echo "<tr class='tab_bg_2'><td colspan='2'>* ";
-        if (isStat($report)) {
-            echo __('No right on Assistance / Statistics', 'reports');
-        } else {
-            echo __('No right on Tools / Reports', 'reports');
-        }
-        echo "</tr>";
+            $field = ob_get_clean();
 
-        if ($canedit) {
-            echo "<tr class='tab_bg_1'><td colspan='2' class='center'>";
-            echo Html::hidden('report', ['value' => $report]);
-            echo Html::submit(_sx('button', 'Update'), ['name' => 'update',
-                'class' => 'btn btn-primary']);
-            echo "</td></tr>\n";
-            echo "</table>\n";
-            Html::closeForm();
-        } else {
-            echo "</table>\n";
+            $profiles[] = [
+                'name'      => $data['name'],
+                'canaccess' => $canaccess,
+                'field'     => $field,
+            ];
         }
+
+        TemplateRenderer::getInstance()->display('@reports/report_rights.html.twig', [
+            'canedit'   => $canedit,
+            'report'    => $report,
+            // Use REQUEST_URI (not PHP_SELF): under the GLPI 11 front controller PHP_SELF resolves to
+            // the router entry point, so posting the form there misroutes it. The value is output
+            // through Twig auto-escaping ({{ action }}), which neutralizes the reflected-XSS vector.
+            'action'    => $_SERVER['REQUEST_URI'],
+            'header'    => __('Profiles rights', 'reports'),
+            'no_access' => __('No access'),
+            'footnote'  => isStat($report)
+                ? __('No right on Assistance / Statistics', 'reports')
+                : __('No right on Tools / Reports', 'reports'),
+            'profiles'  => $profiles,
+        ]);
     }
 
     /**

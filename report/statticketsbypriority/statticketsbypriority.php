@@ -47,6 +47,9 @@ global $DB;
 $dbu = new DbUtils();
 
 //TRANS: The name of the report = Tickets no closed, sorted by priority
+// Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
+Session::checkRight("plugin_reports_statticketsbypriority", READ);
+
 $report = new AutoReport(__('Tickets no closed, sorted by priority', 'reports'));
 
 //Report's search criterias

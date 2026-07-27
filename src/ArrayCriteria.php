@@ -66,12 +66,13 @@ class ArrayCriteria extends DropdownCriteria {
     * Get SQL code associated with the criteria
     */
    public function getSqlCriteriasRestriction($link = 'AND') {
+      global $DB;
 
       $val = $this->getParameterValue();
       if (empty($val) || ($val == 'all')) {
          return '';
       }
-      return $link . " " . $this->getSqlField() . "='$val' ";
+      return $link . " " . $this->getSqlField() . "='" . $DB->escape($val) . "' ";
    }
 
     /**

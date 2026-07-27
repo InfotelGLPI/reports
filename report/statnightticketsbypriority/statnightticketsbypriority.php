@@ -47,6 +47,9 @@ global $DB, $CFG_GLPI;
 $dbu = new DbUtils();
 
 //TRANS: The name of the report = Tickets opened at night, sorted by priority
+// Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
+Session::checkRight("plugin_reports_statnightticketsbypriority", READ);
+
 $report = new AutoReport(__('Tickets opened at night, sorted by priority', 'reports'));
 
 //Report's search criterias

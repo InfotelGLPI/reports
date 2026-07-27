@@ -70,7 +70,7 @@ if (isset($_GET["crit"])) {
 $rand  = mt_rand();
 
 // ---------- Form ------------
-echo "<form action='" . $_SERVER["REQUEST_URI"] . "' method='post'>";
+echo "<form action='" . htmlescape($_SERVER["REQUEST_URI"]) . "' method='post'>";
 echo "<table class='tab_cadre' cellpadding='5'>\n";
 echo "<tr class='tab_bg_1 center'>";
 echo "<th colspan='3'>" . __('Duplicate computers', 'reports') . "</th></tr>\n";
@@ -547,14 +547,14 @@ if ($crit > 0) { // Display result
             echo Dropdown::getDropdownName("glpi_manufacturers", $comp->getField('manufacturers_id'));
             echo "</td><td>";
             echo Dropdown::getDropdownName("glpi_computermodels", $comp->getField('computermodels_id'));
-            echo "</td><td>" . $comp->getField('serial');
-            echo "</td><td>" . $comp->getField('otherserial') . "</td>";
+            echo "</td><td>" . htmlescape($comp->getField('serial'));
+            echo "</td><td>" . htmlescape($comp->getField('otherserial')) . "</td>";
 
         } else {
-            echo "<td colspan='5'>" . $data["Aname"] . "</td>";
+            echo "<td colspan='5'>" . htmlescape($data["Aname"]) . "</td>";
         }
         if ($col) {
-            echo "<td>" . $data["Aaddr"] . "</td>";
+            echo "<td>" . htmlescape($data["Aaddr"]) . "</td>";
         }
         echo "<td>";
         echo getLastInventory($data['AID']);
@@ -575,13 +575,13 @@ if ($crit > 0) { // Display result
             echo Dropdown::getDropdownName("glpi_manufacturers", $comp->getField('manufacturers_id'));
             echo "</td><td class='blue'>";
             echo Dropdown::getDropdownName("glpi_computermodels", $comp->getField('computermodels_id'));
-            echo "</td><td class='blue'>" . $comp->getField('serial');
-            echo "</td><td class='blue'>" . $comp->getField('otherserial') . "</td>";
+            echo "</td><td class='blue'>" . htmlescape($comp->getField('serial'));
+            echo "</td><td class='blue'>" . htmlescape($comp->getField('otherserial')) . "</td>";
         } else {
-            echo "<td colspan='5' class='blue'>" . $data["Aname"] . "</td>";
+            echo "<td colspan='5' class='blue'>" . htmlescape($data["Aname"]) . "</td>";
         }
         if ($col) {
-            echo "<td class='blue'>" . $data["Baddr"] . "</td>";
+            echo "<td class='blue'>" . htmlescape($data["Baddr"]) . "</td>";
         }
         echo "<td class='blue'>";
         echo getLastInventory($data['BID']);

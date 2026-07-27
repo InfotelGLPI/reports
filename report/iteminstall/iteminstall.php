@@ -45,6 +45,9 @@ global $DB;
 $dbu = new DbUtils();
 
 //TRANS: The name of the report = Time before equipment start-up
+// Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
+Session::checkRight("plugin_reports_iteminstall", READ);
+
 $report = new AutoReport(__('Time before equipment start-up', 'reports'));
 
 //Report's search criterias

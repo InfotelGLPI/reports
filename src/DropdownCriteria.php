@@ -292,12 +292,13 @@ class DropdownCriteria extends AutoCriteria
     **/
     public function getSqlCriteriasRestriction($link = 'AND')
     {
+        global $DB;
 
         $dbu = new DbUtils();
 
         if ($this->getParameterValue() || $this->searchzero) {
             if (!$this->childrens) {
-                return $link . " " . $this->getSqlField() . "='" . $this->getParameterValue() . "' ";
+                return $link . " " . $this->getSqlField() . "='" . $DB->escape($this->getParameterValue()) . "' ";
             }
             if ($this->getParameterValue()) {
                 return $link . " " . $this->getSqlField()

@@ -64,7 +64,7 @@ class TextCriteria extends DropdownCriteria {
       $this->getReport()->endColumn();
 
       $this->getReport()->startColumn();
-      echo "<input type='text' name='".$this->getName()."' value='". $this->getParameterValue() ."'>";
+      echo "<input type='text' name='".$this->getName()."' value='". htmlescape($this->getParameterValue()) ."'>";
       $this->getReport()->endColumn();
    }
 

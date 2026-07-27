@@ -46,6 +46,9 @@ global $DB;
 
 $dbu = new DbUtils();
 
+// Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
+Session::checkRight("plugin_reports_statticketsbyentity", READ);
+
 $report = new AutoReport(__('Helpdesk requesters and tickets by entity', 'reports'));
 
 //Report's search criterias

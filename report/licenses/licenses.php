@@ -41,6 +41,9 @@ global $DB;
 $dbu = new DbUtils();
 
 //TRANS: The name of the report = Detailed license report
+// Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
+Session::checkRight("plugin_reports_licenses", READ);
+
 $report = new AutoReport(__('Detailed license report', 'reports'));
 
 $license = new SoftwareWithLicenseCriteria($report, 'glpi_softwarelicenses.softwares_id');

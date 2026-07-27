@@ -46,6 +46,9 @@ $DBCONNECTION_REQUIRED = 0;
 global $DB, $CFG_GLPI;
 
 
+// Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
+Session::checkRight("plugin_reports_listequipmentbylocation", READ);
+
 $report = new AutoReport(__('List of equipments by location', 'reports'));
 
 $loc = new LocationCriteria($report);

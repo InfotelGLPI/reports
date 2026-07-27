@@ -30,6 +30,7 @@
  --------------------------------------------------------------------------
  */
 
+use Glpi\DBAL\QuerySubQuery;
 use GlpiPlugin\Reports\AutoReport;
 use GlpiPlugin\Reports\Column;
 use GlpiPlugin\Reports\ColumnLink;
@@ -40,9 +41,10 @@ $DBCONNECTION_REQUIRED = 0;
 
 global $DB;
 
-$dbu = new DbUtils();
-
 //TRANS: The name of the report = Detailed report of software installation by status
+// Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
+Session::checkRight("plugin_reports_softnotinstalled", READ);
+
 $report = new AutoReport(__('Detailed report of software installation by status', 'reports'));
 $soft   = new TextCriteria($report, 'software', _n('Software', 'Software', 1));
 $soft->setSqlField('glpi_softwares.name');
@@ -66,43 +68,105 @@ if ($report->criteriasValidated()) {
                                                          __('Computer')),
                                                 ['sorton' => 'location'])]);
 
-   $query = "SELECT `glpi_computers`.`id` AS computer,
-                    `glpi_states`.`name` AS state,
-                    `glpi_operatingsystems`.`name` as operatingsystems,
-                    `glpi_locations`.`completename` as location,
-                    `glpi_entities`.`completename` as entity
-             FROM `glpi_computers`
-             LEFT JOIN `glpi_states`
-                  ON (`glpi_states`.`id` = `glpi_computers`.`states_id`)
-             LEFT JOIN `glpi_items_operatingsystems`
-                  ON (`glpi_items_operatingsystems`.`items_id` = `glpi_computers`.`id`
-                      AND `glpi_items_operatingsystems`.`itemtype` = 'Computer')
-             LEFT JOIN `glpi_operatingsystems`
-                  ON (`glpi_operatingsystems`.`id` = `glpi_items_operatingsystems`.`operatingsystems_id`)
-             LEFT JOIN `glpi_locations`
-                  ON (`glpi_locations`.`id` = `glpi_computers`.`locations_id`)
-             LEFT JOIN `glpi_entities`
-                  ON (`glpi_entities`.`id` = `glpi_computers`.`entities_id`) ".
-             $dbu->getEntitiesRestrictRequest('WHERE', 'glpi_computers') ."
-                   AND `glpi_computers`.`is_template` = 0
-                   AND `glpi_computers`.`is_deleted` = 0
-                   AND `glpi_computers`.`id`
-                     NOT IN (SELECT `glpi_computers`.`id`
-                             FROM `glpi_softwares`
-                             INNER JOIN `glpi_softwareversions`
-                                 ON (`glpi_softwares`.`id` = `glpi_softwareversions`.`softwares_id`)
-                             INNER JOIN `glpi_items_softwareversions`
-                                 ON (`glpi_items_softwareversions`.`softwareversions_id`
-                                       = `glpi_softwareversions`.`id`)
-                             INNER JOIN `glpi_computers`
-                                 ON (`glpi_items_softwareversions`.`items_id` = `glpi_computers`.`id`
-                                     AND `glpi_items_softwareversions`.`itemtype` = 'Computer') ".
-                             $dbu->getEntitiesRestrictRequest('WHERE', 'glpi_computers') .
-                                    $report->addSqlCriteriasRestriction().")".
-             $report->getOrderby('computer', true);
+   // Sub-request: computers that DO have (the searched) software installed.
+   // The software text criteria and the entity restriction both apply here.
+   $sub_where = getEntitiesRestrictCriteria('glpi_computers');
+   $soft_restriction = $soft->getNewSqlCriteriasRestriction();
+   if (is_array($soft_restriction)) {
+       $sub_where = $sub_where + $soft_restriction;
+   }
 
+   $subquery = new QuerySubQuery([
+       'SELECT'     => 'glpi_computers.id',
+       'FROM'       => 'glpi_softwares',
+       'INNER JOIN' => [
+           'glpi_softwareversions' => [
+               'ON' => [
+                   'glpi_softwareversions' => 'softwares_id',
+                   'glpi_softwares'        => 'id',
+               ],
+           ],
+           'glpi_items_softwareversions' => [
+               'ON' => [
+                   'glpi_items_softwareversions' => 'softwareversions_id',
+                   'glpi_softwareversions'       => 'id',
+               ],
+           ],
+           'glpi_computers' => [
+               'ON' => [
+                   'glpi_items_softwareversions' => 'items_id',
+                   'glpi_computers'              => 'id',
+                   [
+                       'AND' => [
+                           'glpi_items_softwareversions.itemtype' => 'Computer',
+                       ],
+                   ],
+               ],
+           ],
+       ],
+       'WHERE' => $sub_where,
+   ]);
 
-   $report->setSqlRequest($query);
+   $criteria = [
+       'SELECT'    => [
+           'glpi_computers.id AS computer',
+           'glpi_states.name AS state',
+           'glpi_operatingsystems.name AS operatingsystems',
+           'glpi_locations.completename AS location',
+           'glpi_entities.completename AS entity',
+       ],
+       'FROM'      => 'glpi_computers',
+       'LEFT JOIN' => [
+           'glpi_states' => [
+               'ON' => [
+                   'glpi_states'    => 'id',
+                   'glpi_computers' => 'states_id',
+               ],
+           ],
+           'glpi_items_operatingsystems' => [
+               'ON' => [
+                   'glpi_items_operatingsystems' => 'items_id',
+                   'glpi_computers'              => 'id',
+                   [
+                       'AND' => [
+                           'glpi_items_operatingsystems.itemtype' => 'Computer',
+                       ],
+                   ],
+               ],
+           ],
+           'glpi_operatingsystems' => [
+               'ON' => [
+                   'glpi_operatingsystems'       => 'id',
+                   'glpi_items_operatingsystems' => 'operatingsystems_id',
+               ],
+           ],
+           'glpi_locations' => [
+               'ON' => [
+                   'glpi_locations' => 'id',
+                   'glpi_computers' => 'locations_id',
+               ],
+           ],
+           'glpi_entities' => [
+               'ON' => [
+                   'glpi_entities'  => 'id',
+                   'glpi_computers' => 'entities_id',
+               ],
+           ],
+       ],
+       'WHERE' => [
+           'glpi_computers.is_template' => 0,
+           'glpi_computers.is_deleted'  => 0,
+           'NOT' => [
+               'glpi_computers.id' => $subquery,
+           ],
+       ],
+   ];
+
+   $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria('glpi_computers');
+
+   $criteria = $criteria + $report->getNewOrderBy('computer', true);
+
+   $report->setSqlRequest($criteria);
    $report->execute();
 }
 

@@ -325,10 +325,11 @@ class DropdownMultipleCriteria extends AutoCriteria
     * */
     public function getSqlCriteriasRestriction($link = 'AND')
     {
+        global $DB;
 
         if ($this->getParameterValue() || $this->searchzero) {
             if (!$this->childrens) {
-                return $link . " " . $this->getSqlField() . "='" . $this->getParameterValue() . "' ";
+                return $link . " " . $this->getSqlField() . "='" . $DB->escape($this->getParameterValue()) . "' ";
             }
             if ($this->getParameterValue()) {
                 $dbu = new DbUtils();

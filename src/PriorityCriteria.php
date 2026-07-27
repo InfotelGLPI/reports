@@ -97,12 +97,14 @@ class PriorityCriteria extends AutoCriteria {
     * @see plugins/reports/inc/AutoCriteria::getSqlCriteriasRestriction()
    */
    public function getSqlCriteriasRestriction($link='AND') {
+      global $DB;
+
       //If value > 0 : a priority is selected
       //If value == 0 : no priority selected
       //If value < 0 : means "priority above the priority selected"
 
       if ($this->getParameterValue() > 0) {
-         return $link . " " . $this->getSqlField() . "= '" . $this->getParameterValue() . "'";
+         return $link . " " . $this->getSqlField() . "= '" . $DB->escape($this->getParameterValue()) . "'";
       }
 
       if ($this->getParameterValue() < 0) {

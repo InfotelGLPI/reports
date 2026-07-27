@@ -46,6 +46,9 @@ $DBCONNECTION_REQUIRED  = 0;
 global $DB;
 
 //TRANS: The name of the report = Users with no right
+// Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
+Session::checkRight("plugin_reports_zombies", READ);
+
 $report = new AutoReport(__('Users with no right', 'reports'));
 
 $name = new TextCriteria($report, 'name', __('Login'));

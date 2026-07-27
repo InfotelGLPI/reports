@@ -41,11 +41,17 @@ define("REPORTS_SUB_ENTITIES", 2);
 
 define('PLUGIN_REPORTS_VERSION', '2.0.4');
 
+if (!defined('PLUGIN_REPORTS_WEBDIR')) {
+    global $CFG_GLPI;
+    $root = $CFG_GLPI['root_doc'] . '/plugins/reports';
+    define('PLUGIN_REPORTS_WEBDIR', $root);
+}
+
 function plugin_init_reports()
 {
     global $PLUGIN_HOOKS, $LANG;
 
-   //Define only for bookmarks
+    //Define only for bookmarks
     Plugin::registerClass(Report::class);
 
     Plugin::registerClass(Stat::class);
@@ -61,9 +67,9 @@ function plugin_init_reports()
     $reports_titles = Report::getAllReportsTitles();
 
     foreach (Report::searchReport() as $report => $plug) {
-        $field = 'plugin_reports_'.$report;
+        $field = 'plugin_reports_' . $report;
         if ($plug != 'reports') {
-            $field = 'plugin_reports_'.$plug."_".$report;
+            $field = 'plugin_reports_' . $plug . "_" . $report;
         }
         if (Session::haveRight($field, READ)) {
 
@@ -73,8 +79,8 @@ function plugin_init_reports()
                 $tmp = $LANG["plugin_$plug"][$report];
             }
 
-           //If the report's name contains 'stat' then display it in the statistics page
-           //(instead of Report page)
+            //If the report's name contains 'stat' then display it in the statistics page
+            //(instead of Report page)
             if (isStat($report)) {
                 if (!isset($PLUGIN_HOOKS[Hooks::STATS][$plug])) {
                     $PLUGIN_HOOKS[Hooks::STATS][$plug] = [];
@@ -110,11 +116,11 @@ function plugin_version_reports()
 {
 
     return ['name'           => _n('Report', 'Reports', 2),
-           'version'        => PLUGIN_REPORTS_VERSION,
-           'author'         => "<a href='https://blogglpi.infotel.com'>Infotel</a>, Xavier CAILLAUD, Nelly MAHU-LASSON, Remi COLLET",
-           'license'        => 'GPLv3+',
-           'homepage'       => 'https://github.com/InfotelGLPI/reports',
-           'minGlpiVersion' => '11.0.0',
-           'requirements'   => ['glpi' => ['min' => '11.0.0',
-                                           'max' => '12.0.0']]];
+        'version'        => PLUGIN_REPORTS_VERSION,
+        'author'         => "<a href='https://blogglpi.infotel.com'>Infotel</a>, Xavier CAILLAUD, Nelly MAHU-LASSON, Remi COLLET",
+        'license'        => 'AGPLv3+',
+        'homepage'       => 'https://github.com/InfotelGLPI/reports',
+        'minGlpiVersion' => '11.0.0',
+        'requirements'   => ['glpi' => ['min' => '11.0.0',
+            'max' => '12.0.0']]];
 }

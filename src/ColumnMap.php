@@ -83,7 +83,9 @@ class ColumnMap extends Column {
          if (isset($this->map[$row[$this->name]])) {
             return $this->map[$row[$this->name]];
          }
-         return $row[$this->name];
+         // Unmapped value comes straight from the database: escape it for HTML output,
+         // matching the hardening already applied in the parent Column::displayValue().
+         return htmlescape((string) $row[$this->name]);
       }
       return '';
    }

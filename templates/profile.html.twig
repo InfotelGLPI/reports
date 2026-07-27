@@ -1,7 +1,5 @@
-<?php
-
-/*
- -------------------------------------------------------------------------
+{#
+-------------------------------------------------------------------------
   LICENSE
 
  This file is part of Reports plugin for GLPI.
@@ -27,27 +25,18 @@
  @link      https://github.com/InfotelGLPI/reports
  @link      http://www.glpi-project.org/
  @since     2009
- --------------------------------------------------------------------------
- */
+--------------------------------------------------------------------------
+#}
 
-function plugin_reports_install()
-{
-    return true;
-}
+<div class="spaced">
+    <form method="post" action="{{ 'Profile'|itemtype_form_path }}">
+        {% do profile.displayRightsChoiceMatrix(rights, {'title': title}) %}
 
+        <div class="center">
+            <input type="hidden" name="id" value="{{ id }}">
+            {{ call('Html::submit', [_x('button', 'Save'), {'name': 'update'}])|raw }}
+        </div>
 
-function plugin_reports_uninstall()
-{
-    // Remove every profile right the plugin dynamically created (name LIKE 'plugin_reports_%'),
-    // otherwise these lines stay orphaned in glpi_profilerights after uninstall.
-    (new ProfileRight())->deleteByCriteria(['name' => ['LIKE', 'plugin_reports_%']]);
-
-    // Drop the legacy tables inherited from older versions of the plugin, if they still exist.
-    $migration = new Migration(PLUGIN_REPORTS_VERSION);
-    foreach (['glpi_plugin_reports_profiles', 'glpi_plugin_reports_oldprofiles'] as $table) {
-        $migration->dropTable($table);
-    }
-    $migration->executeMigration();
-
-    return true;
-}
+        <input type="hidden" name="_glpi_csrf_token" value="{{ csrf_token() }}">
+    </form>
+</div>

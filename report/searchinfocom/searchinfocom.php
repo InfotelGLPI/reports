@@ -48,6 +48,9 @@ global $DB;
 $dbu = new DbUtils();
 
 //TRANS: The name of the report = Search in the financial information (plural)
+// Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
+Session::checkRight("plugin_reports_searchinfocom", READ);
+
 $report = new AutoReport(__('Search in the financial information', 'reports'));
 
 //Report's search criterias

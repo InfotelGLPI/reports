@@ -43,6 +43,9 @@ global $DB;
 $dbu = new DbUtils();
 
 //TRANS: The name of the report = Not installed important software (plural)
+// Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
+Session::checkRight("plugin_reports_softversioninstallations", READ);
+
 $report   = new AutoReport(__('Software version installations', 'reports'));
 
 $statever = new StatusCriteria($report, 'statever',

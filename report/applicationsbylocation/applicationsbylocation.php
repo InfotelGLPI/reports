@@ -43,6 +43,9 @@ $DBCONNECTION_REQUIRED  = 0;
 
 $dbu = new DbUtils();
 
+// Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
+Session::checkRight("plugin_reports_applicationsbylocation", READ);
+
 $report = new AutoReport(__('Applications by locations and versions', 'reports'));
 
 $softwarecategories = new SoftwareCategoriesCriteria(

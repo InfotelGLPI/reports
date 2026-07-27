@@ -40,6 +40,9 @@ $DBCONNECTION_REQUIRED  = 0;
 
 global $DB;
 
+// Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
+Session::checkRight("plugin_reports_equipmentbylocation", READ);
+
 $report = new AutoReport(__('Number of equipments by location', 'reports'));
 
 $dbu = new DbUtils();

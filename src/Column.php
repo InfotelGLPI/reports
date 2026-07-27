@@ -174,6 +174,12 @@ class Column
     public function displayValue($output_type, $row)
     {
         if (isset($row[$this->name])) {
+            // Stored XSS: GLPI 10+/11 stores field values unescaped and the core HTML search
+            // output writes this value into a <td> without escaping. Escape free-text DB values
+            // for HTML output (leave CSV/PDF/other exports untouched so they are not corrupted).
+            if ($output_type == \Search::HTML_OUTPUT) {
+                return htmlspecialchars((string) $row[$this->name], ENT_QUOTES);
+            }
             return $row[$this->name];
         }
         return '';

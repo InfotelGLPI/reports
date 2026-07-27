@@ -126,7 +126,10 @@ class IntegerCriteria extends DropdownCriteria {
    function getSign() {
 
       if (empty($this->signe)) {
-         return $this->getParameter($this->getName()."_sign");
+         // The sign is used as a raw SQL operator, so restrict the user-supplied value to a
+         // strict whitelist to prevent SQL injection through the "<name>_sign" parameter.
+         $sign = $this->getParameter($this->getName()."_sign");
+         return in_array($sign, ['<=', '>=', '<', '>', '='], true) ? $sign : '=';
       }
       return $this->signe;
    }

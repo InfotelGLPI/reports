@@ -350,7 +350,7 @@ class AutoReport extends CommonDBTM
             && $numrows > 0
         ) {
             echo "<td class='tab_bg_2 responsive_hidden' width='30%'>";
-            echo "<form method='GET' action='" . $_SERVER['REQUEST_URI'] . "' target='_blank'>\n";
+            echo "<form method='GET' action='" . htmlescape($_SERVER['REQUEST_URI']) . "' target='_blank'>\n";
 
             echo Html::hidden('item_type', ['value' => $item_type_output]);
 
@@ -436,11 +436,13 @@ class AutoReport extends CommonDBTM
         $this->manageCriteriasValues();
 
         if (isset($_POST['list_limit'])) {
-            $_SESSION['glpilist_limit'] = $_POST['list_limit'];
+            // SQL injection: list_limit flows unfiltered into $limit and is concatenated raw
+            // into the "LIMIT $start,$limit" clause of a doQuery() below. Force an integer.
+            $_SESSION['glpilist_limit'] = (int) $_POST['list_limit'];
             unset($_POST['list_limit']);
         }
 
-        $limit = $_SESSION['glpilist_limit'];
+        $limit = (int) $_SESSION['glpilist_limit'];
 
         $output_type = Search::HTML_OUTPUT;
         if (isset($_GET["display_type"])) {
@@ -786,7 +788,7 @@ class AutoReport extends CommonDBTM
         //Display form only if there're criterias
         if (!empty($this->criterias)) {
             echo "<div class='center'>";
-            echo "<form method='post' name='form' action='" . $_SERVER['REQUEST_URI'] . "'>";
+            echo "<form method='post' name='form' action='" . htmlescape($_SERVER['REQUEST_URI']) . "'>";
 
             echo "<table class='tab_cadre_fixe'>";
             echo "<tr><th colspan='6'>" . __('Search criteria', 'reports');

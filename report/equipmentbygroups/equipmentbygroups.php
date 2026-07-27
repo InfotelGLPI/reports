@@ -70,7 +70,7 @@ foreach ($result as $datas) {
 
     if ($last_group_id != $datas["id"]) {
         echo "<br><table class='tab_cadre' cellpadding='5'>";
-        echo "<tr><th>" . sprintf(__('%1$s: %2$s'), __('Group'), $datas['name']) . "</th></th></tr>";
+        echo "<tr><th>" . sprintf(__('%1$s: %2$s'), __('Group'), htmlescape($datas['name'])) . "</th></th></tr>";
         $last_group_id = $datas["id"];
         echo "</table>";
     }
@@ -88,13 +88,13 @@ function displaySearchForm()
 {
     global $_SERVER, $_GET, $CFG_GLPI;
 
-    echo "<form action='" . $_SERVER["REQUEST_URI"] . "' method='post'>";
+    echo "<form action='" . htmlescape($_SERVER["REQUEST_URI"]) . "' method='post'>";
     echo "<table class='tab_cadre' cellpadding='5'>";
     echo "<tr class='tab_bg_1 center'>";
     echo "<td width='300'>";
     echo __('Group') . "&nbsp;&nbsp;";
     Group::dropdown([
-        'name =>' => "group",
+        'name' => "group",
         'value' => $_GET["group"],
         'entity' => $_SESSION["glpiactive_entity"],
         'condition' => ['is_itemgroup' => 1],
@@ -103,9 +103,7 @@ function displaySearchForm()
 
     // Display Reset search
     echo "<td>";
-    echo "<a href='" . Plugin::getPhpDir(
-        'reports'
-    ) . "/report/equipmentbygroups/equipmentbygroups.php?reset_search=reset_search'>"
+    echo "<a href='" . $CFG_GLPI['root_doc'] . "/plugins/reports/report/equipmentbygroups/equipmentbygroups.php?reset_search=reset_search'>"
         . "<img title='" . __s('Blank') . "' alt='" . __s('Blank') . "' src='"
         . $CFG_GLPI["root_doc"] . "/pics/reset.png' class='calendrier'></a>";
     echo "</td>";
@@ -231,10 +229,10 @@ function displayUserDevices($type, $result)
 
     $item = new $type();
     foreach ($result as $data) {
-        $link = $data["name"];
+        $link = htmlescape($data["name"]);
         $url = Toolbox::getItemTypeFormURL("$type");
-        $link = "<a href='" . $url . "?id=" . $data["id"] . "'>" . $link
-            . (($CFG_GLPI["is_ids_visible"] || empty($link)) ? " (" . $data["groups_id"] . ")" : "")
+        $link = "<a href='" . $url . "?id=" . (int) $data["id"] . "'>" . $link
+            . (($CFG_GLPI["is_ids_visible"] || empty($link)) ? " (" . (int) $data["groups_id"] . ")" : "")
             . "</a>";
         $linktype = "";
         if (isset($groups[$data["id"]])) {
@@ -246,21 +244,21 @@ function displayUserDevices($type, $result)
 
         echo "<td class='center'>";
         if (isset($data["serial"]) && !empty($data["serial"])) {
-            echo $data["serial"];
+            echo htmlescape($data["serial"]);
         } else {
             echo '&nbsp;';
         }
         echo "</td><td class='center'>";
 
         if (isset($data["otherserial"]) && !empty($data["otherserial"])) {
-            echo $data["otherserial"];
+            echo htmlescape($data["otherserial"]);
         } else {
             echo '&nbsp;';
         }
         echo "</td><td class='center'>";
 
         if (isset($data["immo_number"]) && !empty($data["immo_number"])) {
-            echo $data["immo_number"];
+            echo htmlescape($data["immo_number"]);
         } else {
             echo '&nbsp;';
         }

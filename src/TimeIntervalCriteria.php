@@ -92,18 +92,42 @@ class TimeIntervalCriteria extends AutoCriteria {
 
 
    /**
+    * Normalize a user-supplied time parameter into a safe "HH:MM:00" SQL literal.
+    *
+    * The value is posted by Dropdown::showHours() as "HH:MM", but it is user-controlled input
+    * that ends up interpolated verbatim into a QueryExpression, so it must be strictly validated
+    * before use. Falls back to "00:00:00" when the input does not match the expected format,
+    * which prevents any SQL injection through starttime/endtime.
+    *
+    * @param string $param Parameter name ('starttime' or 'endtime')
+    * @return string A safe "HH:MM:00" literal
+    */
+   private function getSafeTime($param) {
+
+      $value = (string) $this->getParameter($param);
+      if (preg_match('/^([01][0-9]|2[0-3]):[0-5][0-9]$/', $value) === 1) {
+         return $value . ":00";
+      }
+      return "00:00:00";
+   }
+
+
+   /**
     * @see plugins/reports/inc/AutoCriteria::getSqlCriteriasRestriction()
    **/
    function getSqlCriteriasRestriction($link='AND') {
 
+      $begin = $this->getSafeTime('starttime');
+      $end   = $this->getSafeTime('endtime');
+
       if ($this->getParameter("starttime") < $this->getParameter("endtime")) {
          // ex  08:00:00 <= time < 18:00:00
-         return " $link TIME(".$this->getSqlField().") >= '".$this->getParameter('starttime'). ":00'
-                 AND TIME(" .$this->getSqlField(). ") < '" .$this->getParameter('endtime'). ":00'";
+         return " $link TIME(".$this->getSqlField().") >= '".$begin."'
+                 AND TIME(" .$this->getSqlField(). ") < '" .$end."'";
       }
       // ex time < 08:00:00 or 18:00:00 <= time
-      return " $link (TIME(". $this->getSqlField().") >= '".$this->getParameter('starttime').":00'
-                      OR TIME(".$this->getSqlField().") < '".$this->getParameter('endtime').":00')";
+      return " $link (TIME(". $this->getSqlField().") >= '".$begin."'
+                      OR TIME(".$this->getSqlField().") < '".$end."')";
    }
 
     /**
@@ -111,22 +135,12 @@ class TimeIntervalCriteria extends AutoCriteria {
      */
     public function getNewSqlCriteriasRestriction($link = 'AND') {
 
-        if ($this->getParameter("starttime") < $this->getParameter("endtime")) {
+        $begin = $this->getSafeTime('starttime');
+        $end   = $this->getSafeTime('endtime');
 
-            $begin = $this->getParameter('starttime'). ":00";
-            $end = $this->getParameter('endtime'). ":00";
-            return [
-                new QueryExpression("TIME(" . $this->getSqlField() . ") >= '$begin'"),
-                new QueryExpression("TIME(" . $this->getSqlField() . ") < '$end'") ,
-            ];
-
-        }
-        // ex time < 08:00:00 or 18:00:00 <= time
-        $begin = $this->getParameter('starttime'). ":00";
-        $end = $this->getParameter('endtime'). ":00";
         return [
             new QueryExpression("TIME(" . $this->getSqlField() . ") >= '$begin'"),
-            new QueryExpression("TIME(" . $this->getSqlField() . ") < '$end'") ,
+            new QueryExpression("TIME(" . $this->getSqlField() . ") < '$end'"),
         ];
     }
 

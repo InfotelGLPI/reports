@@ -40,6 +40,9 @@ $DBCONNECTION_REQUIRED = 0;
 
 global $DB;
 
+// Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
+Session::checkRight("plugin_reports_listgroups", READ);
+
 $report = new AutoReport(__('List of groups and members', 'reports'));
 
 $report->setColumns([new Column('completename', __('Entity'),
