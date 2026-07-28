@@ -175,9 +175,12 @@ class Pluginfield extends CommonDBTM {
            echo Search::showItem($output_type,  Html::getMassiveActionCheckBox($this->getType(), $value['id'], ['class' => $this]), $item_num, $row_num);
            $plugin_field_container->getFromDB($value['glpi_plugin_fields_containers_id']);
            $plugin_field_fields->getFromDB($value['glpi_plugin_fields_fields_id']);
-           echo Search::showItem($output_type, $plugin_field_container->fields['label'], $item_num, $row_num);
-           echo Search::showItem($output_type,$plugin_field_fields->fields['label'] , $item_num, $row_num);
-           echo Search::showItem($output_type,Dropdown::getDropdownName('glpi_itilcategories',$value['itilcategories_id']) , $item_num, $row_num);
+           // PluginFields labels and the itilcategory name are stored raw in the
+           // DB (GLPI 10+), so escape them before Search::showItem() writes them
+           // into a <td> without htmlspecialchars (same pattern as Column::displayValue).
+           echo Search::showItem($output_type, htmlescape($plugin_field_container->fields['label']), $item_num, $row_num);
+           echo Search::showItem($output_type, htmlescape($plugin_field_fields->fields['label']), $item_num, $row_num);
+           echo Search::showItem($output_type, htmlescape(Dropdown::getDropdownName('glpi_itilcategories', $value['itilcategories_id'])), $item_num, $row_num);
            echo Search::showEndLine($output_type);
        }
        echo Search::showNewLine($output_type);
