@@ -33,7 +33,6 @@
 use GlpiPlugin\Reports\Pluginfield;
 
 header("Content-Type: text/html; charset=UTF-8");
-Session::checkLoginUser();
 Session::checkRight("config", UPDATE);
 
 $_POST['used'] = $_POST['used'] ?? [];

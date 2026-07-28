@@ -640,7 +640,7 @@ function getLastInventory($computers_id)
 
     $query = $DB->request(['SELECT' => $field,
         'FROM' => $table,
-        'WHERE'  => ['computers_id' => $computers_id]]);
+        'WHERE'  => [($table === 'glpi_computers' ? 'id' : 'computers_id') => $computers_id]]);
 
     if (count($query) > 0) {
         foreach ($query as $id => $row) {

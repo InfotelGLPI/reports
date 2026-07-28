@@ -58,6 +58,11 @@ if (isset($_POST['delete']) && $report) {
     // (deleteByCriteria then re-add with default access), so it must require write access on
     // "profile" like the update branch — the page-level READ check is not enough.
     Session::checkRight('profile', UPDATE);
+    // Only accept a report token that maps to a real registered report so a forged POST
+    // cannot delete/re-create arbitrary plugin_reports_* rows in glpi_profilerights.
+    if (!Profile::isValidReport($report)) {
+        throw new \Glpi\Exception\Http\BadRequestHttpException();
+    }
     $profile_right = new ProfileRight();
     $profile_right->deleteByCriteria(['name' => "plugin_reports_$report"]);
     ProfileRight::addProfileRights(["plugin_reports_$report"]);

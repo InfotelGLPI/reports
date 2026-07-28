@@ -125,11 +125,31 @@ class DateIntervalCriteria extends AutoCriteria
     }
 
 
+    /**
+     * Validate a criteria date before it is concatenated into the legacy raw-SQL
+     * WHERE string. getStartDate()/getEndDate() return unfiltered POST values
+     * ("<name>_1"/"<name>_2"), so without this guard the string path below is
+     * SQL-injectable if ever reactivated (e.g. by a third-party report calling
+     * addSqlCriteriasRestriction()). Mirrors TimeIntervalCriteria::getSafeTime().
+     *
+     * @param string $date
+     *
+     * @return string the date in Y-m-d form, or '' if it is not a valid date
+     */
+    private function getSafeDate($date)
+    {
+        if (!is_string($date) || preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) !== 1) {
+            return '';
+        }
+        return $date;
+    }
+
+
     public function getSqlCriteriasRestriction($link = 'AND')
     {
 
-        $start = $this->getStartDate();
-        $end   = $this->getEndDate();
+        $start = $this->getSafeDate($this->getStartDate());
+        $end   = $this->getSafeDate($this->getEndDate());
 
         if (empty($start) && empty($end)) {
             return '';
@@ -137,7 +157,7 @@ class DateIntervalCriteria extends AutoCriteria
 
         $sql = '';
         if (!empty($start)) {
-            $sql .= $this->getSqlField() . ">= '" . $this->getStartDate() . " 00:00:00'";
+            $sql .= $this->getSqlField() . ">= '" . $start . " 00:00:00'";
         }
 
         if (!empty($start) && !empty($end)) {
@@ -145,7 +165,7 @@ class DateIntervalCriteria extends AutoCriteria
         }
 
         if (!empty($end)) {
-            $sql .= $this->getSqlField() . "<='" . $this->getEndDate() . " 23:59:59' ";
+            $sql .= $this->getSqlField() . "<='" . $end . " 23:59:59' ";
         }
 
         return $link . " ($sql)";

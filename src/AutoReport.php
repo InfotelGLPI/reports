@@ -508,7 +508,7 @@ class AutoReport extends CommonDBTM
                 Html::header($title, $_SERVER['PHP_SELF'], "utils", "report");
                 \Report::title();
             }
-            echo "<div class='center'><h3>" . $title . "</h3></div>";
+            echo "<div class='center'><h3>" . htmlescape($title) . "</h3></div>";
             echo "<div class='alert alert-danger center'>" . __('No results found') . "</div>";
             Html::footer();
         } elseif ($is_html_output) {
@@ -517,7 +517,7 @@ class AutoReport extends CommonDBTM
                 \Report::title();
             }
 
-            echo "<div class='center'><h3>" . $title . "</h3></div>";
+            echo "<div class='center'><h3>" . htmlescape($title) . "</h3></div>";
             $param = "";
             foreach ($_POST as $key => $val) {
                 if (is_array($val)) {

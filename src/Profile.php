@@ -139,14 +139,56 @@ class Profile extends \Profile
     /**
      * @param $input
     **/
+    /**
+     * Whitelist of valid report tokens (the "<report>" part of the
+     * "plugin_reports_<report>" right names). Derived from the reports actually
+     * registered by active plugins, mirroring the tokens built in
+     * front/report.form.php and self::getAllRights().
+     *
+     * @return array<string,string> valid tokens keyed by themselves
+     */
+    public static function getValidReportTokens()
+    {
+        $tokens = [];
+        foreach (Report::searchReport() as $key => $plug) {
+            $token          = ($plug === 'reports') ? $key : $plug . '_' . $key;
+            $tokens[$token] = $token;
+        }
+        return $tokens;
+    }
+
+
+    /**
+     * Tells whether a posted report token maps to a real registered report.
+     *
+     * @param mixed $report
+     *
+     * @return bool
+     */
+    public static function isValidReport($report)
+    {
+        return is_string($report) && isset(self::getValidReportTokens()[$report]);
+    }
+
+
+    /**
+     * @param $input
+    **/
     public static function updateForReport($input)
     {
 
         /* call from front/config.form.php
         * $report = "bar" (from reports) or "foo_bar" (other plugins)
          */
+        $report = $input['report'] ?? '';
+        // $report is interpolated into the "plugin_reports_<report>" right name and
+        // persisted in glpi_profilerights; reject any value that does not map to a
+        // real registered report so a forged POST cannot create arbitrary
+        // plugin_reports_* rows.
+        if (!self::isValidReport($report)) {
+            return;
+        }
         $prof      = new ProfileRight();
-        $report    = $input['report'];
         $rightname = "plugin_reports_$report";
         $current   = self::getAllProfilesRights(['name' => $rightname], true);
 

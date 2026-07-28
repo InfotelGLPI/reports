@@ -123,7 +123,10 @@ foreach ($iterator as $data) {
         $prevclass = $class;
         $class = ($class == "tab_bg_2" ? "tab_bg_1" : "tab_bg_2");
     }
-    $field = "";
+    $field  = "";
+    // Initialize $change too: when linked_action is falsy the switch is skipped,
+    // and without a reset the previous row's $change would be echoed again.
+    $change = "";
     if ($data["linked_action"]) {
         $action_label = Log::getLinkedActionLabel($data["linked_action"]);
         // Yes it is an internal device
@@ -138,7 +141,10 @@ foreach ($iterator as $data) {
                         $field = $item->getTypeName(1);
                     }
                 }
-                $change = sprintf(__('%1$s: %2$s'), $action_label, $data[ "new_value"]);
+                // glpi_logs values are stored raw and may contain attacker-controlled
+                // HTML/JS (e.g. via an inventory-supplied device field), so escape them
+                // before they reach the echo on line ~181 (same as histoinst.php).
+                $change = sprintf(__('%1$s: %2$s'), $action_label, htmlescape($data["new_value"]));
                 break;
 
             case Log::HISTORY_UPDATE_DEVICE:
@@ -158,7 +164,7 @@ foreach ($iterator as $data) {
                 $change  = sprintf(
                     __('%1$s: %2$s'),
                     sprintf(__('%1$s (%2$s)'), $action_label, $field),
-                    sprintf(__('%1$s by %2$s'), $data["old_value"], $data[ "new_value"])
+                    sprintf(__('%1$s by %2$s'), htmlescape($data["old_value"]), htmlescape($data["new_value"]))
                 );
                 break;
 
@@ -172,7 +178,7 @@ foreach ($iterator as $data) {
                         $field = $item->getTypeName(1);
                     }
                 }
-                $change = sprintf(__('%1$s: %2$s'), $action_label, $data["old_value"]);
+                $change = sprintf(__('%1$s: %2$s'), $action_label, htmlescape($data["old_value"]));
                 break;
         }//fin du switch
     }

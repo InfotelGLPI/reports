@@ -31,19 +31,16 @@
  */
 
 namespace GlpiPlugin\Reports;
+
 /**
- * class Html to manage output
+ * Column variant kept for backward compatibility.
+ *
+ * Historically this class rendered its value as raw HTML via
+ * htmlspecialchars_decode(), which reintroduced a stored-XSS risk as soon as it
+ * was fed a user-controlled free-text field. It is not used by any report page
+ * and now inherits the escaped output of the base Column class. Do not restore
+ * raw HTML rendering here: build safe markup in a dedicated column instead.
  */
 class ColumnHtml extends Column
 {
-
-
-    function displayValue($output_type, $row)
-    {
-
-        if (isset($row[$this->name]) && $row[$this->name]) {
-            return htmlspecialchars_decode($row[$this->name]);
-        }
-        return '';
-    }
 }
