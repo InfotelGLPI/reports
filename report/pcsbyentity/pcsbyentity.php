@@ -1,33 +1,33 @@
 <?php
 
-/*
- -------------------------------------------------------------------------
-  LICENSE
-
- This file is part of Reports plugin for GLPI.
-
- Reports is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
-
- Reports is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- GNU Affero General Public License for more details.
-
- You should have received a copy of the GNU Affero General Public License
- along with Reports. If not, see <http://www.gnu.org/licenses/>.
-
- @package   reports
- @authors   Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
- @copyright Copyright (c) 2009-2026 Reports plugin team
- @license   AGPL License 3.0 or (at your option) any later version
-            http://www.gnu.org/licenses/agpl-3.0-standalone.html
- @link      https://github.com/InfotelGLPI/reports
- @link      http://www.glpi-project.org/
- @since     2009
- --------------------------------------------------------------------------
+/**
+ * -------------------------------------------------------------------------
+ *  LICENSE
+ *
+ * This file is part of Reports plugin for GLPI.
+ *
+ * Reports is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Reports is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Reports. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @authors   Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
+ * @copyright Copyright (c) 2009-2026 Reports plugin team
+ * @license   AGPL License 3.0 or (at your option) any later version
+ * @link      https://github.com/InfotelGLPI/reports
+ * @link      http://www.glpi-project.org/
+ * @package   reports
+ * @since     2009
+ *            http://www.gnu.org/licenses/agpl-3.0-standalone.html
+ * --------------------------------------------------------------------------
  */
 
 function cmpStat($a, $b)
@@ -53,7 +53,7 @@ function doStatBis($table, $entities, $header)
                 'is_template' => 0,
                 'entities_id' => $entity,
             ],
-            'GROUPBY' => ['states_id']
+            'GROUPBY' => ['states_id'],
         ];
 
         $iterator = $DB->request($criteria);
@@ -131,12 +131,12 @@ function doStat($table, $entity, $header, $level = 0)
             'is_template' => 0,
             'entities_id' => $entity,
         ],
-    'GROUPBY' => ['states_id']
+        'GROUPBY' => ['states_id'],
     ];
 
     $iterator = $DB->request($criteria);
     $count  = [];
-     foreach ($iterator as $data) {
+    foreach ($iterator as $data) {
         $count[$data["states_id"]] = $data["cpt"];
     }
 
@@ -285,7 +285,7 @@ if (isset($_POST["type"]) && $_POST["type"] != '' && array_key_exists($_POST["ty
           . "<th>&nbsp;" . __('Unknown', 'reports') . "&nbsp;</th>";
 
     $criteria = [
-        'SELECT' => [\State::getTable().'.id', \State::getTable().'.name'],
+        'SELECT' => [\State::getTable() . '.id', \State::getTable() . '.name'],
         'FROM' => \State::getTable(),
         'LEFT JOIN' => [
             DropdownVisibility::getTable() => [
@@ -306,8 +306,8 @@ if (isset($_POST["type"]) && $_POST["type"] != '' && array_key_exists($_POST["ty
         ],
     ];
     $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
-            \State::getTable()
-        );
+        \State::getTable(),
+    );
 
     $iterator = $DB->request($criteria);
 

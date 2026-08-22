@@ -1,33 +1,33 @@
 <?php
 
-/*
- -------------------------------------------------------------------------
-  LICENSE
-
- This file is part of Reports plugin for GLPI.
-
- Reports is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
-
- Reports is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- GNU Affero General Public License for more details.
-
- You should have received a copy of the GNU Affero General Public License
- along with Reports. If not, see <http://www.gnu.org/licenses/>.
-
- @package   reports
- @authors   Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
- @copyright Copyright (c) 2009-2026 Reports plugin team
- @license   AGPL License 3.0 or (at your option) any later version
-            http://www.gnu.org/licenses/agpl-3.0-standalone.html
- @link      https://github.com/InfotelGLPI/reports
- @link      http://www.glpi-project.org/
- @since     2009
- --------------------------------------------------------------------------
+/**
+ * -------------------------------------------------------------------------
+ *  LICENSE
+ *
+ * This file is part of Reports plugin for GLPI.
+ *
+ * Reports is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Reports is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Reports. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @authors   Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
+ * @copyright Copyright (c) 2009-2026 Reports plugin team
+ * @license   AGPL License 3.0 or (at your option) any later version
+ * @link      https://github.com/InfotelGLPI/reports
+ * @link      http://www.glpi-project.org/
+ * @package   reports
+ * @since     2009
+ *            http://www.gnu.org/licenses/agpl-3.0-standalone.html
+ * --------------------------------------------------------------------------
  */
 
 namespace GlpiPlugin\Reports;
@@ -279,9 +279,9 @@ class AutoReport extends CommonDBTM
     ) {
         global $CFG_GLPI;
 
-        $start = (int)$start;
-        $numrows = (int)$numrows;
-        $list_limit = (int)$_SESSION['glpilist_limit'];
+        $start = (int) $start;
+        $numrows = (int) $numrows;
+        $list_limit = (int) $_SESSION['glpilist_limit'];
 
         // Forward is the next step forward
         $forward = $start + $list_limit;
@@ -357,7 +357,7 @@ class AutoReport extends CommonDBTM
             if (is_array($item_type_output_param)) {
                 echo Html::hidden(
                     'item_type_param',
-                    ['value' => Toolbox::prepareArrayForInput($item_type_output_param)]
+                    ['value' => Toolbox::prepareArrayForInput($item_type_output_param)],
                 );
             }
 
@@ -374,7 +374,7 @@ class AutoReport extends CommonDBTM
                 $length = Toolbox::strlen($split[$i]);
                 echo Html::hidden(
                     Toolbox::substr($split[$i], 0, $pos),
-                    ['value' => urldecode(Toolbox::substr($split[$i], $pos + 1))]
+                    ['value' => urldecode(Toolbox::substr($split[$i], $pos + 1))],
                 );
             }
 
@@ -405,17 +405,17 @@ class AutoReport extends CommonDBTM
         echo "</tr></table></div>";
     }
 
-//    public static function showOutputFormat()
-//    {
-//        $values[Search::PDF_OUTPUT_LANDSCAPE] = __s('All pages in landscape PDF');
-//        $values[Search::PDF_OUTPUT_PORTRAIT] = __s('All pages in portrait PDF');
-//        $values[Search::CSV_OUTPUT] = __s('All pages in CSV');
-//
-//        Dropdown::showFromArray('display_type', $values);
-//        echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]);
-//
-//        echo Html::submit(_sx('button', 'Export'), ['name' => 'export', 'class' => 'btn btn-primary']);
-//    }
+    //    public static function showOutputFormat()
+    //    {
+    //        $values[Search::PDF_OUTPUT_LANDSCAPE] = __s('All pages in landscape PDF');
+    //        $values[Search::PDF_OUTPUT_PORTRAIT] = __s('All pages in portrait PDF');
+    //        $values[Search::CSV_OUTPUT] = __s('All pages in CSV');
+    //
+    //        Dropdown::showFromArray('display_type', $values);
+    //        echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]);
+    //
+    //        echo Html::submit(_sx('button', 'Export'), ['name' => 'export', 'class' => 'btn btn-primary']);
+    //    }
 
     /**
      * Execute the report
@@ -667,7 +667,7 @@ class AutoReport extends CommonDBTM
                                 $html_output .= $output::showItem(
                                     $column->showNewTotal($output_type, $num, $row_num),
                                     $num,
-                                    $row_num
+                                    $row_num,
                                 );
                             }
 
@@ -682,14 +682,14 @@ class AutoReport extends CommonDBTM
                 $output::showFooter($title, $numrows);
             }
 
-//            if (!isset($_GET["display_type"]) || $is_html_output) {
-//                if (isset($options['withmassiveaction']) && class_exists($options['withmassiveaction'])) {
-//                    Html::showMassiveActions(['container' => $massformid,
-//                        'ontop'     => false]);
-//                    Html::closeForm();
-//                }
-//                Html::footer();
-//            }
+            //            if (!isset($_GET["display_type"]) || $is_html_output) {
+            //                if (isset($options['withmassiveaction']) && class_exists($options['withmassiveaction'])) {
+            //                    Html::showMassiveActions(['container' => $massformid,
+            //                        'ontop'     => false]);
+            //                    Html::closeForm();
+            //                }
+            //                Html::footer();
+            //            }
 
             if ($is_html_output) {
                 echo $html_output;
@@ -773,7 +773,7 @@ class AutoReport extends CommonDBTM
                     $title,
                     $_SERVER['PHP_SELF'],
                     "tools",
-                    "report"
+                    "report",
                 );
                 \Report::title();
             }
@@ -794,14 +794,14 @@ class AutoReport extends CommonDBTM
             echo "<tr><th colspan='6'>" . __('Search criteria', 'reports');
 
             //If form is validated, then display the bookmark button
-//            if ($this->criteriasValidated()) {
-//                //Add parameters to uri to be saved as bookmarks
-//                $_SERVER["REQUEST_URI"] = $this->buildBookmarkUrl();
-//                TemplateRenderer::getInstance()->render('pages/tools/savedsearch/save_button.html.twig', [
-//                    'type' => SavedSearch::SEARCH,
-//                    'itemtype' => (isStat($this->name) ? Stat::class : Report::class),
-//                ]);
-//            }
+            //            if ($this->criteriasValidated()) {
+            //                //Add parameters to uri to be saved as bookmarks
+            //                $_SERVER["REQUEST_URI"] = $this->buildBookmarkUrl();
+            //                TemplateRenderer::getInstance()->render('pages/tools/savedsearch/save_button.html.twig', [
+            //                    'type' => SavedSearch::SEARCH,
+            //                    'itemtype' => (isStat($this->name) ? Stat::class : Report::class),
+            //                ]);
+            //            }
             echo "</th></tr>\n";
 
             //Display each criteria's html selection item
@@ -814,7 +814,7 @@ class AutoReport extends CommonDBTM
             echo "<tr class='tab_bg_2'><td colspan='4' class='center'>";
             echo Html::submit(_sx('button', 'Search'), [
                 'name' => 'find',
-                'class' => 'btn btn-primary'
+                'class' => 'btn btn-primary',
             ]);
             echo "</td></tr>";
             echo "</table>";
@@ -1028,7 +1028,7 @@ class AutoReport extends CommonDBTM
             if ($setgroupby) {
                 $this->setGroupBy($tab);
             }
-            return ["ORDERBY" => implode(" $order, ", $tab) ." ".$order];
+            return ["ORDERBY" => implode(" $order, ", $tab) . " " . $order];
         }
         return [];
     }

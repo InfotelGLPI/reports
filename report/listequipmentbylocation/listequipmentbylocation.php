@@ -1,33 +1,33 @@
 <?php
 
-/*
- -------------------------------------------------------------------------
-  LICENSE
-
- This file is part of Reports plugin for GLPI.
-
- Reports is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
-
- Reports is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- GNU Affero General Public License for more details.
-
- You should have received a copy of the GNU Affero General Public License
- along with Reports. If not, see <http://www.gnu.org/licenses/>.
-
- @package   reports
- @authors   Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
- @copyright Copyright (c) 2009-2026 Reports plugin team
- @license   AGPL License 3.0 or (at your option) any later version
-            http://www.gnu.org/licenses/agpl-3.0-standalone.html
- @link      https://github.com/InfotelGLPI/reports
- @link      http://www.glpi-project.org/
- @since     2009
- --------------------------------------------------------------------------
+/**
+ * -------------------------------------------------------------------------
+ *  LICENSE
+ *
+ * This file is part of Reports plugin for GLPI.
+ *
+ * Reports is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Reports is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Reports. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @authors   Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
+ * @copyright Copyright (c) 2009-2026 Reports plugin team
+ * @license   AGPL License 3.0 or (at your option) any later version
+ * @link      https://github.com/InfotelGLPI/reports
+ * @link      http://www.glpi-project.org/
+ * @package   reports
+ * @since     2009
+ *            http://www.gnu.org/licenses/agpl-3.0-standalone.html
+ * --------------------------------------------------------------------------
  */
 
 use Glpi\DBAL\QueryExpression;
@@ -64,7 +64,7 @@ $ignored = [
     'Appliance',
     'Domain',
     'Item_DeviceSimcard',
-    'SoftwareLicense'
+    'SoftwareLicense',
 ];
 
 $report->setColumns(
@@ -74,7 +74,7 @@ $report->setColumns(
             'items_id',
             __('Item'),
             'itemtype',
-            ['with_comment' => 1]
+            ['with_comment' => 1],
         ),
         new Column('statename', __('Status')),
         new Column('serial', __('Serial number')),
@@ -83,15 +83,15 @@ $report->setColumns(
             'models_id',
             __('Model'),
             'itemtype',
-            ['with_comment' => 1]
+            ['with_comment' => 1],
         ),
         new ColumnTypeType(
             'types_id',
             __('Type'),
             'itemtype',
-            ['with_comment' => 1]
-        )
-    ]
+            ['with_comment' => 1],
+        ),
+    ],
 );
 
 //Display criterias form is needed
@@ -150,34 +150,34 @@ function getSqlSubRequest($itemtype, $loc, $obj)
         'otherserial' => 'otherserial',
         'states_id' => 'states_id',
         $models_id => 'models_id',
-        $types_id => 'types_id'
+        $types_id => 'types_id',
     ];
 
     foreach ($fields as $field => $alias) {
         if ($obj->isField($field)) {
             if ($field == 'states_id') {
-                $criteria['SELECT'] = array_merge($criteria['SELECT'],['glpi_states.name as statename']);
+                $criteria['SELECT'] = array_merge($criteria['SELECT'], ['glpi_states.name as statename']);
 
                 $criteria['LEFT JOIN'] = $criteria['LEFT JOIN'] + [
-                        'glpi_states' => [
-                            'ON' => [
-                                $table => 'states_id',
-                                'glpi_states' => 'id',
-                            ],
-                        ]
-                    ];
+                    'glpi_states' => [
+                        'ON' => [
+                            $table => 'states_id',
+                            'glpi_states' => 'id',
+                        ],
+                    ],
+                ];
             } else {
-                $criteria['SELECT'] = array_merge($criteria['SELECT'],[$table . '.' . $field . ' AS ' . $alias]);
+                $criteria['SELECT'] = array_merge($criteria['SELECT'], [$table . '.' . $field . ' AS ' . $alias]);
             }
         } else {
-            $criteria['SELECT'] = array_merge($criteria['SELECT'],[new QueryExpression("' ' AS $alias")]);
+            $criteria['SELECT'] = array_merge($criteria['SELECT'], [new QueryExpression("' ' AS $alias")]);
         }
     }
 
     if ($obj->isEntityAssign()) {
         $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
-                $table
-            );
+            $table,
+        );
     }
 
     if ($obj->maybeTemplate()) {

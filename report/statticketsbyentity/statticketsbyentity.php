@@ -1,33 +1,33 @@
 <?php
 
-/*
- -------------------------------------------------------------------------
-  LICENSE
-
- This file is part of Reports plugin for GLPI.
-
- Reports is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
-
- Reports is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- GNU Affero General Public License for more details.
-
- You should have received a copy of the GNU Affero General Public License
- along with Reports. If not, see <http://www.gnu.org/licenses/>.
-
- @package   reports
- @authors   Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
- @copyright Copyright (c) 2009-2026 Reports plugin team
- @license   AGPL License 3.0 or (at your option) any later version
-            http://www.gnu.org/licenses/agpl-3.0-standalone.html
- @link      https://github.com/InfotelGLPI/reports
- @link      http://www.glpi-project.org/
- @since     2009
- --------------------------------------------------------------------------
+/**
+ * -------------------------------------------------------------------------
+ *  LICENSE
+ *
+ * This file is part of Reports plugin for GLPI.
+ *
+ * Reports is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Reports is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Reports. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @authors   Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
+ * @copyright Copyright (c) 2009-2026 Reports plugin team
+ * @license   AGPL License 3.0 or (at your option) any later version
+ * @link      https://github.com/InfotelGLPI/reports
+ * @link      http://www.glpi-project.org/
+ * @package   reports
+ * @since     2009
+ *            http://www.gnu.org/licenses/agpl-3.0-standalone.html
+ * --------------------------------------------------------------------------
  */
 
 use Glpi\DBAL\QuerySubQuery;
@@ -56,7 +56,7 @@ $prof = new DropdownCriteria(
     $report,
     'profiles_id',
     'glpi_profiles',
-    __('Profile')
+    __('Profile'),
 );
 
 //Display criterias form is needed
@@ -70,29 +70,29 @@ if ($report->criteriasValidated()) {
     $cols = [new Column(
         'name',
         __('Entity'),
-        ['sorton' => '`glpi_entities`.`completename`']
+        ['sorton' => '`glpi_entities`.`completename`'],
     ),
         new ColumnInteger(
             'nbusers',
             __('Users count', 'reports'),
             ['withtotal' => true,
-                'sorton'    => 'nbusers']
+                'sorton'    => 'nbusers'],
         ),
         new ColumnInteger(
             'number',
             __('Tickets count', 'reports'),
             ['withtotal' => true,
-                'sorton'    => 'number']
+                'sorton'    => 'number'],
         ),
         new ColumnDateTime(
             'mindate',
             __('Older', 'reports'),
-            ['sorton' => 'mindate']
+            ['sorton' => 'mindate'],
         ),
         new ColumnDateTime(
             'maxdate',
             __('Newer', 'reports'),
-            ['sorton' => 'maxdate']
+            ['sorton' => 'maxdate'],
         )];
     $report->setColumns($cols);
 
@@ -115,14 +115,14 @@ if ($report->criteriasValidated()) {
     $criteria_init['WHERE'] = $criteria_init['WHERE'] + $report->addNewSqlCriteriasRestriction();
 
     $criteria_init['WHERE'] = $criteria_init['WHERE'] + getEntitiesRestrictCriteria(
-        'glpi_profiles_users'
+        'glpi_profiles_users',
     );
 
     $criteria = [
         'SELECT' => ['glpi_entities.completename AS name',
             new QuerySubQuery(
                 $criteria_init,
-                'nbusers'
+                'nbusers',
             ),
             'COUNT' => 'glpi_tickets.id AS number',
             'MIN' => 'glpi_tickets.date AS mindate',
@@ -144,7 +144,7 @@ if ($report->criteriasValidated()) {
     ];
 
     $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
-        'glpi_entities'
+        'glpi_entities',
     );
 
     $criteria = $criteria + $report->getNewOrderBy('name');

@@ -1,33 +1,33 @@
 <?php
 
-/*
- -------------------------------------------------------------------------
-  LICENSE
-
- This file is part of Reports plugin for GLPI.
-
- Reports is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
-
- Reports is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- GNU Affero General Public License for more details.
-
- You should have received a copy of the GNU Affero General Public License
- along with Reports. If not, see <http://www.gnu.org/licenses/>.
-
- @package   reports
- @authors   Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
- @copyright Copyright (c) 2009-2026 Reports plugin team
- @license   AGPL License 3.0 or (at your option) any later version
-            http://www.gnu.org/licenses/agpl-3.0-standalone.html
- @link      https://github.com/InfotelGLPI/reports
- @link      http://www.glpi-project.org/
- @since     2009
- --------------------------------------------------------------------------
+/**
+ * -------------------------------------------------------------------------
+ *  LICENSE
+ *
+ * This file is part of Reports plugin for GLPI.
+ *
+ * Reports is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Reports is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Reports. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @authors   Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
+ * @copyright Copyright (c) 2009-2026 Reports plugin team
+ * @license   AGPL License 3.0 or (at your option) any later version
+ * @link      https://github.com/InfotelGLPI/reports
+ * @link      http://www.glpi-project.org/
+ * @package   reports
+ * @since     2009
+ *            http://www.gnu.org/licenses/agpl-3.0-standalone.html
+ * --------------------------------------------------------------------------
  */
 
 global $DB;
@@ -55,14 +55,17 @@ $crits = [0 => Dropdown::EMPTY_VALUE,
     5 => __('IP address'),
     6 => __('Inventory number')];
 
+// $crit is a numeric report selector; cast to int at every source so a value like
+// "1&foo=bar" cannot survive the "$crit > 0" gate and pollute the bookmark URL that
+// gets persisted as a saved search (see buildBookmarkUrl below).
 if (isset($_GET["crit"])) {
-    $crit = $_GET["crit"];
+    $crit = (int) $_GET["crit"];
 
 } elseif (isset($_POST["crit"])) {
-    $crit = $_POST["crit"];
+    $crit = (int) $_POST["crit"];
 
 } elseif (isset($_SESSION['plugin_reports_doublons_crit'])) {
-    $crit = $_SESSION['plugin_reports_doublons_crit'];
+    $crit = (int) $_SESSION['plugin_reports_doublons_crit'];
 
 } else {
     $crit = 0;
@@ -80,7 +83,7 @@ echo "<tr class='tab_bg_1'><td class='right'>" . _n('Criterion', 'Criteria', 2) 
 Dropdown::showFromArray(
     'crit',
     $crits,
-    ['value' => $crit]
+    ['value' => $crit],
 );
 
 echo "</td>";
@@ -119,50 +122,50 @@ if ($crit == 5) { // Search Duplicate IP Address - From glpi_networking_ports
             $IPBlacklist .= " AND B_ipa.`name` != '" . addslashes($data["value"]) . "'";
         }
     }
-//
-//    $criteria = "SELECT A.`id` AS AID,
-//                  A.`name` AS Aname,
-//                  A_ipa.`name` AS Aaddr,
-//                  A.`entities_id` AS entity,
-//
-//                  B.`id` AS BID,
-//                  B.`name` AS Bname,
-//                  B_ipa.`name` AS Baddr
-//
-//            FROM `glpi_computers` A
-//            LEFT JOIN `glpi_networkports` A_np
-//               ON  A_np.`itemtype` = 'Computer'
-//               AND A_np.`items_id` = A.`id`
-//            LEFT JOIN `glpi_networknames` A_nn
-//               ON  A_nn.`itemtype` = 'NetworkPort'
-//               AND A_nn.`items_id` = A_np.`id`
-//            LEFT JOIN `glpi_ipaddresses`  A_ipa
-//               ON  A_ipa.`itemtype` = 'NetworkName'
-//               AND A_ipa.`items_id` = A_nn.`id`
-//
-//
-//            LEFT JOIN `glpi_computers` B
-//               ON B.`id` > A.`id`
-//               AND A.`entities_id` = B.`entities_id`
-//            LEFT JOIN `glpi_networkports` B_np
-//               ON  B_np.`itemtype` = 'Computer'
-//               AND B_np.`items_id` = B.`id`
-//            LEFT JOIN `glpi_networknames` B_nn
-//               ON  B_nn.`itemtype` = 'NetworkPort'
-//               AND B_nn.`items_id` = B_np.`id`
-//            LEFT JOIN `glpi_ipaddresses`  B_ipa
-//               ON  B_ipa.`itemtype` = 'NetworkName'
-//               AND B_ipa.`items_id` = B_nn.`id`
-//
-//            " . $dbu->getEntitiesRestrictRequest(" WHERE ", "A", "entities_id") . "
-//                 AND ($IPBlacklist)
-//                 AND A.`is_template` = '0'
-//                 AND B.`is_template` = '0'
-//                 AND A.`is_deleted` = '0'
-//                 AND B.`is_deleted` = '0'
-//                 AND A_ipa.`name` = B_ipa.`name`";
-//
-//
+    //
+    //    $criteria = "SELECT A.`id` AS AID,
+    //                  A.`name` AS Aname,
+    //                  A_ipa.`name` AS Aaddr,
+    //                  A.`entities_id` AS entity,
+    //
+    //                  B.`id` AS BID,
+    //                  B.`name` AS Bname,
+    //                  B_ipa.`name` AS Baddr
+    //
+    //            FROM `glpi_computers` A
+    //            LEFT JOIN `glpi_networkports` A_np
+    //               ON  A_np.`itemtype` = 'Computer'
+    //               AND A_np.`items_id` = A.`id`
+    //            LEFT JOIN `glpi_networknames` A_nn
+    //               ON  A_nn.`itemtype` = 'NetworkPort'
+    //               AND A_nn.`items_id` = A_np.`id`
+    //            LEFT JOIN `glpi_ipaddresses`  A_ipa
+    //               ON  A_ipa.`itemtype` = 'NetworkName'
+    //               AND A_ipa.`items_id` = A_nn.`id`
+    //
+    //
+    //            LEFT JOIN `glpi_computers` B
+    //               ON B.`id` > A.`id`
+    //               AND A.`entities_id` = B.`entities_id`
+    //            LEFT JOIN `glpi_networkports` B_np
+    //               ON  B_np.`itemtype` = 'Computer'
+    //               AND B_np.`items_id` = B.`id`
+    //            LEFT JOIN `glpi_networknames` B_nn
+    //               ON  B_nn.`itemtype` = 'NetworkPort'
+    //               AND B_nn.`items_id` = B_np.`id`
+    //            LEFT JOIN `glpi_ipaddresses`  B_ipa
+    //               ON  B_ipa.`itemtype` = 'NetworkName'
+    //               AND B_ipa.`items_id` = B_nn.`id`
+    //
+    //            " . $dbu->getEntitiesRestrictRequest(" WHERE ", "A", "entities_id") . "
+    //                 AND ($IPBlacklist)
+    //                 AND A.`is_template` = '0'
+    //                 AND B.`is_template` = '0'
+    //                 AND A.`is_deleted` = '0'
+    //                 AND B.`is_deleted` = '0'
+    //                 AND A_ipa.`name` = B_ipa.`name`";
+    //
+    //
 
     $criteria = [
 
@@ -173,7 +176,7 @@ if ($crit == 5) { // Search Duplicate IP Address - From glpi_networking_ports
             'A.entities_id AS entity',
             'B.id AS BID',
             'B.name AS Bname',
-            'B_ipa.name AS Baddr'
+            'B_ipa.name AS Baddr',
         ],
         'FROM' => 'glpi_computers AS A',
         'LEFT JOIN' => [
@@ -186,7 +189,7 @@ if ($crit == 5) { // Search Duplicate IP Address - From glpi_networking_ports
                             'A_np.itemtype' => 'Computer',
                         ],
                     ],
-                ]
+                ],
             ],
             'glpi_networknames AS A_nn' => [
                 'ON' => [
@@ -196,7 +199,7 @@ if ($crit == 5) { // Search Duplicate IP Address - From glpi_networking_ports
                             'A_nn.itemtype' => 'NetworkPort',
                         ],
                     ],
-                ]
+                ],
             ],
             'glpi_ipaddresses AS A_ipa' => [
                 'ON' => [
@@ -206,14 +209,14 @@ if ($crit == 5) { // Search Duplicate IP Address - From glpi_networking_ports
                             'A_ipa.itemtype' => 'NetworkName',
                         ],
                     ],
-                ]
+                ],
             ],
             // --- B computers ---
             'glpi_computers AS B' => [
                 'ON' => [
                     'A' => 'entities_id',
-                    'B' => 'entities_id'
-                ]
+                    'B' => 'entities_id',
+                ],
             ],
             'glpi_networkports AS B_np' => [
                 'ON' => [
@@ -223,7 +226,7 @@ if ($crit == 5) { // Search Duplicate IP Address - From glpi_networking_ports
                             'B_np.itemtype' => 'Computer',
                         ],
                     ],
-                ]
+                ],
             ],
             'glpi_networknames AS B_nn' => [
                 'ON' => [
@@ -233,7 +236,7 @@ if ($crit == 5) { // Search Duplicate IP Address - From glpi_networking_ports
                             'B_nn.itemtype' => 'NetworkPort',
                         ],
                     ],
-                ]
+                ],
             ],
             'glpi_ipaddresses AS B_ipa' => [
                 'ON' => [
@@ -243,7 +246,7 @@ if ($crit == 5) { // Search Duplicate IP Address - From glpi_networking_ports
                             'B_ipa.itemtype' => 'NetworkName',
                         ],
                     ],
-                ]
+                ],
             ],
         ],
         'WHERE' => [
@@ -256,13 +259,13 @@ if ($crit == 5) { // Search Duplicate IP Address - From glpi_networking_ports
             'A.is_deleted'  => 0,
             'B.is_deleted'  => 0,
             // IP identiques
-            new QueryExpression('A_ipa.name = B_ipa.name')
-        ]
+            new QueryExpression('A_ipa.name = B_ipa.name'),
+        ],
     ];
 
     $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
-            'A'
-        );
+        'A',
+    );
 
     $col = __('IP');
 
@@ -275,7 +278,7 @@ if ($crit == 5) { // Search Duplicate IP Address - From glpi_networking_ports
         'WHERE'  => ['type' => Blacklist::MAC]]);
 
     foreach ($query as $data) {
-        $MacBlacklist []= addslashes($data["value"]);
+        $MacBlacklist [] = addslashes($data["value"]);
     }
 
     if (empty($MacBlacklist)) {
@@ -284,33 +287,33 @@ if ($crit == 5) { // Search Duplicate IP Address - From glpi_networking_ports
         $MacBlacklist[] = '00:53:45:00:00:00';
         $MacBlacklist[] = '80:00:60:0F:E8:00';
     }
-//    $Sql = "SELECT A.`id` AS AID,
-//                  A.`name` AS Aname,
-//                  A_np.`mac` AS Aaddr,
-//                  A.`entities_id` AS entity,
-//                  B.`id` AS BID,
-//                  B.`name` AS Bname,
-//                  B_np.`mac` AS Baddr
-//
-//           FROM `glpi_computers` A
-//           LEFT JOIN `glpi_networkports` A_np
-//              ON  A_np.`itemtype` = 'Computer'
-//              AND A_np.`items_id` = A.`id`
-//
-//           LEFT JOIN `glpi_computers` B
-//              ON B.`id` > A.`id`
-//              AND A.`entities_id` = B.`entities_id`
-//            LEFT JOIN `glpi_networkports` B_np
-//               ON  B_np.`itemtype` = 'Computer'
-//               AND B_np.`items_id` = B.`id`
-//
-//            " . $dbu->getEntitiesRestrictRequest(" WHERE ", "A", "entities_id") . "
-//                 AND A_np.`mac` = B_np.`mac`
-//                 AND A_np.`mac` NOT IN ($MacBlacklist)
-//                 AND A.`is_template` = '0'
-//                 AND B.`is_template` = '0'
-//                 AND A.`is_deleted` = '0'
-//                 AND B.`is_deleted` = '0'";
+    //    $Sql = "SELECT A.`id` AS AID,
+    //                  A.`name` AS Aname,
+    //                  A_np.`mac` AS Aaddr,
+    //                  A.`entities_id` AS entity,
+    //                  B.`id` AS BID,
+    //                  B.`name` AS Bname,
+    //                  B_np.`mac` AS Baddr
+    //
+    //           FROM `glpi_computers` A
+    //           LEFT JOIN `glpi_networkports` A_np
+    //              ON  A_np.`itemtype` = 'Computer'
+    //              AND A_np.`items_id` = A.`id`
+    //
+    //           LEFT JOIN `glpi_computers` B
+    //              ON B.`id` > A.`id`
+    //              AND A.`entities_id` = B.`entities_id`
+    //            LEFT JOIN `glpi_networkports` B_np
+    //               ON  B_np.`itemtype` = 'Computer'
+    //               AND B_np.`items_id` = B.`id`
+    //
+    //            " . $dbu->getEntitiesRestrictRequest(" WHERE ", "A", "entities_id") . "
+    //                 AND A_np.`mac` = B_np.`mac`
+    //                 AND A_np.`mac` NOT IN ($MacBlacklist)
+    //                 AND A.`is_template` = '0'
+    //                 AND B.`is_template` = '0'
+    //                 AND A.`is_deleted` = '0'
+    //                 AND B.`is_deleted` = '0'";
 
     $criteria = [
         'SELECT' => [
@@ -320,7 +323,7 @@ if ($crit == 5) { // Search Duplicate IP Address - From glpi_networking_ports
             'A.entities_id AS entity',
             'B.id AS BID',
             'B.name AS Bname',
-            'B_np.mac AS Baddr'
+            'B_np.mac AS Baddr',
         ],
         'FROM' => 'glpi_computers AS A',
         'LEFT JOIN' => [
@@ -333,14 +336,14 @@ if ($crit == 5) { // Search Duplicate IP Address - From glpi_networking_ports
                             'A_np.itemtype' => 'Computer',
                         ],
                     ],
-                ]
+                ],
             ],
             // --- B computers ---
             'glpi_computers AS B' => [
                 'ON' => [
                     'A' => 'entities_id',
-                    'B' => 'entities_id'
-                ]
+                    'B' => 'entities_id',
+                ],
             ],
             'glpi_networkports AS B_np' => [
                 'ON' => [
@@ -350,11 +353,11 @@ if ($crit == 5) { // Search Duplicate IP Address - From glpi_networking_ports
                             'B_np.itemtype' => 'Computer',
                         ],
                     ],
-                ]
+                ],
             ],
         ],
         'WHERE' => [
-           new QueryExpression('B.id > A.id'),
+            new QueryExpression('B.id > A.id'),
             // même MAC
             new QueryExpression('A_np.mac = B_np.mac'),
             // blacklist
@@ -363,13 +366,13 @@ if ($crit == 5) { // Search Duplicate IP Address - From glpi_networking_ports
             'A.is_template' => 0,
             'B.is_template' => 0,
             'A.is_deleted'  => 0,
-            'B.is_deleted'  => 0
-        ]
+            'B.is_deleted'  => 0,
+        ],
     ];
 
     $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
-            'A'
-        );
+        'A',
+    );
 
     $col = __('MAC');
 
@@ -382,34 +385,34 @@ if ($crit == 5) { // Search Duplicate IP Address - From glpi_networking_ports
     foreach ($query as $data) {
         $SerialBlacklist[] = addslashes($data["value"]);
     }
-//
-//    $Sql = "SELECT A.`id` AS AID, A.`name` AS Aname,
-//                  A.`entities_id` AS entity,
-//                  B.`id` AS BID, B.`name` AS Bname
-//           FROM `glpi_computers` A,
-//                `glpi_computers` B "
-//            . $dbu->getEntitiesRestrictRequest(" WHERE ", "A", "entities_id") . "
-//                 AND B.`id` > A.`id`
-//                 AND A.`entities_id` = B.`entities_id`
-//                 AND A.`is_template` = '0'
-//                 AND B.`is_template` = '0'
-//                 AND A.`is_deleted` = '0'
-//                 AND B.`is_deleted` = '0'";
-//
-//    if ($crit == 6) {
-//        $Sql .= " AND A.`otherserial` != ''
-//                AND A.`otherserial` = B.`otherserial`";
-//    } else {
-//        if ($crit & 1) {
-//            $Sql .= " AND A.`name` != ''
-//                   AND A.`name` = B.`name`";
-//        }
-//        if ($crit & 2) {
-//            $Sql .= " AND A.`serial` NOT IN ($SerialBlacklist)
-//                   AND A.`serial` = B.`serial`
-//                   AND A.`computermodels_id` = B.`computermodels_id`";
-//        }
-//    }
+    //
+    //    $Sql = "SELECT A.`id` AS AID, A.`name` AS Aname,
+    //                  A.`entities_id` AS entity,
+    //                  B.`id` AS BID, B.`name` AS Bname
+    //           FROM `glpi_computers` A,
+    //                `glpi_computers` B "
+    //            . $dbu->getEntitiesRestrictRequest(" WHERE ", "A", "entities_id") . "
+    //                 AND B.`id` > A.`id`
+    //                 AND A.`entities_id` = B.`entities_id`
+    //                 AND A.`is_template` = '0'
+    //                 AND B.`is_template` = '0'
+    //                 AND A.`is_deleted` = '0'
+    //                 AND B.`is_deleted` = '0'";
+    //
+    //    if ($crit == 6) {
+    //        $Sql .= " AND A.`otherserial` != ''
+    //                AND A.`otherserial` = B.`otherserial`";
+    //    } else {
+    //        if ($crit & 1) {
+    //            $Sql .= " AND A.`name` != ''
+    //                   AND A.`name` = B.`name`";
+    //        }
+    //        if ($crit & 2) {
+    //            $Sql .= " AND A.`serial` NOT IN ($SerialBlacklist)
+    //                   AND A.`serial` = B.`serial`
+    //                   AND A.`computermodels_id` = B.`computermodels_id`";
+    //        }
+    //    }
 
     $criteria = [
         'SELECT' => [
@@ -417,29 +420,29 @@ if ($crit == 5) { // Search Duplicate IP Address - From glpi_networking_ports
             'A.name AS Aname',
             'A.entities_id AS entity',
             'B.id AS BID',
-            'B.name AS Bname'
+            'B.name AS Bname',
         ],
         'FROM' => 'glpi_computers AS A',
         'LEFT JOIN'       => [
             'glpi_computers AS B' => [
                 'ON' => [
                     'A' => 'entities_id',
-                    'B' => 'entities_id'
-                ]
-            ]
+                    'B' => 'entities_id',
+                ],
+            ],
         ],
         'WHERE' => // filtres communs
             ['A.is_template' => 0,
-            'B.is_template' => 0,
-            'A.is_deleted'  => 0,
-            'B.is_deleted'  => 0,
+                'B.is_template' => 0,
+                'A.is_deleted'  => 0,
+                'B.is_deleted'  => 0,
                 new QueryExpression('B.id > A.id'),
-        ]
+            ],
     ];
 
     $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
-            'A'
-        );
+        'A',
+    );
 
     if ($crit == 6) {
 
@@ -518,7 +521,7 @@ if ($crit > 0) { // Display result
     $ids  = [];
 
     $iterator = $DB->request($criteria);
-//    for ($prev = -1, $i = 0 ; $data = $DBread->fetchArray($result) ; $i++) {
+    //    for ($prev = -1, $i = 0 ; $data = $DBread->fetchArray($result) ; $i++) {
 
     $i = 0;
     $prev = -1;
@@ -594,7 +597,7 @@ if ($crit > 0) { // Display result
         echo "<div class='alert alert-danger center'>";
         printf(__('%1$s: %2$s'), __('Duplicate computers', 'reports'), $i);
         echo "</div>";
-    }  else {
+    } else {
         echo "<div class='alert alert-danger center'>";
         echo __s('No results found');
         echo "</div>";
@@ -617,7 +620,10 @@ Html::footer();
 
 function buildBookmarkUrl($url, $crit)
 {
-    return $url . "?crit=" . $crit;
+    // Defense in depth: $crit is already cast to int at read time, but urlencode the
+    // integer selector so this helper can never inject extra query parameters into the
+    // URL stored as a saved search.
+    return $url . "?crit=" . urlencode((string) (int) $crit);
 }
 
 

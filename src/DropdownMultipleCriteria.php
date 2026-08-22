@@ -1,73 +1,73 @@
 <?php
 
-/*
- -------------------------------------------------------------------------
-  LICENSE
-
- This file is part of Reports plugin for GLPI.
-
- Reports is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
-
- Reports is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- GNU Affero General Public License for more details.
-
- You should have received a copy of the GNU Affero General Public License
- along with Reports. If not, see <http://www.gnu.org/licenses/>.
-
- @package   reports
- @authors   Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
- @copyright Copyright (c) 2009-2026 Reports plugin team
- @license   AGPL License 3.0 or (at your option) any later version
-            http://www.gnu.org/licenses/agpl-3.0-standalone.html
- @link      https://github.com/InfotelGLPI/reports
- @link      http://www.glpi-project.org/
- @since     2009
- --------------------------------------------------------------------------
+/**
+ * -------------------------------------------------------------------------
+ *  LICENSE
+ *
+ * This file is part of Reports plugin for GLPI.
+ *
+ * Reports is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Reports is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Reports. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @authors   Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
+ * @copyright Copyright (c) 2009-2026 Reports plugin team
+ * @license   AGPL License 3.0 or (at your option) any later version
+ * @link      https://github.com/InfotelGLPI/reports
+ * @link      http://www.glpi-project.org/
+ * @package   reports
+ * @since     2009
+ *            http://www.gnu.org/licenses/agpl-3.0-standalone.html
+ * --------------------------------------------------------------------------
  */
 
 namespace GlpiPlugin\Reports;
 
 use DbUtils;
 use Dropdown;
+
 /**
  * Manage criterias from dropdown tables
  */
 class DropdownMultipleCriteria extends AutoCriteria
 {
-
-   // TODO review this to use itemtype class as primary option
-   //Drodown table
+    // TODO review this to use itemtype class as primary option
+    //Drodown table
     private $table = "";
-   //Should display dropdown's childrens value
+    //Should display dropdown's childrens value
     private $childrens = false;
-   ///Use entity restriction in the dropdown ? (default is current entity)
+    ///Use entity restriction in the dropdown ? (default is current entity)
     private $entity_restrict = -1;
-   //Display dropdown comments
+    //Display dropdown comments
     private $displayComments = false;
-   // search for zero if true, else treat zero as "all" (no criteria)
+    // search for zero if true, else treat zero as "all" (no criteria)
     private $searchzero = false;
-   // For special condition
+    // For special condition
     private $condition = [];
-   // options for the dropdown multiple
+    // options for the dropdown multiple
     private $options = '';
-   // options for the dropdown multiple
+    // options for the dropdown multiple
     private $order = [];
 
-   /**
-    * @param $report
-    * @param $name
-    * @param $tableortype  (default '')
-    * @param $label        (default '')
-    * @param $condition    (default '')
-    * @param $options      (default '')
-    * @param $order        (default '')
-    * */
-    function __construct($report, $name, $tableortype = '', $label = '', $condition = [], $options = '', $order = [])
+    /**
+     * @param $report
+     * @param $name
+     * @param $tableortype  (default '')
+     * @param $label        (default '')
+     * @param $condition    (default '')
+     * @param $options      (default '')
+     * @param $order        (default '')
+     * */
+    public function __construct($report, $name, $tableortype = '', $label = '', $condition = [], $options = '', $order = [])
     {
 
         parent::__construct($report, $name, $name, $label);
@@ -93,46 +93,46 @@ class DropdownMultipleCriteria extends AutoCriteria
         }
     }
 
-   /**
-    * Get criteria's related table
-    * */
+    /**
+     * Get criteria's related table
+     * */
     public function getTable()
     {
         return $this->table;
     }
 
-   /**
-    * Get criteria's related table
-    * */
+    /**
+     * Get criteria's related table
+     * */
     public function getItemType()
     {
         $dbu = new DbUtils();
         return $dbu->getItemTypeForTable($this->table);
     }
 
-   /**
-    * Will display dropdown childrens (in table in hierarchical)
-    * */
+    /**
+     * Will display dropdown childrens (in table in hierarchical)
+     * */
     public function setWithChildrens()
     {
 
-       //if (in_array($this->getTable(), $CFG_GLPI["dropdowntree_tables"])) {
-       // TODO find a solution to check is children exists
+        //if (in_array($this->getTable(), $CFG_GLPI["dropdowntree_tables"])) {
+        // TODO find a solution to check is children exists
         $this->childrens = true;
-       //}
+        //}
     }
 
-   /**
-    * Will display dropdown childrens (in table in hierarchical)
-    * */
+    /**
+     * Will display dropdown childrens (in table in hierarchical)
+     * */
     public function setSearchZero()
     {
         $this->searchzero = true;
     }
 
-   /**
-    * Set default criteria value to 0 and entity restriction to current entity only
-    * */
+    /**
+     * Set default criteria value to 0 and entity restriction to current entity only
+     * */
     public function setDefaultValues()
     {
 
@@ -141,38 +141,38 @@ class DropdownMultipleCriteria extends AutoCriteria
         $this->setDisplayComments();
     }
 
-   /**
-    * Show dropdown comments (enable by defaults)
-    * */
+    /**
+     * Show dropdown comments (enable by defaults)
+     * */
     public function setDisplayComments()
     {
         $this->displayComments = true;
     }
 
-   /**
-    * Hide dropdown comments
-    * */
+    /**
+     * Hide dropdown comments
+     * */
     public function setNoDisplayComments()
     {
         $this->displayComments = false;
     }
 
-   /**
-    * Get display comments status
-    * */
+    /**
+     * Get display comments status
+     * */
     public function getDisplayComments()
     {
         return $this->displayComments;
     }
 
-   /**
-    * Change criteria's label
-    *
-    * @param $label   - the new label to display
-    * @param $name    - the name of the criteria whose label should be changed
-    *                (if no name is provided, the default criteria will be used)
-    *                (default '')
-    * */
+    /**
+     * Change criteria's label
+     *
+     * @param $label   - the new label to display
+     * @param $name    - the name of the criteria whose label should be changed
+     *                (if no name is provided, the default criteria will be used)
+     *                (default '')
+     * */
     public function setCriteriaLabel($label, $name = '')
     {
 
@@ -183,15 +183,15 @@ class DropdownMultipleCriteria extends AutoCriteria
         }
     }
 
-   /**
-    * Change entity restriction
-    *
-    * @param $restriction
-    * Values are :
-    * REPORTS_NO_ENTITY_RESTRICTION : no entity restriction (everything is displayed)
-    * REPORTS_CURRENT_ENTITY : only values from the current entity
-    * REPORTS_SUB_ENTITIES : values from the current entity + sub-entities
-    * */
+    /**
+     * Change entity restriction
+     *
+     * @param $restriction
+     * Values are :
+     * REPORTS_NO_ENTITY_RESTRICTION : no entity restriction (everything is displayed)
+     * REPORTS_CURRENT_ENTITY : only values from the current entity
+     * REPORTS_SUB_ENTITIES : values from the current entity + sub-entities
+     * */
     public function setEntityRestriction($restriction)
     {
         global $CFG_GLPI;
@@ -212,17 +212,17 @@ class DropdownMultipleCriteria extends AutoCriteria
         }
     }
 
-   /**
-    * Get entity restrict status
-    * */
+    /**
+     * Get entity restrict status
+     * */
     public function getEntityRestrict()
     {
         return $this->entity_restrict;
     }
 
-   /**
-    * Get list of items
-    */
+    /**
+     * Get list of items
+     */
     public function getItems()
     {
         $dbu       = new DbUtils();
@@ -236,9 +236,9 @@ class DropdownMultipleCriteria extends AutoCriteria
         return $listItems;
     }
 
-   /**
-    * Get criteria's subtitle
-    * */
+    /**
+     * Get criteria's subtitle
+     * */
     public function getSubName()
     {
 
@@ -248,19 +248,19 @@ class DropdownMultipleCriteria extends AutoCriteria
         }
 
         if ($this->searchzero) {
-           // zero
+            // zero
             return sprintf(__('%1$s: %2$s'), $this->getCriteriaLabel(), __('None'));
         }
 
-       // All
+        // All
         return '';
     }
 
-   /**
-    * Get URL to be used by bookmarking system
-    *
-    * @return - the bookmark's url associated with the criteria
-   **/
+    /**
+     * Get URL to be used by bookmarking system
+     *
+     * @return - the bookmark's url associated with the criteria
+    **/
     public function getBookmarkUrl()
     {
 
@@ -278,9 +278,9 @@ class DropdownMultipleCriteria extends AutoCriteria
         return $url;
     }
 
-   /**
-    * Display criteria in the criteria's selection form
-    * */
+    /**
+     * Display criteria in the criteria's selection form
+     * */
     public function displayCriteria()
     {
 
@@ -293,9 +293,9 @@ class DropdownMultipleCriteria extends AutoCriteria
         $this->getReport()->endColumn();
     }
 
-   /**
-    * Display dropdown
-    * */
+    /**
+     * Display dropdown
+     * */
     public function displayDropdownCriteria()
     {
         $values = [];
@@ -303,7 +303,7 @@ class DropdownMultipleCriteria extends AutoCriteria
             $values = $this->getParameterValue();
         }
         $options = ['values' => $values,
-          'multiple' => true
+            'multiple' => true,
         ];
 
         if (is_array($this->options) && !empty($this->options)) {
@@ -312,17 +312,16 @@ class DropdownMultipleCriteria extends AutoCriteria
             }
         }
 
-
         $items = $this->getItems();
         Dropdown::showFromArray($this->getName(), $items, $options);
-       //Dropdown::show($this->getItemType(), $options);
+        //Dropdown::show($this->getItemType(), $options);
     }
 
-   /**
-    * Get SQL code associated with the criteria
-    *
-    * @see plugins/reports/inc/PluginReportsAutoCriteria::getSqlCriteriasRestriction()
-    * */
+    /**
+     * Get SQL code associated with the criteria
+     *
+     * @see plugins/reports/inc/PluginReportsAutoCriteria::getSqlCriteriasRestriction()
+     * */
     public function getSqlCriteriasRestriction($link = 'AND')
     {
         global $DB;
@@ -336,9 +335,9 @@ class DropdownMultipleCriteria extends AutoCriteria
                 return $link . " " . $this->getSqlField() .
                     " IN (" . implode(',', $dbu->getSonsOf($this->getTable(), $this->getParameterValue())) . ") ";
             }
-           // 0 + its child means ALL
+            // 0 + its child means ALL
         }
-       // Zero => means ALL => no criteria
+        // Zero => means ALL => no criteria
         return '';
     }
 
@@ -359,7 +358,7 @@ class DropdownMultipleCriteria extends AutoCriteria
             if ($this->getParameterValue()) {
                 $childs = getSonsOf(
                     $this->getTable(),
-                    $this->getParameterValue()
+                    $this->getParameterValue(),
                 );
                 return [$this->getSqlField() => $childs];
             }

@@ -1,33 +1,33 @@
 <?php
 
-/*
- -------------------------------------------------------------------------
-  LICENSE
-
- This file is part of Reports plugin for GLPI.
-
- Reports is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
-
- Reports is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- GNU Affero General Public License for more details.
-
- You should have received a copy of the GNU Affero General Public License
- along with Reports. If not, see <http://www.gnu.org/licenses/>.
-
- @package   reports
- @authors   Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
- @copyright Copyright (c) 2009-2026 Reports plugin team
- @license   AGPL License 3.0 or (at your option) any later version
-            http://www.gnu.org/licenses/agpl-3.0-standalone.html
- @link      https://github.com/InfotelGLPI/reports
- @link      http://www.glpi-project.org/
- @since     2009
- --------------------------------------------------------------------------
+/**
+ * -------------------------------------------------------------------------
+ *  LICENSE
+ *
+ * This file is part of Reports plugin for GLPI.
+ *
+ * Reports is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Reports is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Reports. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @authors   Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
+ * @copyright Copyright (c) 2009-2026 Reports plugin team
+ * @license   AGPL License 3.0 or (at your option) any later version
+ * @link      https://github.com/InfotelGLPI/reports
+ * @link      http://www.glpi-project.org/
+ * @package   reports
+ * @since     2009
+ *            http://www.gnu.org/licenses/agpl-3.0-standalone.html
+ * --------------------------------------------------------------------------
  */
 
 namespace GlpiPlugin\Reports;
@@ -37,46 +37,49 @@ use Html;
 /**
  * class ColumnInteger to manage output
  */
-class ColumnInteger extends Column {
-
-   private $total;
-   private $with_zero = 1;
-
-
-   function __construct($name, $title, $options=[]) {
-
-      if (!isset($options['extrafine'])) {
-         $options['extrafine'] =  "class='right'";
-      }
-
-      if (!isset($options['extrabold'])) {
-         $options['extrabold'] =  "class='b right'";
-      }
-
-      if (isset($options['with_zero'])) {
-         $this->with_zero = $options['with_zero'];
-      }
-
-      parent::__construct($name, $title, $options);
-
-      $this->total = 0;
-   }
+class ColumnInteger extends Column
+{
+    private $total;
+    private $with_zero = 1;
 
 
-   function displayValue($output_type, $row) {
+    public function __construct($name, $title, $options = [])
+    {
 
-      if (isset($row[$this->name])) {
-         $this->total += intval($row[$this->name]);
+        if (!isset($options['extrafine'])) {
+            $options['extrafine'] =  "class='right'";
+        }
 
-         if ($row[$this->name] || $this->with_zero) {
-            return Html::formatNumber($row[$this->name], false, 0);
-         }
-      }
-      return '';
-   }
+        if (!isset($options['extrabold'])) {
+            $options['extrabold'] =  "class='b right'";
+        }
+
+        if (isset($options['with_zero'])) {
+            $this->with_zero = $options['with_zero'];
+        }
+
+        parent::__construct($name, $title, $options);
+
+        $this->total = 0;
+    }
 
 
-   function displayTotal($output_type) {
-      return Html::formatNumber($this->total, false, 0);
-   }
+    public function displayValue($output_type, $row)
+    {
+
+        if (isset($row[$this->name])) {
+            $this->total += intval($row[$this->name]);
+
+            if ($row[$this->name] || $this->with_zero) {
+                return Html::formatNumber($row[$this->name], false, 0);
+            }
+        }
+        return '';
+    }
+
+
+    public function displayTotal($output_type)
+    {
+        return Html::formatNumber($this->total, false, 0);
+    }
 }

@@ -1,33 +1,33 @@
 <?php
 
-/*
- -------------------------------------------------------------------------
-  LICENSE
-
- This file is part of Reports plugin for GLPI.
-
- Reports is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
-
- Reports is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- GNU Affero General Public License for more details.
-
- You should have received a copy of the GNU Affero General Public License
- along with Reports. If not, see <http://www.gnu.org/licenses/>.
-
- @package   reports
- @authors   Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
- @copyright Copyright (c) 2009-2026 Reports plugin team
- @license   AGPL License 3.0 or (at your option) any later version
-            http://www.gnu.org/licenses/agpl-3.0-standalone.html
- @link      https://github.com/InfotelGLPI/reports
- @link      http://www.glpi-project.org/
- @since     2009
- --------------------------------------------------------------------------
+/**
+ * -------------------------------------------------------------------------
+ *  LICENSE
+ *
+ * This file is part of Reports plugin for GLPI.
+ *
+ * Reports is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Reports is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Reports. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @authors   Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
+ * @copyright Copyright (c) 2009-2026 Reports plugin team
+ * @license   AGPL License 3.0 or (at your option) any later version
+ * @link      https://github.com/InfotelGLPI/reports
+ * @link      http://www.glpi-project.org/
+ * @package   reports
+ * @since     2009
+ *            http://www.gnu.org/licenses/agpl-3.0-standalone.html
+ * --------------------------------------------------------------------------
  */
 
 use Glpi\DBAL\QueryFunction;
@@ -90,7 +90,7 @@ $criteria = [
         'glpi_logs.date_mod' => ['>', QueryFunction::dateSub(
             date: QueryFunction::now(),
             interval: '21',
-            interval_unit: 'DAY'
+            interval_unit: 'DAY',
         )],
     ],
     'ORDERBY' => 'glpi_logs.id DESC',
@@ -98,7 +98,7 @@ $criteria = [
 ];
 
 $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
-    'glpi_computers'
+    'glpi_computers',
 );
 
 $iterator = $DB->request($criteria);
@@ -164,7 +164,7 @@ foreach ($iterator as $data) {
                 $change  = sprintf(
                     __('%1$s: %2$s'),
                     sprintf(__('%1$s (%2$s)'), $action_label, $field),
-                    sprintf(__('%1$s by %2$s'), htmlescape($data["old_value"]), htmlescape($data["new_value"]))
+                    sprintf(__('%1$s by %2$s'), htmlescape($data["old_value"]), htmlescape($data["new_value"])),
                 );
                 break;
 

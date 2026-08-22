@@ -241,12 +241,6 @@ parameters:
 			path: src/ColumnDropdownLinkedType.php
 
 		-
-			message: '#^Instantiating an object from an unrestricted dynamic string is forbidden \(see https\://github\.com/glpi\-project/phpstan\-glpi\?tab\=readme\-ov\-file\#forbiddynamicinstantiationrule\)\.$#'
-			identifier: glpi.forbidDynamicInstantiation
-			count: 1
-			path: src/ColumnDropdownLinkedType.php
-
-		-
 			message: '#^Property GlpiPlugin\\Reports\\ColumnDropdownLinkedType\:\:\$type_suffix is never read, only written\.$#'
 			identifier: property.onlyWritten
 			count: 1
@@ -391,6 +385,60 @@ parameters:
 			path: src/IntegerCriteria.php
 
 		-
+			message: '#^Access to property \$fields on an unknown class PluginFieldsContainer\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Pluginfield.php
+
+		-
+			message: '#^Access to property \$fields on an unknown class PluginFieldsField\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Pluginfield.php
+
+		-
+			message: '#^Call to method find\(\) on an unknown class PluginFieldsContainer\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Pluginfield.php
+
+		-
+			message: '#^Call to method getFromDB\(\) on an unknown class PluginFieldsContainer\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Pluginfield.php
+
+		-
+			message: '#^Call to method getFromDB\(\) on an unknown class PluginFieldsField\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Pluginfield.php
+
+		-
+			message: '#^Call to static method getTypeName\(\) on an unknown class PluginFieldsContainer\.$#'
+			identifier: class.notFound
+			count: 3
+			path: src/Pluginfield.php
+
+		-
+			message: '#^Call to static method getTypeName\(\) on an unknown class PluginFieldsField\.$#'
+			identifier: class.notFound
+			count: 3
+			path: src/Pluginfield.php
+
+		-
+			message: '#^Instantiated class PluginFieldsContainer not found\.$#'
+			identifier: class.notFound
+			count: 2
+			path: src/Pluginfield.php
+
+		-
+			message: '#^Instantiated class PluginFieldsField not found\.$#'
+			identifier: class.notFound
+			count: 2
+			path: src/Pluginfield.php
+
+		-
 			message: '#^Method GlpiPlugin\\Reports\\PriorityCriteria\:\:getSqlCriteriasRestriction\(\) has invalid return type GlpiPlugin\\Reports\\a\.$#'
 			identifier: class.notFound
 			count: 1
@@ -427,6 +475,12 @@ parameters:
 			path: src/Profile.php
 
 		-
+			message: '#^Instanceof between Profile and Profile will always evaluate to true\.$#'
+			identifier: instanceof.alwaysTrue
+			count: 1
+			path: src/Profile.php
+
+		-
 			message: '#^Missing PHPDoc tag @var for global variable \$LANG$#'
 			identifier: glpi.missingGlobalVarType
 			count: 1
@@ -435,6 +489,12 @@ parameters:
 		-
 			message: '#^Parameter \#1 \$prof of static method GlpiPlugin\\Reports\\Profile\:\:showForProfile\(\) expects Profile, CommonGLPI given\.$#'
 			identifier: argument.type
+			count: 1
+			path: src/Profile.php
+
+		-
+			message: '#^Static method GlpiPlugin\\Reports\\Profile\:\:getAllRights\(\) invoked with 1 parameter, 0 required\.$#'
+			identifier: arguments.count
 			count: 1
 			path: src/Profile.php
 

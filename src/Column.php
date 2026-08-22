@@ -1,33 +1,33 @@
 <?php
 
-/*
- -------------------------------------------------------------------------
-  LICENSE
-
- This file is part of Reports plugin for GLPI.
-
- Reports is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
-
- Reports is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- GNU Affero General Public License for more details.
-
- You should have received a copy of the GNU Affero General Public License
- along with Reports. If not, see <http://www.gnu.org/licenses/>.
-
- @package   reports
- @authors   Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
- @copyright Copyright (c) 2009-2026 Reports plugin team
- @license   AGPL License 3.0 or (at your option) any later version
-            http://www.gnu.org/licenses/agpl-3.0-standalone.html
- @link      https://github.com/InfotelGLPI/reports
- @link      http://www.glpi-project.org/
- @since     2009
- --------------------------------------------------------------------------
+/**
+ * -------------------------------------------------------------------------
+ *  LICENSE
+ *
+ * This file is part of Reports plugin for GLPI.
+ *
+ * Reports is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Reports is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Reports. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @authors   Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
+ * @copyright Copyright (c) 2009-2026 Reports plugin team
+ * @license   AGPL License 3.0 or (at your option) any later version
+ * @link      https://github.com/InfotelGLPI/reports
+ * @link      http://www.glpi-project.org/
+ * @package   reports
+ * @since     2009
+ *            http://www.gnu.org/licenses/agpl-3.0-standalone.html
+ * --------------------------------------------------------------------------
  */
 
 namespace GlpiPlugin\Reports;
@@ -141,28 +141,28 @@ class Column
         return $this->displayValue($output_type, $row);
     }
 
-//    public function showHtmlValue($output_type, $output, $row, $num, $row_num, $bold = false)
-//    {
-//        return $output::showItem($this->displayValue($output_type, $row), $num, $row_num, ($bold ? $this->extrabold : $this->extrafine));
-//    }
-//
-//    public function showExportValue()
-//    {
-//        return $row[$this->name] ?? "";
-//    }
-//
-//
-//    public function showTotal($output_type, &$num, $row_num)
-//    {
-//
-//        echo Search::showItem(
-//            $output_type,
-//            ($this->withtotal ? $this->displayTotal($output_type) : ''),
-//            $num,
-//            $row_num,
-//            $this->extrabold
-//        );
-//    }
+    //    public function showHtmlValue($output_type, $output, $row, $num, $row_num, $bold = false)
+    //    {
+    //        return $output::showItem($this->displayValue($output_type, $row), $num, $row_num, ($bold ? $this->extrabold : $this->extrafine));
+    //    }
+    //
+    //    public function showExportValue()
+    //    {
+    //        return $row[$this->name] ?? "";
+    //    }
+    //
+    //
+    //    public function showTotal($output_type, &$num, $row_num)
+    //    {
+    //
+    //        echo Search::showItem(
+    //            $output_type,
+    //            ($this->withtotal ? $this->displayTotal($output_type) : ''),
+    //            $num,
+    //            $row_num,
+    //            $this->extrabold
+    //        );
+    //    }
 
     public function showNewTotal($output_type, &$num, $row_num)
     {

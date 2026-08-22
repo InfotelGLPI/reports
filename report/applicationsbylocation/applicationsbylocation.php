@@ -1,33 +1,33 @@
 <?php
 
-/*
- -------------------------------------------------------------------------
-  LICENSE
-
- This file is part of Reports plugin for GLPI.
-
- Reports is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
-
- Reports is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- GNU Affero General Public License for more details.
-
- You should have received a copy of the GNU Affero General Public License
- along with Reports. If not, see <http://www.gnu.org/licenses/>.
-
- @package   reports
- @authors   Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
- @copyright Copyright (c) 2009-2026 Reports plugin team
- @license   AGPL License 3.0 or (at your option) any later version
-            http://www.gnu.org/licenses/agpl-3.0-standalone.html
- @link      https://github.com/InfotelGLPI/reports
- @link      http://www.glpi-project.org/
- @since     2009
- --------------------------------------------------------------------------
+/**
+ * -------------------------------------------------------------------------
+ *  LICENSE
+ *
+ * This file is part of Reports plugin for GLPI.
+ *
+ * Reports is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Reports is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Reports. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @authors   Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
+ * @copyright Copyright (c) 2009-2026 Reports plugin team
+ * @license   AGPL License 3.0 or (at your option) any later version
+ * @link      https://github.com/InfotelGLPI/reports
+ * @link      http://www.glpi-project.org/
+ * @package   reports
+ * @since     2009
+ *            http://www.gnu.org/licenses/agpl-3.0-standalone.html
+ * --------------------------------------------------------------------------
  */
 
 use GlpiPlugin\Reports\AutoReport;
@@ -51,7 +51,7 @@ $report = new AutoReport(__('Applications by locations and versions', 'reports')
 $softwarecategories = new SoftwareCategoriesCriteria(
     $report,
     'softwarecategories',
-    __('Software category')
+    __('Software category'),
 );
 $softwarecategories->setSqlField('glpi_softwarecategories.id');
 
@@ -75,31 +75,31 @@ $report->setColumns([new ColumnLink(
     'soft',
     _n('Software', 'Software', 1),
     'Software',
-    ['sorton' => 'soft,version']
+    ['sorton' => 'soft,version'],
 ),
     new ColumnLink(
         'locat',
         _n('Location', 'Locations', 1),
         'Location',
-        ['sorton' => 'glpi_locations.name']
+        ['sorton' => 'glpi_locations.name'],
     ),
     new ColumnLink(
         'computer',
         _n('Computer', 'Computers', 1),
         'Computer',
-        ['sorton' => 'glpi_computers.name']
+        ['sorton' => 'glpi_computers.name'],
     ),
     new Column('statecpt', _n('Status', 'Statuses', 1)),
     new ColumnLink(
         'version',
         __('Version'),
-        'SoftwareVersion'
+        'SoftwareVersion',
     ),
     new ColumnLink(
         'user',
         _n('User', 'Users', 1),
         'User',
-        ['sorton' => 'glpi_users.name']
+        ['sorton' => 'glpi_users.name'],
     )]);
 
 // SQL statement
@@ -168,7 +168,7 @@ $criteria = [
     'WHERE' => [],
 ];
 $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
-    'glpi_softwareversions'
+    'glpi_softwareversions',
 );
 
 $criteria['WHERE'] = $criteria['WHERE'] + $report->addNewSqlCriteriasRestriction();

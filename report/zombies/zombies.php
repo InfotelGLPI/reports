@@ -1,37 +1,38 @@
 <?php
 
-/*
- -------------------------------------------------------------------------
-  LICENSE
-
- This file is part of Reports plugin for GLPI.
-
- Reports is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
-
- Reports is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- GNU Affero General Public License for more details.
-
- You should have received a copy of the GNU Affero General Public License
- along with Reports. If not, see <http://www.gnu.org/licenses/>.
-
- @package   reports
- @authors   Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
- @copyright Copyright (c) 2009-2026 Reports plugin team
- @license   AGPL License 3.0 or (at your option) any later version
-            http://www.gnu.org/licenses/agpl-3.0-standalone.html
- @link      https://github.com/InfotelGLPI/reports
- @link      http://www.glpi-project.org/
- @since     2009
- --------------------------------------------------------------------------
+/**
+ * -------------------------------------------------------------------------
+ *  LICENSE
+ *
+ * This file is part of Reports plugin for GLPI.
+ *
+ * Reports is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Reports is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Reports. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @authors   Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
+ * @copyright Copyright (c) 2009-2026 Reports plugin team
+ * @license   AGPL License 3.0 or (at your option) any later version
+ * @link      https://github.com/InfotelGLPI/reports
+ * @link      http://www.glpi-project.org/
+ * @package   reports
+ * @since     2009
+ *            http://www.gnu.org/licenses/agpl-3.0-standalone.html
+ * --------------------------------------------------------------------------
  */
 
 use Glpi\DBAL\QueryExpression;
 use Glpi\DBAL\QuerySubQuery;
+use Glpi\Exception\Http\AccessDeniedHttpException;
 use GlpiPlugin\Reports\ArrayCriteria;
 use GlpiPlugin\Reports\AutoReport;
 use GlpiPlugin\Reports\Column;
@@ -48,6 +49,16 @@ global $DB;
 //TRANS: The name of the report = Users with no right
 // Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
 Session::checkRight("plugin_reports_zombies", READ);
+
+// Entity isolation: this report lists user accounts that have NO profile assignment
+// (NOT IN glpi_profiles_users), and therefore no entity attachment at all. Such orphan
+// accounts cannot be scoped to any entity, so the report is only meaningful — and only
+// safe — for an operator who can already see the whole instance. Without this gate, the
+// report right granted in a single child entity would expose the global user directory
+// (logins, e-mails, phones, ticket counts) across every entity of the instance.
+if (!Session::canViewAllEntities()) {
+    throw new AccessDeniedHttpException();
+}
 
 $report = new AutoReport(__('Users with no right', 'reports'));
 
@@ -66,7 +77,7 @@ if ($report->criteriasValidated()) {
     $report->delCriteria('tickets');
 
     $cols = [
-//        new ColumnItemCheckbox('id', 'User'),
+        //        new ColumnItemCheckbox('id', 'User'),
         new ColumnLink('id2', __('User'), 'User', ['with_comment' => true,
             'with_navigate' => true]),
         new Column('name', __('Login'), ['sorton' => 'name']),
@@ -100,25 +111,25 @@ if ($report->criteriasValidated()) {
             new QueryExpression(
                 '(SELECT COUNT(*)
               FROM glpi_tickets
-              WHERE glpi_users.id = glpi_tickets.users_id_recipient) AS nb1'
+              WHERE glpi_users.id = glpi_tickets.users_id_recipient) AS nb1',
             ),
             new QueryExpression(
                 '(SELECT COUNT(*)
               FROM glpi_tickets_users
               WHERE glpi_users.id = glpi_tickets_users.users_id
-              AND glpi_tickets_users.type = ' . CommonITILActor::REQUESTER . ') AS nb2'
+              AND glpi_tickets_users.type = ' . CommonITILActor::REQUESTER . ') AS nb2',
             ),
             new QueryExpression(
                 '(SELECT COUNT(*)
               FROM glpi_tickets_users
               WHERE glpi_users.id = glpi_tickets_users.users_id
-              AND glpi_tickets_users.type = ' . CommonITILActor::OBSERVER . ') AS nb3'
+              AND glpi_tickets_users.type = ' . CommonITILActor::OBSERVER . ') AS nb3',
             ),
             new QueryExpression(
                 '(SELECT COUNT(*)
               FROM glpi_tickets_users
               WHERE glpi_users.id = glpi_tickets_users.users_id
-              AND glpi_tickets_users.type = ' . CommonITILActor::ASSIGN . ') AS nb4'
+              AND glpi_tickets_users.type = ' . CommonITILActor::ASSIGN . ') AS nb4',
             ),
         ],
         'FROM' => 'glpi_users',
@@ -126,8 +137,8 @@ if ($report->criteriasValidated()) {
             'glpi_locations' => [
                 'ON' => [
                     'glpi_locations' => 'id',
-                    'glpi_users'     => 'locations_id'
-                ]
+                    'glpi_users'     => 'locations_id',
+                ],
             ],
             'glpi_useremails' => [
                 'ON' => [
@@ -135,20 +146,20 @@ if ($report->criteriasValidated()) {
                     'glpi_users'      => 'id',
                     [
                         'AND' => [
-                            'glpi_useremails.is_default' => 1
-                        ]
-                    ]
-                ]
-            ]
+                            'glpi_useremails.is_default' => 1,
+                        ],
+                    ],
+                ],
+            ],
         ],
         'WHERE' => [
             'glpi_users.is_deleted' => 0,
             'NOT' => [
                 'glpi_users.id' => new QuerySubQuery([
                     'SELECT' => ['users_id'],
-                    'FROM'   => 'glpi_profiles_users'
-                ])
-            ]
+                    'FROM'   => 'glpi_profiles_users',
+                ]),
+            ],
         ],
         'HAVING' => [],
     ];

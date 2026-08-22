@@ -1,33 +1,33 @@
 <?php
 
-/*
- -------------------------------------------------------------------------
-  LICENSE
-
- This file is part of Reports plugin for GLPI.
-
- Reports is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
-
- Reports is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- GNU Affero General Public License for more details.
-
- You should have received a copy of the GNU Affero General Public License
- along with Reports. If not, see <http://www.gnu.org/licenses/>.
-
- @package   reports
- @authors   Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
- @copyright Copyright (c) 2009-2026 Reports plugin team
- @license   AGPL License 3.0 or (at your option) any later version
-            http://www.gnu.org/licenses/agpl-3.0-standalone.html
- @link      https://github.com/InfotelGLPI/reports
- @link      http://www.glpi-project.org/
- @since     2009
- --------------------------------------------------------------------------
+/**
+ * -------------------------------------------------------------------------
+ *  LICENSE
+ *
+ * This file is part of Reports plugin for GLPI.
+ *
+ * Reports is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Reports is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Reports. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @authors   Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
+ * @copyright Copyright (c) 2009-2026 Reports plugin team
+ * @license   AGPL License 3.0 or (at your option) any later version
+ * @link      https://github.com/InfotelGLPI/reports
+ * @link      http://www.glpi-project.org/
+ * @package   reports
+ * @since     2009
+ *            http://www.gnu.org/licenses/agpl-3.0-standalone.html
+ * --------------------------------------------------------------------------
  */
 
 use Glpi\DBAL\QueryExpression;
@@ -80,11 +80,11 @@ if ($report->criteriasValidated()) {
             'SELECT' => ['itemtype'],
             'DISTINCT'        => true,
             'FROM' => 'glpi_infocoms',
-            'WHERE' => []
+            'WHERE' => [],
         ];
         $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
-                'glpi_infocoms'
-            );
+            'glpi_infocoms',
+        );
 
         $criteria['WHERE'] = $criteria['WHERE'] + $date->getNewSqlCriteriasRestriction();
 
@@ -107,7 +107,7 @@ if ($report->criteriasValidated()) {
 
         // Total of buy equipment
         $criteria = [
-            'SELECT' => ['COUNT' => $table.'.id AS cpt'],
+            'SELECT' => ['COUNT' => $table . '.id AS cpt'],
             'FROM' => $table,
             'INNER JOIN'       => [
                 'glpi_infocoms' => [
@@ -118,10 +118,10 @@ if ($report->criteriasValidated()) {
                                 'glpi_infocoms.itemtype' => $type,
                             ],
                         ],
-                    ]
+                    ],
                 ],
             ],
-            'WHERE' => []
+            'WHERE' => [],
         ];
         if ($item->maybeDeleted()) {
             $criteria['WHERE'] = $criteria['WHERE'] + ['is_deleted' => 0];
@@ -130,8 +130,8 @@ if ($report->criteriasValidated()) {
             $criteria['WHERE'] = $criteria['WHERE'] + ['is_template' => 0];
         }
         $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
-                $table
-            );
+            $table,
+        );
 
         $criteria['WHERE'] = $criteria['WHERE'] + $date->getNewSqlCriteriasRestriction();
 
@@ -146,10 +146,10 @@ if ($report->criteriasValidated()) {
         for ($deb = 0 ; $deb < 12 ; $deb = $fin) {
             $fin = $deb + 2;
             if ($deb) {
-                $criteria['WHERE'] = $criteria['WHERE'] + ['use_date' => ['>=', new QueryExpression("DATE_ADD(".$DB->quoteName("buy_date").", INTERVAL $deb MONTH)")]];
+                $criteria['WHERE'] = $criteria['WHERE'] + ['use_date' => ['>=', new QueryExpression("DATE_ADD(" . $DB->quoteName("buy_date") . ", INTERVAL $deb MONTH)")]];
             }
             if ($fin) {
-                $criteria['WHERE'] = $criteria['WHERE'] + ['use_date' => ['<', new QueryExpression("DATE_ADD(".$DB->quoteName("buy_date").", INTERVAL $fin MONTH)")]];
+                $criteria['WHERE'] = $criteria['WHERE'] + ['use_date' => ['<', new QueryExpression("DATE_ADD(" . $DB->quoteName("buy_date") . ", INTERVAL $fin MONTH)")]];
             }
             $iterator = $DB->request($criteria);
             foreach ($iterator as $data) {
@@ -157,10 +157,10 @@ if ($report->criteriasValidated()) {
             }
         }
         $criteria['WHERE'] = $criteria['WHERE'] + [
-                'OR' => [
-                    ['use_date' => ['<', new QueryExpression("DATE_ADD(".$DB->quoteName("buy_date").", INTERVAL 12 MONTH)")]],
-                    ['use_date' => 'NULL'],
-                ],
+            'OR' => [
+                ['use_date' => ['<', new QueryExpression("DATE_ADD(" . $DB->quoteName("buy_date") . ", INTERVAL 12 MONTH)")]],
+                ['use_date' => 'NULL'],
+            ],
         ];
 
         $iterator = $DB->request($criteria);
@@ -226,7 +226,7 @@ if ($report->criteriasValidated()) {
                     ($val ? $val : ''),
                     $numcol,
                     $row_num,
-                    "class='right'"
+                    "class='right'",
                 );
                 if ($itemtype != 'total' && isset($result['total'])) {
                     $result['total'][$ref] += $val;

@@ -1,33 +1,33 @@
 <?php
 
-/*
- -------------------------------------------------------------------------
-  LICENSE
-
- This file is part of Reports plugin for GLPI.
-
- Reports is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
-
- Reports is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- GNU Affero General Public License for more details.
-
- You should have received a copy of the GNU Affero General Public License
- along with Reports. If not, see <http://www.gnu.org/licenses/>.
-
- @package   reports
- @authors   Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
- @copyright Copyright (c) 2009-2026 Reports plugin team
- @license   AGPL License 3.0 or (at your option) any later version
-            http://www.gnu.org/licenses/agpl-3.0-standalone.html
- @link      https://github.com/InfotelGLPI/reports
- @link      http://www.glpi-project.org/
- @since     2009
- --------------------------------------------------------------------------
+/**
+ * -------------------------------------------------------------------------
+ *  LICENSE
+ *
+ * This file is part of Reports plugin for GLPI.
+ *
+ * Reports is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Reports is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Reports. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @authors   Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
+ * @copyright Copyright (c) 2009-2026 Reports plugin team
+ * @license   AGPL License 3.0 or (at your option) any later version
+ * @link      https://github.com/InfotelGLPI/reports
+ * @link      http://www.glpi-project.org/
+ * @package   reports
+ * @since     2009
+ *            http://www.gnu.org/licenses/agpl-3.0-standalone.html
+ * --------------------------------------------------------------------------
  */
 
 use GlpiPlugin\Reports\AutoReport;
@@ -77,7 +77,7 @@ if ($report->criteriasValidated()) {
         'items_id',
         __('Name'),
         $itemtype,
-        ['with_comment' => 1]
+        ['with_comment' => 1],
     ),
         new Column('otherserial', __('Inventory number')),
         new Column('old_value', __('Source entity', 'reports')),
@@ -92,8 +92,8 @@ if ($report->criteriasValidated()) {
     }
 
     $criteria = [
-        'SELECT' => [$table.'.id AS items_id',
-            $table.'.name',
+        'SELECT' => [$table . '.id AS items_id',
+            $table . '.name',
             $otherserial,
             'glpi_logs.date_mod AS date_mod',
             'glpi_logs.itemtype AS itemtype',
@@ -111,7 +111,7 @@ if ($report->criteriasValidated()) {
                             'glpi_logs.itemtype' => $itemtype,
                         ],
                     ],
-                ]
+                ],
             ],
         ],
         'WHERE' => [
@@ -121,6 +121,13 @@ if ($report->criteriasValidated()) {
     ];
 
     $criteria['WHERE'] = $criteria['WHERE'] + $report->addNewSqlCriteriasRestriction();
+
+    // Entity isolation: the selected itemtype is an entity-scoped asset. Without this
+    // restriction on the joined item table, a user holding the report right in a child
+    // entity could read the names, inventory numbers and source/target entities of items
+    // transferred in entities outside their scope. Mirror the pattern used by the other
+    // reports (histoinst, pcsbyentity, ...). is_recursive is auto-detected from the table.
+    $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria($table);
 
     $report->setSqlRequest($criteria);
 

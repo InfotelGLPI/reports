@@ -1,33 +1,33 @@
 <?php
 
-/*
- -------------------------------------------------------------------------
-  LICENSE
-
- This file is part of Reports plugin for GLPI.
-
- Reports is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
-
- Reports is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- GNU Affero General Public License for more details.
-
- You should have received a copy of the GNU Affero General Public License
- along with Reports. If not, see <http://www.gnu.org/licenses/>.
-
- @package   reports
- @authors   Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
- @copyright Copyright (c) 2009-2026 Reports plugin team
- @license   AGPL License 3.0 or (at your option) any later version
-            http://www.gnu.org/licenses/agpl-3.0-standalone.html
- @link      https://github.com/InfotelGLPI/reports
- @link      http://www.glpi-project.org/
- @since     2009
- --------------------------------------------------------------------------
+/**
+ * -------------------------------------------------------------------------
+ *  LICENSE
+ *
+ * This file is part of Reports plugin for GLPI.
+ *
+ * Reports is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Reports is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Reports. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @authors   Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
+ * @copyright Copyright (c) 2009-2026 Reports plugin team
+ * @license   AGPL License 3.0 or (at your option) any later version
+ * @link      https://github.com/InfotelGLPI/reports
+ * @link      http://www.glpi-project.org/
+ * @package   reports
+ * @since     2009
+ *            http://www.gnu.org/licenses/agpl-3.0-standalone.html
+ * --------------------------------------------------------------------------
  */
 
 $USEDBREPLICATE         = 1;
@@ -37,62 +37,67 @@ global $DB;
 
 Session::checkRight("plugin_reports_rules", READ);
 
+function plugin_reports_rulelist($rulecollection, $title)
+{
 
-function plugin_reports_rulelist ($rulecollection, $title) {
+    Session::checkRight($rulecollection::$rightname, READ);
 
-   Session::checkRight($rulecollection::$rightname,READ);
+    $rulecollection->getCollectionDatas(true, true);
+    echo "<div class='center'>";
+    echo "<table class='tab_cadre' cellpadding='5'>\n";
+    echo "<tr><th colspan='6'><a href='" . htmlescape($_SERVER["REQUEST_URI"]) . "'>" .
+          //TRANS: The name of the report = Rule's catalog
+          __("Rule's catalog", 'reports') . "</a> - " . $title . "</th></tr>";
 
-   $rulecollection->getCollectionDatas(true, true);
-   echo "<div class='center'>";
-   echo "<table class='tab_cadre' cellpadding='5'>\n";
-   echo "<tr><th colspan='6'><a href='".htmlescape($_SERVER["REQUEST_URI"])."'>" .
-         //TRANS: The name of the report = Rule's catalog
-         __("Rule's catalog", 'reports') . "</a> - " . $title . "</th></tr>";
+    echo "<tr><th>" . __('Name') . "</th>";
+    echo "<th>" . __('Description') . "</th>";
+    echo "<th colspan='2'>" . _n('Criterion', 'Criteria', 2) . "</th>";
+    echo "<th>" . _n('Action', 'Actions', 2) . "</th>";
+    echo "<th>" . __('Active') . "</th></tr>\n";
+    foreach ($rulecollection->RuleList->list as $rule) {
+        echo "<tr class='tab_bg_1'>";
+        echo "<td>" . htmlescape($rule->fields["name"]) . "</td>";
+        echo "<td>" . htmlescape($rule->fields["description"]) . "</td>";
 
-   echo "<tr><th>".__('Name')."</th>";
-   echo "<th>".__('Description')."</th>";
-   echo "<th colspan='2'>"._n('Criterion', 'Criteria', 2)."</th>";
-   echo "<th>"._n('Action', 'Actions', 2)."</th>";
-   echo "<th>".__('Active')."</th></tr>\n";
-   foreach ($rulecollection->RuleList->list as $rule) {
-      echo "<tr class='tab_bg_1'>";
-      echo "<td>" . htmlescape($rule->fields["name"]) . "</td>";
-      echo "<td>" . htmlescape($rule->fields["description"]) . "</td>";
+        if ($rule->fields["match"] == Rule::AND_MATCHING) {
+            echo "<td>" . __('and') . "</td>";
+        } else {
+            echo "<td>" . __('or') . "</td>";
+        }
 
-      if ($rule->fields["match"] == Rule::AND_MATCHING) {
-         echo "<td>".__('and')."</td>";
-      } else {
-         echo "<td>".__('or')."</td>";
-      }
+        echo "<td>";
+        foreach ($rule->criterias as $criteria) {
+            echo htmlescape($rule->getCriteriaName($criteria->fields["criteria"])) . " " .
+                 htmlescape(RuleCriteria::getConditionByID($criteria->fields["condition"], get_class($rule))) . " " .
+                 htmlescape($rule->getCriteriaDisplayPattern(
+                     $criteria->fields["criteria"],
+                     $criteria->fields["condition"],
+                     $criteria->fields["pattern"],
+                 )) .
+                 "<br>";
+        }
+        echo "</td>";
+        echo "<td>";
+        foreach ($rule->actions as $action) {
+            echo htmlescape($rule->getActionName($action->fields["field"])) . " " .
+                  htmlescape(RuleAction::getActionByID($action->fields["action_type"])) . " " .
+                  htmlescape(stripslashes($rule->getActionValue(
+                      $action->fields["field"],
+                      $action->fields["action_type"],
+                      $action->fields["value"],
+                  ))) .
+                  "<br>";
+        }
+        echo "</td>";
 
-      echo "<td>";
-      foreach ($rule->criterias as $criteria) {
-         echo htmlescape($rule->getCriteriaName($criteria->fields["criteria"])) . " " .
-              htmlescape(RuleCriteria::getConditionByID($criteria->fields["condition"], get_class($rule)))." ".
-              htmlescape($rule->getCriteriaDisplayPattern($criteria->fields["criteria"],
-                                               $criteria->fields["condition"],
-                                               $criteria->fields["pattern"])) .
-              "<br>";
-      }
-      echo "</td>";
-      echo "<td>";
-      foreach ($rule->actions as $action) {
-         echo htmlescape($rule->getActionName($action->fields["field"])) . " " .
-               htmlescape(RuleAction::getActionByID($action->fields["action_type"])) . " " .
-               htmlescape(stripslashes($rule->getActionValue($action->fields["field"],$action->fields["action_type"],
-                            $action->fields["value"]))) .
-               "<br>";
-      }
-      echo "</td>";
-
-      if ($rule->fields["is_active"]) {
-         echo "<td>".__('Yes')."</td>";
-      } else {
-         echo "<td>".__('No')."</td>";
-      }
-      echo "</tr>\n";
-   }
-   echo "</table></div>\n";
+        if ($rule->fields["is_active"]) {
+            echo "<td>" . __('Yes') . "</td>";
+        } else {
+            echo "<td>" . __('No') . "</td>";
+        }
+        echo "</tr>\n";
+    }
+    echo "</table></div>\n";
 }
 
 Html::header(__("Rule's catalog", 'reports'), $_SERVER['PHP_SELF'], "utils", "report");
@@ -103,32 +108,31 @@ $allowed_types = ['ldap', 'soft', ''];
 $type = (isset($_GET["type"]) && in_array($_GET["type"], $allowed_types, true)) ? $_GET["type"] : "";
 
 if ($type == "ldap") {
-   $rulecollection = new RuleRightCollection();
-   plugin_reports_rulelist($rulecollection, __('Authorizations assignment rules'));
+    $rulecollection = new RuleRightCollection();
+    plugin_reports_rulelist($rulecollection, __('Authorizations assignment rules'));
 
-} else if ($type == "soft") {
-   $rulecollection = new RuleSoftwareCategoryCollection();
-   plugin_reports_rulelist($rulecollection, __('Rules for assigning a category to software'));
+} elseif ($type == "soft") {
+    $rulecollection = new RuleSoftwareCategoryCollection();
+    plugin_reports_rulelist($rulecollection, __('Rules for assigning a category to software'));
 
 } else {
-   echo "<div class='center'>";
-   echo "<table class='tab_cadre' cellpadding='5'>\n";
-   echo "<tr><th>". sprintf(__('%1$s - %2$s'), __("Rule's catalog", 'reports'), __('Rule type')).
-        "</th></tr>";
+    echo "<div class='center'>";
+    echo "<table class='tab_cadre' cellpadding='5'>\n";
+    echo "<tr><th>" . sprintf(__('%1$s - %2$s'), __("Rule's catalog", 'reports'), __('Rule type')) .
+         "</th></tr>";
 
+    if (Session::haveRight("rule_ldap", READ)) {
+        echo "<tr class='tab_bg_1'><td class='center b'>" .
+             "<a href='" . htmlescape($_SERVER["REQUEST_URI"]) . "?type=ldap'>" . __('Authorizations assignment rules') .
+             "</a></td></tr>";
+    }
 
-   if (Session::haveRight("rule_ldap", READ)) {
-      echo "<tr class='tab_bg_1'><td class='center b'>".
-           "<a href='".htmlescape($_SERVER["REQUEST_URI"])."?type=ldap'>".__('Authorizations assignment rules').
-           "</a></td></tr>";
-   }
-
-   if (Session::haveRight("rule_softwarecategories", READ)) {
-      echo "<tr class='tab_bg_1'><td class='center b'>".
-           "<a href='".htmlescape($_SERVER["REQUEST_URI"])."?type=soft'>".
-             __('Rules for assigning a category to software')."</a></td></tr>";
-   }
-   echo "</table></div>\n";
+    if (Session::haveRight("rule_softwarecategories", READ)) {
+        echo "<tr class='tab_bg_1'><td class='center b'>" .
+             "<a href='" . htmlescape($_SERVER["REQUEST_URI"]) . "?type=soft'>" .
+               __('Rules for assigning a category to software') . "</a></td></tr>";
+    }
+    echo "</table></div>\n";
 }
 
 Html::footer();
