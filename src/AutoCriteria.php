@@ -181,7 +181,11 @@ abstract class AutoCriteria
     public function getSqlCriteriasRestriction($link = 'AND')
     {
         global $DB;
-        return $link . " " . $this->getSqlField() . "='" . $DB->escape($this->parameters[$this->getName()]) . "' ";
+        // Force a scalar context before $DB->escape(): a value posted as an array
+        // (param[]=x) would otherwise reach escape() — which expects a string — and
+        // raise a PHP error instead of failing cleanly. Legitimate scalar values are
+        // unaffected (the result is quoted as a string literal either way).
+        return $link . " " . $this->getSqlField() . "='" . $DB->escape((string) $this->getParameterValue()) . "' ";
     }
 
     /**

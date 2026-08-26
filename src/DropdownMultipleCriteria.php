@@ -326,14 +326,40 @@ class DropdownMultipleCriteria extends AutoCriteria
     {
         global $DB;
 
-        if ($this->getParameterValue() || $this->searchzero) {
+        $value = $this->getParameterValue();
+
+        if ($value || $this->searchzero) {
             if (!$this->childrens) {
-                return $link . " " . $this->getSqlField() . "='" . $DB->escape($this->getParameterValue()) . "' ";
+                // Multi-select posts an array (param[]=x); a single selection arrives as
+                // a scalar. Escape every value and build an IN() list so an array can
+                // never reach $DB->escape() as-is (it expects a string and would raise a
+                // PHP error). The scalar path keeps its original "= 'value'" form.
+                if (is_array($value)) {
+                    $escaped = [];
+                    foreach ($value as $one) {
+                        $escaped[] = "'" . $DB->escape((string) $one) . "'";
+                    }
+                    if (empty($escaped)) {
+                        return '';
+                    }
+                    return $link . " " . $this->getSqlField() . " IN (" . implode(',', $escaped) . ") ";
+                }
+                return $link . " " . $this->getSqlField() . "='" . $DB->escape((string) $value) . "' ";
             }
-            if ($this->getParameterValue()) {
+            if ($value) {
+                // With child resolution, expand every selected id to its descendants.
+                // Cast each id to int before getSonsOf() (which expects a single id) so an
+                // array value degrades safely, and int-cast the final list before the IN().
                 $dbu = new DbUtils();
-                return $link . " " . $this->getSqlField() .
-                    " IN (" . implode(',', $dbu->getSonsOf($this->getTable(), $this->getParameterValue())) . ") ";
+                $ids = [];
+                foreach ((is_array($value) ? $value : [$value]) as $one) {
+                    $ids = array_merge($ids, $dbu->getSonsOf($this->getTable(), (int) $one));
+                }
+                $ids = array_values(array_unique(array_map('intval', $ids)));
+                if (empty($ids)) {
+                    return '';
+                }
+                return $link . " " . $this->getSqlField() . " IN (" . implode(',', $ids) . ") ";
             }
             // 0 + its child means ALL
         }

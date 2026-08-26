@@ -76,7 +76,10 @@ class TicketStatusCriteria extends ArrayCriteria
     public function getSqlCriteriasRestriction($link = 'AND')
     {
 
-        $status = $this->getParameterValue();
+        // Force a scalar context so an array-typed value (param[]=x) collapses to a
+        // string and matches the "all"/default branch cleanly instead of raising a
+        // PHP error; numeric status constants still match via the loose switch compare.
+        $status = (string) $this->getParameterValue();
 
         switch ($status) {
             case "notold":

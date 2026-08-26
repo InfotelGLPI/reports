@@ -81,7 +81,9 @@ class ArrayCriteria extends DropdownCriteria
         if (empty($val) || ($val == 'all')) {
             return '';
         }
-        return $link . " " . $this->getSqlField() . "='" . $DB->escape($val) . "' ";
+        // Force a scalar context so an array-typed value (param[]=x) cannot reach
+        // $DB->escape(), which expects a string; scalar values are unaffected.
+        return $link . " " . $this->getSqlField() . "='" . $DB->escape((string) $val) . "' ";
     }
 
     /**

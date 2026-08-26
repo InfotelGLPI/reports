@@ -106,12 +106,17 @@ class PriorityCriteria extends AutoCriteria
         //If value == 0 : no priority selected
         //If value < 0 : means "priority above the priority selected"
 
-        if ($this->getParameterValue() > 0) {
-            return $link . " " . $this->getSqlField() . "= '" . $DB->escape($this->getParameterValue()) . "'";
+        // Priority is always an integer; cast defensively so a value posted as an
+        // array (param[]=x) collapses to a scalar instead of reaching $DB->escape()
+        // / abs() and raising a PHP error.
+        $priority = (int) $this->getParameterValue();
+
+        if ($priority > 0) {
+            return $link . " " . $this->getSqlField() . "= '" . $DB->escape((string) $priority) . "'";
         }
 
-        if ($this->getParameterValue() < 0) {
-            return $link . " " . $this->getSqlField() . ">= '" . abs($this->getParameterValue()) . "'";
+        if ($priority < 0) {
+            return $link . " " . $this->getSqlField() . ">= '" . abs($priority) . "'";
         }
     }
 

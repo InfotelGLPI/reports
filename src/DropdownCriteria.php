@@ -298,13 +298,17 @@ class DropdownCriteria extends AutoCriteria
 
         if ($this->getParameterValue() || $this->searchzero) {
             if (!$this->childrens) {
-                return $link . " " . $this->getSqlField() . "='" . $DB->escape($this->getParameterValue()) . "' ";
+                // Force a scalar context so an array-typed value (param[]=x) cannot
+                // reach $DB->escape(), which expects a string; scalar values are unaffected.
+                return $link . " " . $this->getSqlField() . "='" . $DB->escape((string) $this->getParameterValue()) . "' ";
             }
             if ($this->getParameterValue()) {
+                // Cast to int before getSonsOf() (which expects a single id) so an
+                // array-typed value degrades safely instead of raising a PHP error.
                 return $link . " " . $this->getSqlField()
                        . " IN (" . implode(',', $dbu->getSonsOf(
                            $this->getTable(),
-                           $this->getParameterValue(),
+                           (int) $this->getParameterValue(),
                        )) . ") ";
             }
             // 0 + its child means ALL

@@ -149,7 +149,10 @@ class IntegerCriteria extends DropdownCriteria
     public function getSqlCriteriasRestriction($link = 'AND')
     {
 
-        $param = $this->getParameterValue();
+        // Cast to int: this criterion is always numeric, and a value posted as an
+        // array (param[]=x) would otherwise hit the "$param * coef" arithmetic and
+        // raise a PHP TypeError instead of degrading to a harmless scalar.
+        $param = (int) $this->getParameterValue();
         return $link . " " . $this->getSqlField() . $this->getSign() . "'" . ($param * $this->coef) . "' ";
     }
 
