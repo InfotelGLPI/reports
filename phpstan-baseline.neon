@@ -25,30 +25,6 @@ parameters:
 			path: setup.php
 
 		-
-			message: '#^Method GlpiPlugin\\Reports\\ArrayCriteria\:\:getSqlCriteriasRestriction\(\) has invalid return type GlpiPlugin\\Reports\\a\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/ArrayCriteria.php
-
-		-
-			message: '#^Method GlpiPlugin\\Reports\\ArrayCriteria\:\:getSqlCriteriasRestriction\(\) should return GlpiPlugin\\Reports\\a but returns string\.$#'
-			identifier: return.type
-			count: 2
-			path: src/ArrayCriteria.php
-
-		-
-			message: '#^Method GlpiPlugin\\Reports\\AutoCriteria\:\:getSqlCriteriasRestriction\(\) has invalid return type GlpiPlugin\\Reports\\a\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/AutoCriteria.php
-
-		-
-			message: '#^Method GlpiPlugin\\Reports\\AutoCriteria\:\:getSqlCriteriasRestriction\(\) should return GlpiPlugin\\Reports\\a but returns string\.$#'
-			identifier: return.type
-			count: 1
-			path: src/AutoCriteria.php
-
-		-
 			message: '#^PHPDoc tag @return has invalid value \(\- label associated with the criteria\)\: Unexpected token "\-", expected type at offset 131 on line 6$#'
 			identifier: phpDoc.parseError
 			count: 1
@@ -277,18 +253,6 @@ parameters:
 			path: src/ColumnTypeLink.php
 
 		-
-			message: '#^Method GlpiPlugin\\Reports\\DateIntervalCriteria\:\:getSqlCriteriasRestriction\(\) has invalid return type GlpiPlugin\\Reports\\a\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/DateIntervalCriteria.php
-
-		-
-			message: '#^Method GlpiPlugin\\Reports\\DateIntervalCriteria\:\:getSqlCriteriasRestriction\(\) should return GlpiPlugin\\Reports\\a but returns string\.$#'
-			identifier: return.type
-			count: 2
-			path: src/DateIntervalCriteria.php
-
-		-
 			message: '#^Access to private property \$criterias_labels of parent class GlpiPlugin\\Reports\\AutoCriteria\.$#'
 			identifier: property.private
 			count: 2
@@ -304,18 +268,6 @@ parameters:
 			message: '#^If condition is always true\.$#'
 			identifier: if.alwaysTrue
 			count: 1
-			path: src/DropdownCriteria.php
-
-		-
-			message: '#^Method GlpiPlugin\\Reports\\DropdownCriteria\:\:getSqlCriteriasRestriction\(\) has invalid return type GlpiPlugin\\Reports\\a\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/DropdownCriteria.php
-
-		-
-			message: '#^Method GlpiPlugin\\Reports\\DropdownCriteria\:\:getSqlCriteriasRestriction\(\) should return GlpiPlugin\\Reports\\a but returns string\.$#'
-			identifier: return.type
-			count: 3
 			path: src/DropdownCriteria.php
 
 		-
@@ -340,18 +292,6 @@ parameters:
 			message: '#^If condition is always true\.$#'
 			identifier: if.alwaysTrue
 			count: 1
-			path: src/DropdownMultipleCriteria.php
-
-		-
-			message: '#^Method GlpiPlugin\\Reports\\DropdownMultipleCriteria\:\:getSqlCriteriasRestriction\(\) has invalid return type GlpiPlugin\\Reports\\a\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/DropdownMultipleCriteria.php
-
-		-
-			message: '#^Method GlpiPlugin\\Reports\\DropdownMultipleCriteria\:\:getSqlCriteriasRestriction\(\) should return GlpiPlugin\\Reports\\a but returns string\.$#'
-			identifier: return.type
-			count: 3
 			path: src/DropdownMultipleCriteria.php
 
 		-
@@ -370,18 +310,6 @@ parameters:
 			message: '#^Access to an undefined property GlpiPlugin\\Reports\\IntegerCriteria\:\:\$unit\.$#'
 			identifier: property.notFound
 			count: 3
-			path: src/IntegerCriteria.php
-
-		-
-			message: '#^Method GlpiPlugin\\Reports\\IntegerCriteria\:\:getSqlCriteriasRestriction\(\) has invalid return type GlpiPlugin\\Reports\\a\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/IntegerCriteria.php
-
-		-
-			message: '#^Method GlpiPlugin\\Reports\\IntegerCriteria\:\:getSqlCriteriasRestriction\(\) should return GlpiPlugin\\Reports\\a but returns string\.$#'
-			identifier: return.type
-			count: 1
 			path: src/IntegerCriteria.php
 
 		-
@@ -437,24 +365,6 @@ parameters:
 			identifier: class.notFound
 			count: 2
 			path: src/Pluginfield.php
-
-		-
-			message: '#^Method GlpiPlugin\\Reports\\PriorityCriteria\:\:getSqlCriteriasRestriction\(\) has invalid return type GlpiPlugin\\Reports\\a\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/PriorityCriteria.php
-
-		-
-			message: '#^Method GlpiPlugin\\Reports\\PriorityCriteria\:\:getSqlCriteriasRestriction\(\) should return GlpiPlugin\\Reports\\a but return statement is missing\.$#'
-			identifier: return.missing
-			count: 1
-			path: src/PriorityCriteria.php
-
-		-
-			message: '#^Method GlpiPlugin\\Reports\\PriorityCriteria\:\:getSqlCriteriasRestriction\(\) should return GlpiPlugin\\Reports\\a but returns string\.$#'
-			identifier: return.type
-			count: 2
-			path: src/PriorityCriteria.php
 
 		-
 			message: '#^Static method CommonITILObject\:\:dropdownPriority\(\) invoked with 3 parameters, 0\-1 required\.$#'
@@ -517,30 +427,6 @@ parameters:
 			path: src/SoftwareCategoriesCriteria.php
 
 		-
-			message: '#^Method GlpiPlugin\\Reports\\TextCriteria\:\:getSqlCriteriasRestriction\(\) has invalid return type GlpiPlugin\\Reports\\a\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/TextCriteria.php
-
-		-
-			message: '#^Method GlpiPlugin\\Reports\\TextCriteria\:\:getSqlCriteriasRestriction\(\) should return GlpiPlugin\\Reports\\a but returns string\.$#'
-			identifier: return.type
-			count: 2
-			path: src/TextCriteria.php
-
-		-
-			message: '#^Method GlpiPlugin\\Reports\\TicketStatusCriteria\:\:getSqlCriteriasRestriction\(\) has invalid return type GlpiPlugin\\Reports\\a\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/TicketStatusCriteria.php
-
-		-
-			message: '#^Method GlpiPlugin\\Reports\\TicketStatusCriteria\:\:getSqlCriteriasRestriction\(\) should return GlpiPlugin\\Reports\\a but returns string\.$#'
-			identifier: return.type
-			count: 2
-			path: src/TicketStatusCriteria.php
-
-		-
 			message: '#^Property GlpiPlugin\\Reports\\TicketStatusCriteria\:\:\$choice is never read, only written\.$#'
 			identifier: property.onlyWritten
 			count: 1
@@ -551,15 +437,3 @@ parameters:
 			identifier: variable.undefined
 			count: 1
 			path: src/TicketStatusCriteria.php
-
-		-
-			message: '#^Method GlpiPlugin\\Reports\\TimeIntervalCriteria\:\:getSqlCriteriasRestriction\(\) has invalid return type GlpiPlugin\\Reports\\a\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/TimeIntervalCriteria.php
-
-		-
-			message: '#^Method GlpiPlugin\\Reports\\TimeIntervalCriteria\:\:getSqlCriteriasRestriction\(\) should return GlpiPlugin\\Reports\\a but returns string\.$#'
-			identifier: return.type
-			count: 2
-			path: src/TimeIntervalCriteria.php
