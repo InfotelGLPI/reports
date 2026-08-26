@@ -40,7 +40,7 @@ $USEDBREPLICATE         = 1;
 $DBCONNECTION_REQUIRED  = 1;
 
 // Initialization of the variables
-global $DB;
+global $DB, $CFG_GLPI;
 
 $dbu = new DbUtils();
 
@@ -71,7 +71,13 @@ if ($report->criteriasValidated()) {
     $title    = $report->getFullTitle();
     $itemtype = $type->getParameterValue();
 
-    if ($itemtype && $itemtype != "all") {
+    // getParameterValue() returns request-controlled input; revalidate it against the
+    // same allow-list that feeds the dropdown (CFG_GLPI['infocom_types'] minus the ignored
+    // types) before it reaches the "new $type()" sink below, which only guards with
+    // class_exists(). Mirrors report/infocom/infocom.php. An invalid itemtype falls back to
+    // the "all" branch.
+    $allowed_types = array_diff($CFG_GLPI['infocom_types'], $ignored);
+    if ($itemtype && $itemtype != "all" && in_array($itemtype, $allowed_types, true)) {
         $types = [$itemtype];
     } else {
         $types = [];
