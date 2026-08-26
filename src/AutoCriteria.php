@@ -176,7 +176,7 @@ abstract class AutoCriteria
      *
      * @param $link   - default 'AND')
      *
-     * @return a where sql request
+     * @return string the where sql request ('' when no criteria applies)
     **/
     public function getSqlCriteriasRestriction($link = 'AND')
     {

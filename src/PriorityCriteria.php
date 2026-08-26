@@ -118,6 +118,9 @@ class PriorityCriteria extends AutoCriteria
         if ($priority < 0) {
             return $link . " " . $this->getSqlField() . ">= '" . abs($priority) . "'";
         }
+
+        // priority == 0 => no priority selected => no restriction
+        return '';
     }
 
     /**
