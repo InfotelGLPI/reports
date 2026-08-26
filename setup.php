@@ -39,7 +39,7 @@ define("REPORTS_NO_ENTITY_RESTRICTION", 0);
 define("REPORTS_CURRENT_ENTITY", 1);
 define("REPORTS_SUB_ENTITIES", 2);
 
-define('PLUGIN_REPORTS_VERSION', '2.0.7');
+define('PLUGIN_REPORTS_VERSION', '2.0.8');
 
 if (!defined('PLUGIN_REPORTS_WEBDIR')) {
     global $CFG_GLPI;
