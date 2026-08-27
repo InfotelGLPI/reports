@@ -71,7 +71,17 @@ if (isset($_POST['delete']) && $report) {
     Profile::updateForReport($_POST);
 }
 
-$tab = $prof->updatePluginRights();
+// The report list is needed to render the page (read-only, safe on GET).
+$tab = Report::searchReport();
+
+// Reconciling stored rights (updateRights() runs deleteByCriteria() on rows of unregistered
+// reports) is a write: perform it only for users allowed to modify profiles, and never as a
+// side effect of a GET page render (CSRF is enforced on non-GET requests only). This mirrors
+// the delete/update branches above, which already require "profile" UPDATE before mutating
+// glpi_profilerights. Reading the page therefore stays side-effect free.
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && Session::haveRight('profile', UPDATE)) {
+    $prof->updateRights($tab);
+}
 
 $reports_names = Report::getAllReportsTitles();
 
