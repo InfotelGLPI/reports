@@ -45,6 +45,8 @@
    </description>
    <homepage>https://github.com/InfotelGLPI/reports</homepage>
    <download>https://github.com/InfotelGLPI/reports/releases</download>
+    <issues>https://github.com/InfotelGLPI/reports/issues</issues>
+    <readme>https://raw.githubusercontent.com/InfotelGLPI/reports/master/README.md</readme>
    <authors>
        <author>Xavier Caillaud</author>
        <author>Infotel</author>
