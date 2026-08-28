@@ -116,10 +116,13 @@ if ($crit == 5) { // Search Duplicate IP Address - From glpi_networking_ports
         'WHERE'  => ['type' => Blacklist::IP]]);
 
     foreach ($query as $data) {
+        // This fragment feeds a QueryExpression, so escape the blacklist value
+        // with the DB layer ($DB::quoteValue already returns a quoted literal)
+        // instead of the unreliable addslashes().
         if (strpos($data["value"], '%')) {
-            $IPBlacklist .= " AND A_ipa.`name` NOT LIKE '" . addslashes($data["value"]) . "'";
+            $IPBlacklist .= " AND A_ipa.`name` NOT LIKE " . $DB::quoteValue($data["value"]);
         } else {
-            $IPBlacklist .= " AND B_ipa.`name` != '" . addslashes($data["value"]) . "'";
+            $IPBlacklist .= " AND B_ipa.`name` != " . $DB::quoteValue($data["value"]);
         }
     }
     //
@@ -278,7 +281,10 @@ if ($crit == 5) { // Search Duplicate IP Address - From glpi_networking_ports
         'WHERE'  => ['type' => Blacklist::MAC]]);
 
     foreach ($query as $data) {
-        $MacBlacklist [] = addslashes($data["value"]);
+        // Passed as an array criterion ('NOT IN', $MacBlacklist) below, which the
+        // DB layer quotes on its own: no manual escaping (addslashes would
+        // double-escape values containing quotes).
+        $MacBlacklist [] = $data["value"];
     }
 
     if (empty($MacBlacklist)) {
@@ -383,7 +389,10 @@ if ($crit == 5) { // Search Duplicate IP Address - From glpi_networking_ports
         'FROM' => 'glpi_blacklists',
         'WHERE'  => ['type' => Blacklist::SERIAL]]);
     foreach ($query as $data) {
-        $SerialBlacklist[] = addslashes($data["value"]);
+        // Passed as an array criterion ('NOT IN', $SerialBlacklist) below, which
+        // the DB layer quotes on its own: no manual escaping (addslashes would
+        // double-escape values containing quotes).
+        $SerialBlacklist[] = $data["value"];
     }
     //
     //    $Sql = "SELECT A.`id` AS AID, A.`name` AS Aname,
@@ -541,7 +550,7 @@ if ($crit > 0) { // Display result
                 echo "<td>" . Html::getMassiveActionCheckBox('Computer', $data["AID"]) . "</td>";
             }
         }
-        echo "<td class='b'>" . $data["AID"] . "</td>";
+        echo "<td class='b'>" . (int) $data["AID"] . "</td>";
         if ($comp->getFromDB($data["AID"])) {
 
             echo "<td>";
@@ -570,7 +579,7 @@ if ($crit > 0) { // Display result
                 echo "<td>" . Html::getMassiveActionCheckBox('Computer', $data["BID"]) . "</td>";
             }
         }
-        echo "<td class='b blue'>" . $data["BID"] . "</td>";
+        echo "<td class='b blue'>" . (int) $data["BID"] . "</td>";
         if ($comp->getFromDB($data["BID"])) {
             echo "<td class='blue'>";
             echo $comp->getLink();
