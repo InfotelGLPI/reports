@@ -73,12 +73,6 @@ parameters:
 			path: src/AutoReport.php
 
 		-
-			message: '#^Binary operation "\." between \(int\|string\) and array\{\(int\|string\)\} results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: src/AutoReport.php
-
-		-
 			message: '#^Function __ invoked with 3 parameters, 1\-2 required\.$#'
 			identifier: arguments.count
 			count: 1
