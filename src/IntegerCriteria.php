@@ -162,7 +162,11 @@ class IntegerCriteria extends DropdownCriteria
     public function getNewSqlCriteriasRestriction($link = 'AND')
     {
 
-        $param = $this->getParameterValue();
+        // Same cast as the legacy branch above, for the same reason: getParameterValue() reads
+        // $_POST, and a value posted as an array (criteria_name[]=1) would reach the
+        // "$param * coef" arithmetic and raise a TypeError instead of degrading to a harmless
+        // scalar.
+        $param = (int) $this->getParameterValue();
         return [$this->getSqlField() => [$this->getSign(), ($param * $this->coef)]];
     }
 

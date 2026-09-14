@@ -209,10 +209,20 @@ abstract class AutoCriteria
     public function getBookmarkUrl()
     {
 
+        // Raw concatenation let a criteria value carrying &, = or / take part in the parsing of
+        // the bookmarked URL, up to shifting the report name AutoReport::__construct() reads back
+        // from the path. Array values are flattened with their index instead of being stringified.
         $url = "";
         foreach ($this->parameters as $parameter => $value) {
-            $url .= '&'
-            . $parameter . '=' . $value;
+            if (is_array($value)) {
+                foreach ($value as $key => $item) {
+                    $url .= '&'
+                    . urlencode($parameter . '[' . $key . ']') . '=' . urlencode((string) $item);
+                }
+            } else {
+                $url .= '&'
+                . urlencode((string) $parameter) . '=' . urlencode((string) $value);
+            }
         }
         return $url;
     }

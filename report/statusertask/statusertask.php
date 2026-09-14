@@ -132,7 +132,7 @@ if ($report->criteriasValidated()) {
         'GROUPBY' => ['tdate', 'realname', 'ticketid'],
     ];
 
-    $criteria['WHERE'] = $criteria['WHERE'] + $report->addNewSqlCriteriasRestriction();
+    $criteria['WHERE'][] = $report->addNewSqlCriteriasRestriction();
 
     $report->setGroupBy('total');
 

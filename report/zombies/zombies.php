@@ -164,7 +164,7 @@ if ($report->criteriasValidated()) {
         'HAVING' => [],
     ];
 
-    $criteria['WHERE'] = $criteria['WHERE'] + $report->addNewSqlCriteriasRestriction();
+    $criteria['WHERE'][] = $report->addNewSqlCriteriasRestriction();
 
     if ($filter->getParameterValue()) {
         $criteria['HAVING'] = $criteria['HAVING'] +  [new QueryExpression("nb1=0 AND nb2=0 AND nb3=0 AND nb4=0")];

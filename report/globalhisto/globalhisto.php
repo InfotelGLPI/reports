@@ -30,6 +30,7 @@
  * --------------------------------------------------------------------------
  */
 
+use Glpi\Exception\Http\AccessDeniedHttpException;
 use GlpiPlugin\Reports\AutoReport;
 use GlpiPlugin\Reports\Column;
 use GlpiPlugin\Reports\ColumnDate;
@@ -43,6 +44,23 @@ global $DB;
 
 // Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
 Session::checkRight("plugin_reports_globalhisto", READ);
+
+// Entity isolation: every other report of this plugin narrows its query with
+// getEntitiesRestrictCriteria() - histoinst, histohard, doublons, transferreditems and the rest.
+// This one selects glpi_logs with nothing but the date interval of the criteria form, and
+// glpi_logs carries no entities_id column: the boundary could only come from a join on the
+// logged item (itemtype/items_id), which the report does not make and cannot make cheaply since
+// it spans every itemtype of the instance. As it stands the report is global by construction, so
+// it is gated the way zombies.php is - the same situation of a listing that no entity can own.
+// Without it, the report right granted in a single child entity handed out the timestamped
+// activity of the whole instance: logins of users outside the caller's perimeter, working
+// rhythms, and the sensitive actions (deletions, hardware connections) of the sibling entities.
+//
+// Session::haveAccessToEntity(0, true) would NOT do: its recursive branch answers true as soon as
+// entity 0 is an ancestor of one of the active entities, which is the case for everybody.
+if (!Session::canViewAllEntities()) {
+    throw new AccessDeniedHttpException();
+}
 
 $report = new AutoReport(__('Global History (for Test / example only)', 'reports'));
 
@@ -96,7 +114,7 @@ if ($report->criteriasValidated()) {
         'ORDERBY' => 'date_mod',
     ];
 
-    $criteria['WHERE'] = $criteria['WHERE'] +  $report->addNewSqlCriteriasRestriction();
+    $criteria['WHERE'][] = $report->addNewSqlCriteriasRestriction();
 
     $report->setSqlRequest($criteria);
     $report->execute();

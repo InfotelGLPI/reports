@@ -120,14 +120,14 @@ if ($report->criteriasValidated()) {
         'ORDERBY' => 'date_mod ASC',
     ];
 
-    $criteria['WHERE'] = $criteria['WHERE'] + $report->addNewSqlCriteriasRestriction();
+    $criteria['WHERE'][] = $report->addNewSqlCriteriasRestriction();
 
     // Entity isolation: the selected itemtype is an entity-scoped asset. Without this
     // restriction on the joined item table, a user holding the report right in a child
     // entity could read the names, inventory numbers and source/target entities of items
     // transferred in entities outside their scope. Mirror the pattern used by the other
     // reports (histoinst, pcsbyentity, ...). is_recursive is auto-detected from the table.
-    $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria($table);
+    $criteria['WHERE'][] = getEntitiesRestrictCriteria($table);
 
     $report->setSqlRequest($criteria);
 

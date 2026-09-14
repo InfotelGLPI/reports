@@ -168,7 +168,7 @@ $criteria = [
     ],
 ];
 
-$criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
+$criteria['WHERE'][] = getEntitiesRestrictCriteria(
     'glpi_locations',
 );
 

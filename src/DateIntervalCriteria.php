@@ -181,17 +181,17 @@ class DateIntervalCriteria extends AutoCriteria
             return [];
         }
 
+        // Both bounds target the same column, so they cannot be two entries of the same map: the
+        // union operator keeps the left operand for a duplicated key and the end date was simply
+        // dropped whenever a start date was given. A numerically indexed list of conditions is
+        // combined with AND by the query builder.
         $sql = [];
         if (!empty($start)) {
-            $sql = [$this->getSqlField() => ['>=', $start . " 00:00:00"]];
+            $sql[] = [$this->getSqlField() => ['>=', $start . " 00:00:00"]];
         }
 
-        //        if (!empty($start) && !empty($end)) {
-        //            $sql .= ' AND ';
-        //        }
-
         if (!empty($end)) {
-            $sql = $sql + [$this->getSqlField() => ['<=', $end . " 23:59:59"]];
+            $sql[] = [$this->getSqlField() => ['<=', $end . " 23:59:59"]];
         }
 
         return $sql;

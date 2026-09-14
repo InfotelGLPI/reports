@@ -78,7 +78,7 @@ class SoftwareWithLicenseCriteria extends DropdownCriteria
             'GROUPBY' => ['glpi_softwares.name'],
         ];
 
-        $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
+        $criteria['WHERE'][] = getEntitiesRestrictCriteria(
             'glpi_softwarelicenses',
         );
         $iterator = $DB->request($criteria);

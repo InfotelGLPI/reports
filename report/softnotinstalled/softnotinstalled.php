@@ -177,7 +177,7 @@ if ($report->criteriasValidated()) {
         ],
     ];
 
-    $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria('glpi_computers');
+    $criteria['WHERE'][] = getEntitiesRestrictCriteria('glpi_computers');
 
     $criteria = $criteria + $report->getNewOrderBy('computer', true);
 

@@ -254,7 +254,7 @@ if ($report->criteriasValidated()) {
 
             $criteria['SELECT'] = array_merge($criteria['SELECT'], [$table . '.otherserial']);
 
-            $criteria['WHERE'] = $criteria['WHERE'] + ['NOT' => [$table . '.otherserial' => null,
+            $criteria['WHERE'][] = ['NOT' => [$table . '.otherserial' => null,
                 'glpi_infocoms.immo_number' => null]];
         } else {
             $criteria['SELECT'] = array_merge($criteria['SELECT'], [new QueryExpression("'' AS otherserial")]);
@@ -331,22 +331,22 @@ if ($report->criteriasValidated()) {
         ];
 
         if ($item->maybeDeleted()) {
-            $criteria['WHERE'] = $criteria['WHERE'] + [$table . '.is_deleted' => 0];
+            $criteria['WHERE'][] = [$table . '.is_deleted' => 0];
         }
 
         if ($item->maybeTemplate()) {
-            $criteria['WHERE'] = $criteria['WHERE'] + [$table . '.is_template' => 0];
+            $criteria['WHERE'][] = [$table . '.is_template' => 0];
         }
 
         if ($item->isEntityAssign()) {
-            $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
+            $criteria['WHERE'][] = getEntitiesRestrictCriteria(
                 $table,
             );
         }
 
-        $criteria['WHERE'] = $criteria['WHERE'] + $budg->getNewSqlCriteriasRestriction();
+        $criteria['WHERE'][] = $budg->getNewSqlCriteriasRestriction();
 
-        $criteria['WHERE'] = $criteria['WHERE'] + $date->getNewSqlCriteriasRestriction();
+        $criteria['WHERE'][] = $date->getNewSqlCriteriasRestriction();
 
         $queries[] = $criteria;
     }

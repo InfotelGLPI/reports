@@ -36,6 +36,7 @@ use AllowDynamicProperties;
 use CommonDBTM;
 use Dropdown;
 use Glpi\Application\View\TemplateRenderer;
+use Glpi\Exception\Http\BadRequestHttpException;
 use Glpi\Search\Output\HTMLSearchOutput;
 use Glpi\Search\SearchEngine;
 use Html;
@@ -69,9 +70,16 @@ class AutoReport extends CommonDBTM
 
     public function __construct($title = '')
     {
-        preg_match('@/(plugins|marketplace)/(.*)/report/(.*)/@', $_SERVER['REQUEST_URI'], $regs);
-        $this->plug = $regs[2];
-        $this->name = $regs[3];
+        // The match is made on the path only and the captures are bound to a single segment: the
+        // query string used to take part in the match and the greedy groups shifted as soon as a
+        // parameter carried "/report/xxx/". A URI that matches nothing left $regs empty, so both
+        // assignments raised an "Undefined array key" warning on every load.
+        $path = (string) parse_url((string) $_SERVER['REQUEST_URI'], PHP_URL_PATH);
+        if (!preg_match('@/(?:plugins|marketplace)/([^/]+)/report/([^/]+)/@', $path, $regs)) {
+            throw new BadRequestHttpException();
+        }
+        $this->plug = $regs[1];
+        $this->name = $regs[2];
         Report::includeLocales($this->name, $this->plug);
         $this->setTitle($title);
     }
@@ -493,7 +501,12 @@ class AutoReport extends CommonDBTM
             if (($start > 0) || (($start + $limit) < $numrows)) {
                 if (is_array($this->sql)) {
                     $criteria = $this->sql;
-                    $criteria['LIMIT'] = $start . '' . $limit;
+                    // "LIMIT $start,$limit" is only valid on the raw SQL branch below; the query
+                    // builder expects two keys. The concatenation turned page 2 of a 20 row page
+                    // into LIMIT '2020', so the pagination never moved and the server rendered an
+                    // arbitrarily large result set.
+                    $criteria['START'] = (int) $start;
+                    $criteria['LIMIT'] = (int) $limit;
                     $res = $DB->request($criteria);
                 } else {
                     $res = $DB->doQuery($this->sql . " LIMIT $start,$limit");
@@ -522,7 +535,10 @@ class AutoReport extends CommonDBTM
             foreach ($_POST as $key => $val) {
                 if (is_array($val)) {
                     foreach ($val as $k => $v) {
-                        echo Html::hidden($key . [$k], ['value' => $v]);
+                        // Concatenating a string and an array yields the literal "Array", so every
+                        // hidden field of a multi-valued criteria carried the same name and the
+                        // criteria was lost on paging and on export.
+                        echo Html::hidden($key . '[' . $k . ']', ['value' => $v]);
                         if (!empty($param)) {
                             $param .= "&";
                         }

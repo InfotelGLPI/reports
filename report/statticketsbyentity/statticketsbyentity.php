@@ -143,7 +143,7 @@ if ($report->criteriasValidated()) {
         'GROUPBY'   => ['glpi_entities.id'],
     ];
 
-    $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
+    $criteria['WHERE'][] = getEntitiesRestrictCriteria(
         'glpi_entities',
     );
 

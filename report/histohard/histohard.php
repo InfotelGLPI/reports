@@ -97,7 +97,7 @@ $criteria = [
     'LIMIT' => '0,100',
 ];
 
-$criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
+$criteria['WHERE'][] = getEntitiesRestrictCriteria(
     'glpi_computers',
 );
 
@@ -150,9 +150,22 @@ foreach ($iterator as $data) {
             case Log::HISTORY_UPDATE_DEVICE:
                 $field = NOT_AVAILABLE;
                 $change = '';
-                $linktype_field = explode('#', $data["itemtype_link"]);
+                // glpi_logs.itemtype_link is stored raw and constrained by nothing: a row written
+                // by an older version, by a third-party plugin or by an import may carry no '#'
+                // separator at all, or name a class that is no longer installed. The two
+                // neighbouring branches resolve their class through $dbu->getItemForItemtype(),
+                // which validates it; this one went straight to $linktype::getDeviceType(), so a
+                // single malformed row turned the whole report into an uncaught Error - a 500 for
+                // every user, for as long as the row stayed inside the 21-day window. Item_Devices
+                // is the only hierarchy declaring getDeviceType() and getSpecificities(), which
+                // makes it the natural allow-list here, and is_a() with $allow_string autoloads
+                // the class and rejects an unknown name in one go.
+                $linktype_field = explode('#', (string) $data["itemtype_link"]);
                 $linktype       = $linktype_field[0];
-                $fieldval          = $linktype_field[1];
+                $fieldval       = $linktype_field[1] ?? '';
+                if (!is_a($linktype, Item_Devices::class, true)) {
+                    break;
+                }
                 $devicetype     = $linktype::getDeviceType();
                 $field          = $devicetype;
                 $specif_fields  = $linktype::getSpecificities();

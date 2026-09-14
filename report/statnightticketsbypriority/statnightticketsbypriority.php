@@ -139,9 +139,9 @@ if ($report->criteriasValidated()) {
         ],
     ];
 
-    $criteria['WHERE'] = $criteria['WHERE'] + $report->addNewSqlCriteriasRestriction();
+    $criteria['WHERE'][] = $report->addNewSqlCriteriasRestriction();
 
-    $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
+    $criteria['WHERE'][] = getEntitiesRestrictCriteria(
         'glpi_tickets',
     );
 

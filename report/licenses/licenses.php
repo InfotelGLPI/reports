@@ -127,11 +127,11 @@ if ($report->criteriasValidated()
         'GROUPBY'   => ['license'],
         'ORDERBY'   => ['license'],
     ];
-    $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
+    $criteria['WHERE'][] = getEntitiesRestrictCriteria(
         'glpi_softwares',
     );
 
-    $criteria['WHERE'] = $criteria['WHERE'] + $license->getNewSqlCriteriasRestriction();
+    $criteria['WHERE'][] = $license->getNewSqlCriteriasRestriction();
 
     $report->setSqlRequest($criteria);
 

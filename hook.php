@@ -32,6 +32,31 @@
 
 function plugin_reports_install()
 {
+    global $DB;
+
+    // The table backing GlpiPlugin\Reports\Pluginfield was never created, so the statdeployment
+    // report and the additional fields configuration screen both hit a missing table since the
+    // very first install. Migration::addTable() does not exist, a plain CREATE TABLE is the idiom.
+    $table = 'glpi_plugin_reports_pluginfields';
+    if (!$DB->tableExists($table)) {
+        $default_charset   = DBConnection::getDefaultCharset();
+        $default_collation = DBConnection::getDefaultCollation();
+        $default_key_sign  = DBConnection::getDefaultPrimaryKeySignOption();
+
+        $DB->doQuery(
+            "CREATE TABLE IF NOT EXISTS `$table` (
+                `id` INT {$default_key_sign} NOT NULL AUTO_INCREMENT,
+                `report` VARCHAR(255) DEFAULT NULL,
+                `itilcategories_id` INT {$default_key_sign} NOT NULL DEFAULT '0',
+                `glpi_plugin_fields_containers_id` INT {$default_key_sign} NOT NULL DEFAULT '0',
+                `glpi_plugin_fields_fields_id` INT {$default_key_sign} NOT NULL DEFAULT '0',
+                PRIMARY KEY (`id`),
+                KEY `report` (`report`),
+                KEY `itilcategories_id` (`itilcategories_id`)
+            ) ENGINE = InnoDB DEFAULT CHARSET = {$default_charset} COLLATE = {$default_collation} ROW_FORMAT = DYNAMIC;",
+        );
+    }
+
     return true;
 }
 
@@ -42,9 +67,14 @@ function plugin_reports_uninstall()
     // otherwise these lines stay orphaned in glpi_profilerights after uninstall.
     (new ProfileRight())->deleteByCriteria(['name' => ['LIKE', 'plugin_reports_%']]);
 
-    // Drop the legacy tables inherited from older versions of the plugin, if they still exist.
+    // Drop the plugin table, plus the legacy ones inherited from older versions if they still
+    // exist.
     $migration = new Migration(PLUGIN_REPORTS_VERSION);
-    foreach (['glpi_plugin_reports_profiles', 'glpi_plugin_reports_oldprofiles'] as $table) {
+    foreach ([
+        'glpi_plugin_reports_pluginfields',
+        'glpi_plugin_reports_profiles',
+        'glpi_plugin_reports_oldprofiles',
+    ] as $table) {
         $migration->dropTable($table);
     }
     $migration->executeMigration();

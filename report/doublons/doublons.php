@@ -266,7 +266,7 @@ if ($crit == 5) { // Search Duplicate IP Address - From glpi_networking_ports
         ],
     ];
 
-    $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
+    $criteria['WHERE'][] = getEntitiesRestrictCriteria(
         'A',
     );
 
@@ -376,7 +376,7 @@ if ($crit == 5) { // Search Duplicate IP Address - From glpi_networking_ports
         ],
     ];
 
-    $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
+    $criteria['WHERE'][] = getEntitiesRestrictCriteria(
         'A',
     );
 
@@ -449,7 +449,7 @@ if ($crit == 5) { // Search Duplicate IP Address - From glpi_networking_ports
             ],
     ];
 
-    $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
+    $criteria['WHERE'][] = getEntitiesRestrictCriteria(
         'A',
     );
 
@@ -538,8 +538,16 @@ if ($crit > 0) { // Display result
         $i++;
         if ($prev != $data["entity"]) {
             $prev = $data["entity"];
+            // Security (stored XSS): since GLPI 10 the dropdown labels are stored raw and
+            // Dropdown::getDropdownName() returns them as they are - escaping is the caller's
+            // job. The serial, otherserial, Aname, Aaddr and Baddr cells of this very report
+            // already go through htmlescape(); the five getDropdownName() calls of the file were
+            // the only ones left out. The labels are writable by anyone holding the dropdown
+            // right, and are also fed without human interaction by the inventory agents and by
+            // the datainjection/API imports, so the payload lands in the session of every holder
+            // of plugin_reports_doublons - up to a super-admin.
             echo "<tr class='tab_bg_4'><td class='center' colspan='$colspan'>"
-               . Dropdown::getDropdownName("glpi_entities", $prev) . "</td></tr>\n";
+               . htmlescape(Dropdown::getDropdownName("glpi_entities", $prev)) . "</td></tr>\n";
         }
         echo "<tr class='tab_bg_2'>";
         if ($canedit) {
@@ -556,9 +564,9 @@ if ($crit > 0) { // Display result
             echo "<td>";
             echo $comp->getLink();
             echo "</td><td>";
-            echo Dropdown::getDropdownName("glpi_manufacturers", $comp->getField('manufacturers_id'));
+            echo htmlescape(Dropdown::getDropdownName("glpi_manufacturers", $comp->getField('manufacturers_id')));
             echo "</td><td>";
-            echo Dropdown::getDropdownName("glpi_computermodels", $comp->getField('computermodels_id'));
+            echo htmlescape(Dropdown::getDropdownName("glpi_computermodels", $comp->getField('computermodels_id')));
             echo "</td><td>" . htmlescape($comp->getField('serial'));
             echo "</td><td>" . htmlescape($comp->getField('otherserial')) . "</td>";
 
@@ -584,9 +592,9 @@ if ($crit > 0) { // Display result
             echo "<td class='blue'>";
             echo $comp->getLink();
             echo "</td><td class='blue'>";
-            echo Dropdown::getDropdownName("glpi_manufacturers", $comp->getField('manufacturers_id'));
+            echo htmlescape(Dropdown::getDropdownName("glpi_manufacturers", $comp->getField('manufacturers_id')));
             echo "</td><td class='blue'>";
-            echo Dropdown::getDropdownName("glpi_computermodels", $comp->getField('computermodels_id'));
+            echo htmlescape(Dropdown::getDropdownName("glpi_computermodels", $comp->getField('computermodels_id')));
             echo "</td><td class='blue'>" . htmlescape($comp->getField('serial'));
             echo "</td><td class='blue'>" . htmlescape($comp->getField('otherserial')) . "</td>";
         } else {

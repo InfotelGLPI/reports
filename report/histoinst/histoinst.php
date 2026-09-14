@@ -107,7 +107,7 @@ $criteria = [
     'LIMIT' => '0,200',
 ];
 
-$criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
+$criteria['WHERE'][] = getEntitiesRestrictCriteria(
     'glpi_computers',
 );
 

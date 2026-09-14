@@ -238,23 +238,33 @@ echo "<tr class='tab_bg_1 center'><th colspan='2'>" . __('Number of items by ent
 echo "<tr class='tab_bg_1'><td class='right'>" . __('Item type') . "</td>";
 echo "<td><select name='type'><option value=''>" . Dropdown::EMPTY_VALUE . "</option>";
 
-$choix = ['Computer'         => _n('Computer', 'Computers', 2),
-    'Monitor'          => _n('Monitor', 'Monitors', 2),
-    'Printer'          => _n('Printer', 'Printers', 2),
-    'NetworkEquipment' => __('Networking'),
-    'Phone'            => _n('Phone', 'Phones', 2)];
+$choix = [\Computer::class         => _n('Computer', 'Computers', 2),
+    \Monitor::class          => _n('Monitor', 'Monitors', 2),
+    \Printer::class          => _n('Printer', 'Printers', 2),
+    \NetworkEquipment::class => __('Networking'),
+    \Phone::class            => _n('Phone', 'Phones', 2)];
 
+// The types the profile is allowed to read are computed once: the dropdown below is built from
+// this list and so is the guard of the result branch, which used to test membership of the static
+// list only and produced the report for any type once the POST was replayed.
+$allowed_types = [];
 foreach ($choix as $id => $name) {
     $item = new $id();
     if ($item->canView()) {
-        echo "<option value='" . $id;
-        if (isset($_POST["type"]) && $_POST["type"] == $id) {
-            echo "' selected='selected'>";
-        } else {
-            echo "'>";
-        }
-        echo $name . "</option>";
+        $allowed_types[$id] = $name;
     }
+}
+
+$posted_type = (isset($_POST["type"]) && is_scalar($_POST["type"])) ? (string) $_POST["type"] : '';
+
+foreach ($allowed_types as $id => $name) {
+    echo "<option value='" . $id;
+    if ($posted_type === $id) {
+        echo "' selected='selected'>";
+    } else {
+        echo "'>";
+    }
+    echo $name . "</option>";
 }
 echo "</select></td></tr>\n";
 
@@ -277,7 +287,11 @@ Html::closeForm();
 echo "</div>\n";
 
 // --------------- Result -------------
-if (isset($_POST["type"]) && $_POST["type"] != '' && array_key_exists($_POST["type"], $choix)) {
+if ($posted_type !== '' && !array_key_exists($posted_type, $allowed_types)) {
+    throw new \Glpi\Exception\Http\AccessDeniedHttpException();
+}
+
+if ($posted_type !== '') {
     echo "<br><table class='tab_cadre'>\n";
 
     echo "<tr><th>" . __('Entity') . "</th>"
@@ -305,7 +319,7 @@ if (isset($_POST["type"]) && $_POST["type"] != '' && array_key_exists($_POST["ty
             DropdownVisibility::getTable() . '.is_visible' => 1,
         ],
     ];
-    $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
+    $criteria['WHERE'][] = getEntitiesRestrictCriteria(
         \State::getTable(),
     );
 
@@ -318,13 +332,13 @@ if (isset($_POST["type"]) && $_POST["type"] != '' && array_key_exists($_POST["ty
     }
     echo "</tr>\n";
 
-    if (isset($_POST["sort"]) && ($_POST["sort"] > 0)) {
-        doStatBis($dbu->getTableForItemType($_POST["type"]), $_SESSION["glpiactiveentities"], $header);
+    if (isset($_POST["sort"]) && is_scalar($_POST["sort"]) && ($_POST["sort"] > 0)) {
+        doStatBis($dbu->getTableForItemType($posted_type), $_SESSION["glpiactiveentities"], $header);
     } else {
-        doStat($dbu->getTableForItemType($_POST["type"]), $_SESSION["glpiactive_entity"], $header);
+        doStat($dbu->getTableForItemType($posted_type), $_SESSION["glpiactive_entity"], $header);
     }
     echo "</table></div>";
-} elseif (isset($_POST["type"]) && $_POST["type"] == '') {
+} elseif (isset($_POST["type"])) {
     echo "<p class='center red'>" . __('Selection of type is mandatory', 'reports') . "</p>";
 }
 

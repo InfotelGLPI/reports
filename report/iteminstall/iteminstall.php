@@ -88,13 +88,13 @@ if ($report->criteriasValidated()) {
             'FROM' => 'glpi_infocoms',
             'WHERE' => [],
         ];
-        $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
+        $criteria['WHERE'][] = getEntitiesRestrictCriteria(
             'glpi_infocoms',
         );
 
-        $criteria['WHERE'] = $criteria['WHERE'] + $date->getNewSqlCriteriasRestriction();
+        $criteria['WHERE'][] = $date->getNewSqlCriteriasRestriction();
 
-        $criteria['WHERE'] = $criteria['WHERE'] + $budg->getNewSqlCriteriasRestriction();
+        $criteria['WHERE'][] = $budg->getNewSqlCriteriasRestriction();
 
         $iterator = $DB->request($criteria);
 
@@ -130,18 +130,18 @@ if ($report->criteriasValidated()) {
             'WHERE' => [],
         ];
         if ($item->maybeDeleted()) {
-            $criteria['WHERE'] = $criteria['WHERE'] + ['is_deleted' => 0];
+            $criteria['WHERE'][] = ['is_deleted' => 0];
         }
         if ($item->maybeTemplate()) {
-            $criteria['WHERE'] = $criteria['WHERE'] + ['is_template' => 0];
+            $criteria['WHERE'][] = ['is_template' => 0];
         }
-        $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
+        $criteria['WHERE'][] = getEntitiesRestrictCriteria(
             $table,
         );
 
-        $criteria['WHERE'] = $criteria['WHERE'] + $date->getNewSqlCriteriasRestriction();
+        $criteria['WHERE'][] = $date->getNewSqlCriteriasRestriction();
 
-        $criteria['WHERE'] = $criteria['WHERE'] + $budg->getNewSqlCriteriasRestriction();
+        $criteria['WHERE'][] = $budg->getNewSqlCriteriasRestriction();
 
         $iterator = $DB->request($criteria);
 
@@ -152,17 +152,17 @@ if ($report->criteriasValidated()) {
         for ($deb = 0 ; $deb < 12 ; $deb = $fin) {
             $fin = $deb + 2;
             if ($deb) {
-                $criteria['WHERE'] = $criteria['WHERE'] + ['use_date' => ['>=', new QueryExpression("DATE_ADD(" . $DB->quoteName("buy_date") . ", INTERVAL $deb MONTH)")]];
+                $criteria['WHERE'][] = ['use_date' => ['>=', new QueryExpression("DATE_ADD(" . $DB->quoteName("buy_date") . ", INTERVAL $deb MONTH)")]];
             }
             if ($fin) {
-                $criteria['WHERE'] = $criteria['WHERE'] + ['use_date' => ['<', new QueryExpression("DATE_ADD(" . $DB->quoteName("buy_date") . ", INTERVAL $fin MONTH)")]];
+                $criteria['WHERE'][] = ['use_date' => ['<', new QueryExpression("DATE_ADD(" . $DB->quoteName("buy_date") . ", INTERVAL $fin MONTH)")]];
             }
             $iterator = $DB->request($criteria);
             foreach ($iterator as $data) {
                 $result[$type]["$deb-$fin"] = $data['cpt'];
             }
         }
-        $criteria['WHERE'] = $criteria['WHERE'] + [
+        $criteria['WHERE'][] = [
             'OR' => [
                 ['use_date' => ['<', new QueryExpression("DATE_ADD(" . $DB->quoteName("buy_date") . ", INTERVAL 12 MONTH)")]],
                 ['use_date' => 'NULL'],

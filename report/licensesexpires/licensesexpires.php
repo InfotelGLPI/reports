@@ -119,7 +119,7 @@ $criteria = [
         'glpi_softwarelicenses.name'],
     'ORDERBY'   => 'glpi_softwarelicenses.expire, glpi_softwarelicenses.name',
 ];
-$criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
+$criteria['WHERE'][] = getEntitiesRestrictCriteria(
     'glpi_softwarelicenses',
 );
 

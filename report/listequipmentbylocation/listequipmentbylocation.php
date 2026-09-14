@@ -175,20 +175,20 @@ function getSqlSubRequest($itemtype, $loc, $obj)
     }
 
     if ($obj->isEntityAssign()) {
-        $criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
+        $criteria['WHERE'][] = getEntitiesRestrictCriteria(
             $table,
         );
     }
 
     if ($obj->maybeTemplate()) {
-        $criteria['WHERE'] = $criteria['WHERE'] + ['is_template' => 0];
+        $criteria['WHERE'][] = ['is_template' => 0];
     }
 
     if ($obj->maybeDeleted()) {
-        $criteria['WHERE'] = $criteria['WHERE'] + ['is_deleted' => 0];
+        $criteria['WHERE'][] = ['is_deleted' => 0];
     }
 
-    $criteria['WHERE'] = $criteria['WHERE'] + $loc->getNewSqlCriteriasRestriction();
+    $criteria['WHERE'][] = $loc->getNewSqlCriteriasRestriction();
 
     return $criteria;
 }

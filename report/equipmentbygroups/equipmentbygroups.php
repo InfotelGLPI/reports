@@ -190,11 +190,11 @@ function getObjectsByGroupAndEntity($group_id, $entity)
         ];
 
         if ($item->maybeTemplate()) {
-            $criteria['WHERE'] = $criteria['WHERE'] + ['is_template' => 0];
+            $criteria['WHERE'][] = ['is_template' => 0];
         }
 
         if ($item->maybeDeleted()) {
-            $criteria['WHERE'] = $criteria['WHERE'] + ['is_deleted' => 0];
+            $criteria['WHERE'][] = ['is_deleted' => 0];
         }
 
         $iterator = $DB->request($criteria);
@@ -265,7 +265,11 @@ function displayUserDevices($type, $result)
         echo "</td><td class='center'>";
 
         if (isset($data["suppliers_id"]) && !empty($data["suppliers_id"])) {
-            echo Dropdown::getDropdownName("glpi_suppliers", $data["suppliers_id"]);
+            // Security (stored XSS): Dropdown::getDropdownName() returns the label exactly as it
+            // is stored, and a supplier name is writable by any holder of the dropdown right or
+            // by an import. The immo_number cell just above escapes for that reason; this one
+            // did not.
+            echo htmlescape(Dropdown::getDropdownName("glpi_suppliers", $data["suppliers_id"]));
         } else {
             echo '&nbsp;';
         }

@@ -99,7 +99,7 @@ $criteria = [
     ],
     'GROUPBY'   => ['completename', 'groupid', 'userid'],
 ];
-$criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
+$criteria['WHERE'][] = getEntitiesRestrictCriteria(
     'glpi_groups',
 );
 

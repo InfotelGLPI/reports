@@ -298,11 +298,11 @@ $criteria = [
     'GROUPBY' => ['groupe'],
 ];
 
-$criteria['WHERE'] = $criteria['WHERE'] + getEntitiesRestrictCriteria(
+$criteria['WHERE'][] = getEntitiesRestrictCriteria(
     'glpi_printers',
 );
 
-$criteria['WHERE'] = $criteria['WHERE'] + $report->addNewSqlCriteriasRestriction();
+$criteria['WHERE'][] = $report->addNewSqlCriteriasRestriction();
 
 $criteria = $criteria + $report->getNewOrderBy('groupe');
 
