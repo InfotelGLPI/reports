@@ -174,8 +174,12 @@ class DateIntervalCriteria extends AutoCriteria
     public function getNewSqlCriteriasRestriction($link = 'AND')
     {
 
-        $start = $this->getStartDate();
-        $end   = $this->getEndDate();
+        // Same filter as the legacy string branch above: getStartDate()/getEndDate() return the
+        // POST values untouched, and the query builder quotes them, so nothing is injectable -
+        // but a malformed date belongs in a rejection here rather than in a comparison MySQL has
+        // to make sense of.
+        $start = $this->getSafeDate($this->getStartDate());
+        $end   = $this->getSafeDate($this->getEndDate());
 
         if (empty($start) && empty($end)) {
             return [];

@@ -43,7 +43,7 @@ $computer = new Computer();
 $dbu      = new DbUtils();
 $computer->checkGlobal(READ);
 
-Html::header(__("History of last hardware's installations", 'reports'), $_SERVER['PHP_SELF'], "utils", "report");
+Html::header(__("History of last hardware's installations", 'reports'), '', "utils", "report");
 
 Report::title();
 

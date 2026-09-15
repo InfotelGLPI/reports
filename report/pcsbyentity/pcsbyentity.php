@@ -200,13 +200,27 @@ function doStatChilds($table, $entity, $header, &$total, $level)
 {
     global $DB;
 
-    // Search child entities
-    $result = $DB->request(['SELECT' => ['id', 'name'],
+    // Search child entities, restricted to the entities the current profile is allowed to see.
+    // Without this restriction, the recursion walks down the whole sub tree of the active entity,
+    // including children the profile has no access to (non recursive entity assignment).
+    $criteria = ['SELECT' => ['id', 'name'],
         'FROM' => 'glpi_entities',
         'WHERE'  => ['entities_id' => $entity],
-        'ORDER'  => 'name']);
+        'ORDER'  => 'name'];
+    $criteria['WHERE'][] = getEntitiesRestrictCriteria(
+        'glpi_entities',
+        'id',
+        $_SESSION['glpiactiveentities'] ?? [],
+        false,
+    );
+
+    $result = $DB->request($criteria);
 
     foreach ($result as $data) {
+        // Defense in depth: never descend into an entity outside the active perimeter
+        if (!Session::haveAccessToEntity($data["id"])) {
+            continue;
+        }
         $fille = doStat($table, $data["id"], $header, $level);
         foreach ($header as $id => $name) {
             $total[$id] += $fille[$id];
@@ -224,7 +238,7 @@ $dbu = new DbUtils();
 
 Session::checkRight("plugin_reports_pcsbyentity", READ);
 //TRANS: The name of the report = Number of items by entity
-Html::header(__('Number of items by entity', 'reports'), $_SERVER['PHP_SELF'], "utils", "report");
+Html::header(__('Number of items by entity', 'reports'), '', "utils", "report");
 
 Report::title();
 
@@ -315,7 +329,7 @@ if ($posted_type !== '') {
         ],
         'WHERE' => [
             DropdownVisibility::getTable() . '.itemtype' => \State::getType(),
-            DropdownVisibility::getTable() . '.visible_itemtype' => strtolower($_POST["type"]),
+            DropdownVisibility::getTable() . '.visible_itemtype' => strtolower($posted_type),
             DropdownVisibility::getTable() . '.is_visible' => 1,
         ],
     ];

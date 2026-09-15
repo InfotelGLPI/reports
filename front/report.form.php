@@ -38,7 +38,7 @@ Session::checkRight('profile', READ);
 
 Html::header(
     __('Reports plugin configuration', 'reports'),
-    $_SERVER['PHP_SELF'],
+    '',
     'config',
     'plugins',
 );

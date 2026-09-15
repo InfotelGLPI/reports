@@ -75,13 +75,13 @@ class ColumnDropdownLinkedType extends Column
             // CommonDBTM subclass, so an unexpected/legacy column value cannot trigger
             // instantiation of an arbitrary class or a fatal error.
             if (!is_a($objname, \CommonDBTM::class, true)) {
-                return $row[$this->name];
+                return $this->displayRawValue($output_type, $row[$this->name]);
             }
             $this->obj = new $objname();
         }
 
         if (!$this->obj || !$this->obj->getFromDB($row[$this->name])) {
-            return $row[$this->name];
+            return $this->displayRawValue($output_type, $row[$this->name]);
         }
 
         if ($output_type == Search::HTML_OUTPUT) {
@@ -89,5 +89,27 @@ class ColumnDropdownLinkedType extends Column
         }
 
         return $this->obj->getNameID();
+    }
+
+
+    /**
+     * Render the stored value when no linked object could be resolved
+     *
+     * Both fallback paths above handed the raw column value back, while Column::displayValue()
+     * escapes it on the HTML branch. The values are foreign keys so nothing exploitable went
+     * through, but the branch has to escape like the class it extends.
+     *
+     * @param int   $output_type Search output type
+     * @param mixed $value       raw column value
+     *
+     * @return mixed
+     */
+    private function displayRawValue($output_type, $value)
+    {
+        if ($output_type == Search::HTML_OUTPUT) {
+            return htmlspecialchars((string) $value, ENT_QUOTES);
+        }
+
+        return $value;
     }
 }

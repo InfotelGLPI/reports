@@ -57,6 +57,24 @@ function plugin_reports_install()
         );
     }
 
+
+    // Seed the profile rights. Without this, no plugin_reports_* line exists in
+    // glpi_profilerights after a fresh install: Session::haveRight() is false for every
+    // report, setup.php registers no menu entry and all the report scripts answer with a
+    // denial, even for a super administrator. Report::searchReport() cannot be used here
+    // because it only lists ACTIVATED plugins and this hook runs before activation, so
+    // enumerate the reports shipped by this plugin directly.
+    $rights = [];
+    foreach (glob(Plugin::getPhpDir('reports') . '/report/*', GLOB_ONLYDIR) as $path) {
+        $rights['plugin_reports_' . basename($path)] = READ;
+    }
+    if (count($rights) > 0) {
+        ProfileRight::addProfileRights(array_keys($rights));
+        foreach (Profile::getSuperAdminProfilesId() as $profiles_id) {
+            ProfileRight::updateProfileRights($profiles_id, $rights);
+        }
+    }
+
     return true;
 }
 

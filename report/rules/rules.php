@@ -100,7 +100,7 @@ function plugin_reports_rulelist($rulecollection, $title)
     echo "</table></div>\n";
 }
 
-Html::header(__("Rule's catalog", 'reports'), $_SERVER['PHP_SELF'], "utils", "report");
+Html::header(__("Rule's catalog", 'reports'), '', "utils", "report");
 
 Report::title();
 

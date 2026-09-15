@@ -56,7 +56,7 @@ class Profile extends \Profile
         $profile = new \Profile();
         $profile->getFromDB($prof->getID());
 
-        $rights = self::getAllRights(true);
+        $rights = self::getAllRights();
 
         $twig = TemplateRenderer::getInstance();
         $twig->display('@reports/profile.html.twig', [
@@ -403,14 +403,18 @@ class Profile extends \Profile
     {
         global $DB;
 
-        if ($item->getType() == \Profile::class) {
+        if ($item instanceof \Profile) {
             if ($item->getField('interface') == 'central') {
                 $nb = 0;
                 if (Session::haveRight('reports', READ)) {
                     if ($_SESSION['glpishow_count_on_tabs']) {
+                        // $item is the profile being rendered; reading $_GET['id'] made the
+                        // counter describe whatever identifier happened to be in the URL - a
+                        // different profile on a nested tab render, and an undefined key notice
+                        // when the tab was reached without it.
                         $query = $DB->request(['COUNT' => 'cpt',
                             'FROM' => 'glpi_profilerights',
-                            'WHERE' => ['profiles_id' => $_GET['id'],
+                            'WHERE' => ['profiles_id' => $item->getID(),
                                 'name'        => ['LIKE', 'plugin_reports_%'],
                                 'rights'      => 1]]);
                         foreach ($query as $data_nb) {
@@ -428,12 +432,22 @@ class Profile extends \Profile
     public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
     {
 
-        if ($item->getType() == \Profile::class) {
+        if ($item instanceof \Profile) {
             if ($item->getField('interface') == 'central') {
-                $ID = $item->getField('id');
-
-                $prof = new self();
-                $prof->updatePluginRights();
+                // updatePluginRights() reconciles glpi_profilerights and runs deleteByCriteria()
+                // on every plugin_reports_% row whose report is no longer registered: that is a
+                // destructive write, and it was executed while merely rendering a tab. A tab is
+                // loaded through ajax/common.tabs.php, which only tests READ on the carrying
+                // item and is a GET - the request GLPI does not protect with the CSRF token - so
+                // a profile holding nothing but "profile" READ wiped the rights of a plugin that
+                // happened to be disabled at that moment, for every profile of the instance.
+                // front/report.form.php already guards the very same call this way; the tab is
+                // the parallel path where the guard was never replayed. Rendering is now free of
+                // side effects.
+                if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET'
+                    && Session::haveRight('profile', UPDATE)) {
+                    (new self())->updatePluginRights();
+                }
 
                 self::showForProfile($item);
             }

@@ -518,7 +518,7 @@ class AutoReport extends CommonDBTM
 
         if ($numrows == 0) {
             if (!$HEADER_LOADED) {
-                Html::header($title, $_SERVER['PHP_SELF'], "utils", "report");
+                Html::header($title, '', "utils", "report");
                 \Report::title();
             }
             echo "<div class='center'><h3>" . htmlescape($title) . "</h3></div>";
@@ -526,7 +526,7 @@ class AutoReport extends CommonDBTM
             Html::footer();
         } elseif ($is_html_output) {
             if (!$HEADER_LOADED) {
-                Html::header($title, $_SERVER['PHP_SELF'], "utils", "report");
+                Html::header($title, '', "utils", "report");
                 \Report::title();
             }
 
@@ -782,12 +782,12 @@ class AutoReport extends CommonDBTM
             }
 
             if (isStat($this->name)) {
-                Html::header($title, $_SERVER['PHP_SELF'], "helpdesk", "stat");
+                Html::header($title, '', "helpdesk", "stat");
                 \Stat::title();
             } else {
                 Html::header(
                     $title,
-                    $_SERVER['PHP_SELF'],
+                    '',
                     "tools",
                     "report",
                 );

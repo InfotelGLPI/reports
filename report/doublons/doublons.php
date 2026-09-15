@@ -43,7 +43,7 @@ $computer->checkGlobal(READ);
 $dbu      = new DbUtils();
 
 //TRANS: The name of the report = Duplicate computers
-Html::header(__('Duplicate computers', 'reports'), $_SERVER['PHP_SELF'], "utils", "report");
+Html::header(__('Duplicate computers', 'reports'), '', "utils", "report");
 
 Report::title();
 
@@ -577,7 +577,7 @@ if ($crit > 0) { // Display result
             echo "<td>" . htmlescape($data["Aaddr"]) . "</td>";
         }
         echo "<td>";
-        echo getLastInventory($data['AID']);
+        echo htmlescape((string) getLastInventory($data['AID']));
         echo "</td>";
         if ($canedit) {
             if (isset($ids[$data["BID"]])) {
@@ -604,7 +604,7 @@ if ($crit > 0) { // Display result
             echo "<td class='blue'>" . htmlescape($data["Baddr"]) . "</td>";
         }
         echo "<td class='blue'>";
-        echo getLastInventory($data['BID']);
+        echo htmlescape((string) getLastInventory($data['BID']));
         echo "</td>";
 
         echo "</tr>\n";

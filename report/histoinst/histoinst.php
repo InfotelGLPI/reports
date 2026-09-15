@@ -45,7 +45,7 @@ $computer->checkGlobal(READ);
 $software = new Software();
 $software->checkGlobal(READ);
 
-Html::header(__("History of last software's installations", 'reports'), $_SERVER['PHP_SELF'], "utils", "report");
+Html::header(__("History of last software's installations", 'reports'), '', "utils", "report");
 
 Report::title();
 

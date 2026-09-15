@@ -35,7 +35,7 @@ $DBCONNECTION_REQUIRED = 0; // Not really a big SQL request
 
 Session::checkRight("plugin_reports_equipmentbygroups", READ);
 
-Html::header(__('List all devices of a group, ordered by users', 'reports'), $_SERVER['PHP_SELF'], "utils", "report");
+Html::header(__('List all devices of a group, ordered by users', 'reports'), '', "utils", "report");
 
 Report::title();
 
@@ -51,10 +51,13 @@ displaySearchForm();
 $where = ['entities_id' => $_SESSION["glpiactive_entity"],
     'is_itemgroup' => 1,
 ];
-if (isset($_GET["groups_id"]) && $_GET["groups_id"]) {
+// The dropdown used to be named "group" while this condition read "groups_id", a key nothing
+// ever filled: the report listed every item group of the active entity whatever the user had
+// selected. Both ends now use the name Group::dropdown() defaults to.
+if (!empty($_GET["groups_id"])) {
     $where = [
         'entities_id' => [$_SESSION["glpiactive_entity"]],
-        'id' => $_GET['groups_id'],
+        'id' => (int) $_GET['groups_id'],
     ];
 }
 
@@ -94,8 +97,8 @@ function displaySearchForm()
     echo "<td width='300'>";
     echo __('Group') . "&nbsp;&nbsp;";
     Group::dropdown([
-        'name' => "group",
-        'value' => $_GET["group"],
+        'name' => "groups_id",
+        'value' => (int) $_GET["groups_id"],
         'entity' => $_SESSION["glpiactive_entity"],
         'condition' => ['is_itemgroup' => 1],
     ]);
@@ -121,8 +124,8 @@ function getValues($get, $post)
 {
     $get = array_merge($get, $post);
 
-    if (!isset($get["group"])) {
-        $get["group"] = 0;
+    if (!isset($get["groups_id"])) {
+        $get["groups_id"] = 0;
     }
     return $get;
 }
@@ -133,7 +136,7 @@ function getValues($get, $post)
  **/
 function resetSearch()
 {
-    $_GET["group"] = 0;
+    $_GET["groups_id"] = 0;
 }
 
 

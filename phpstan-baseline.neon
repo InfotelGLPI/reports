@@ -307,70 +307,10 @@ parameters:
 			path: src/IntegerCriteria.php
 
 		-
-			message: '#^Access to property \$fields on an unknown class PluginFieldsContainer\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Pluginfield.php
-
-		-
-			message: '#^Access to property \$fields on an unknown class PluginFieldsField\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Pluginfield.php
-
-		-
-			message: '#^Call to method find\(\) on an unknown class PluginFieldsContainer\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Pluginfield.php
-
-		-
-			message: '#^Call to method getFromDB\(\) on an unknown class PluginFieldsContainer\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Pluginfield.php
-
-		-
-			message: '#^Call to method getFromDB\(\) on an unknown class PluginFieldsField\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Pluginfield.php
-
-		-
-			message: '#^Call to static method getTypeName\(\) on an unknown class PluginFieldsContainer\.$#'
-			identifier: class.notFound
-			count: 3
-			path: src/Pluginfield.php
-
-		-
-			message: '#^Call to static method getTypeName\(\) on an unknown class PluginFieldsField\.$#'
-			identifier: class.notFound
-			count: 3
-			path: src/Pluginfield.php
-
-		-
-			message: '#^Instantiated class PluginFieldsContainer not found\.$#'
-			identifier: class.notFound
-			count: 2
-			path: src/Pluginfield.php
-
-		-
-			message: '#^Instantiated class PluginFieldsField not found\.$#'
-			identifier: class.notFound
-			count: 2
-			path: src/Pluginfield.php
-
-		-
 			message: '#^Static method CommonITILObject\:\:dropdownPriority\(\) invoked with 3 parameters, 0\-1 required\.$#'
 			identifier: arguments.count
 			count: 1
 			path: src/PriorityCriteria.php
-
-		-
-			message: '#^Call to an undefined method CommonGLPI\:\:getField\(\)\.$#'
-			identifier: method.notFound
-			count: 3
-			path: src/Profile.php
 
 		-
 			message: '#^Expression on left side of \?\? is not nullable\.$#'
@@ -387,18 +327,6 @@ parameters:
 		-
 			message: '#^Missing PHPDoc tag @var for global variable \$LANG$#'
 			identifier: glpi.missingGlobalVarType
-			count: 1
-			path: src/Profile.php
-
-		-
-			message: '#^Parameter \#1 \$prof of static method GlpiPlugin\\Reports\\Profile\:\:showForProfile\(\) expects Profile, CommonGLPI given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Profile.php
-
-		-
-			message: '#^Static method GlpiPlugin\\Reports\\Profile\:\:getAllRights\(\) invoked with 1 parameter, 0 required\.$#'
-			identifier: arguments.count
 			count: 1
 			path: src/Profile.php
 
