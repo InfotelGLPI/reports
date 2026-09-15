@@ -79,10 +79,20 @@ class Report extends CommonDBTM
         $filter = ['FROM' => 'glpi_plugins',
             'WHERE' => ['state' => Plugin::ACTIVATED]];
         if ($all) {
-            $filter = "";
+            // The flag used to replace the criteria by an empty string, which $DB->request()
+            // cannot build a statement from: every caller asking for the complete list got a
+            // database error instead of it. Drop the state restriction, keep the table.
+            $filter = ['FROM' => 'glpi_plugins'];
         }
         foreach ($DB->request($filter) as $plug) {
-            foreach (glob(Plugin::getPhpDir($plug['directory']) . "/report/*", GLOB_ONLYDIR) as $path) {
+            // A row can outlive its directory, when a plugin is removed from the filesystem
+            // without being uninstalled first. getPhpDir() then returns false, which would be
+            // concatenated into an absolute path and send glob() looking outside the instance.
+            $plugin_dir = Plugin::getPhpDir($plug['directory']);
+            if (!is_string($plugin_dir)) {
+                continue;
+            }
+            foreach ((array) glob($plugin_dir . "/report/*", GLOB_ONLYDIR) as $path) {
                 $tab[basename($path)] = $plug['directory'];
                 self::includeLocales(basename($path), $plug['directory']);
             }

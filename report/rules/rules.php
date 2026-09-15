@@ -121,15 +121,20 @@ if ($type == "ldap") {
     echo "<tr><th>" . sprintf(__('%1$s - %2$s'), __("Rule's catalog", 'reports'), __('Rule type')) .
          "</th></tr>";
 
+    // REQUEST_URI already carries a query string whenever the page was reached with one, so a
+    // hard-coded "?" produced a second separator and the type parameter was simply ignored.
+    $self_url   = $_SERVER["REQUEST_URI"];
+    $separator  = str_contains($self_url, '?') ? '&' : '?';
+
     if (Session::haveRight("rule_ldap", READ)) {
         echo "<tr class='tab_bg_1'><td class='center b'>" .
-             "<a href='" . htmlescape($_SERVER["REQUEST_URI"]) . "?type=ldap'>" . __('Authorizations assignment rules') .
+             "<a href='" . htmlescape($self_url . $separator . 'type=ldap') . "'>" . __('Authorizations assignment rules') .
              "</a></td></tr>";
     }
 
     if (Session::haveRight("rule_softwarecategories", READ)) {
         echo "<tr class='tab_bg_1'><td class='center b'>" .
-             "<a href='" . htmlescape($_SERVER["REQUEST_URI"]) . "?type=soft'>" .
+             "<a href='" . htmlescape($self_url . $separator . 'type=soft') . "'>" .
                __('Rules for assigning a category to software') . "</a></td></tr>";
     }
     echo "</table></div>\n";

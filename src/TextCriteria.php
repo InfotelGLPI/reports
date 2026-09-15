@@ -99,9 +99,20 @@ class TextCriteria extends DropdownCriteria
         global $DB;
 
         $param = $this->getParameterValue();
-        if (!empty($param)) {
-            return [new QueryExpression(Search::makeTextCriteria($DB::quoteName($this->getSqlField()), $param))];
+        if (empty($param)) {
+            return [];
         }
+
+        // Search::makeTextCriteria() belongs to the legacy string API: it prefixes what it
+        // returns with its own logical operator, "AND" by default. The query builder already
+        // puts an AND between the elements of a WHERE array, so the fragment landed in the
+        // final query as "AND ( AND (`field` LIKE '%...%'))" -- a MySQL syntax error raised as
+        // soon as the text criteria was filled in, while the report worked with it left empty.
+        // Asking for no operator keeps the parenthesised expression, hence the wildcard and
+        // negation syntax the core supports, and lets the builder place the AND itself.
+        return [new QueryExpression(
+            Search::makeTextCriteria($DB::quoteName($this->getSqlField()), $param, false, ''),
+        )];
     }
 
 }

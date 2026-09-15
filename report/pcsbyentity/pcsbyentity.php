@@ -272,13 +272,14 @@ foreach ($choix as $id => $name) {
 $posted_type = (isset($_POST["type"]) && is_scalar($_POST["type"])) ? (string) $_POST["type"] : '';
 
 foreach ($allowed_types as $id => $name) {
-    echo "<option value='" . $id;
+    echo "<option value='" . htmlescape($id);
     if ($posted_type === $id) {
         echo "' selected='selected'>";
     } else {
         echo "'>";
     }
-    echo $name . "</option>";
+    // Translated labels only, today; escape anyway so a future entry cannot reach the markup.
+    echo htmlescape($name) . "</option>";
 }
 echo "</select></td></tr>\n";
 

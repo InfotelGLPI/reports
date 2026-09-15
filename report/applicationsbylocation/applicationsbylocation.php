@@ -46,6 +46,14 @@ $dbu = new DbUtils();
 // Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
 Session::checkRight("plugin_reports_applicationsbylocation", READ);
 
+// The plugin right gates the report, not the data it publishes: this listing pairs every
+// software version of the entity tree with the computers it is installed on, their location
+// and their holder. Confront both itemtypes it reads, as histoinst already does.
+$software = new Software();
+$software->checkGlobal(READ);
+$computer = new Computer();
+$computer->checkGlobal(READ);
+
 $report = new AutoReport(__('Applications by locations and versions', 'reports'));
 
 $softwarecategories = new SoftwareCategoriesCriteria(

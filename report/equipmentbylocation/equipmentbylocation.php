@@ -47,119 +47,80 @@ $report = new AutoReport(__('Number of equipments by location', 'reports'));
 
 $dbu = new DbUtils();
 
-$report->setColumns([new Column('entity', __('Entity')),
-    new Column('location', __('Location')),
-    new ColumnInteger('computernumber', _n('Computer', 'Computers', 2)),
-    new ColumnInteger('networknumber', _n('Network', 'Networks', 2)),
-    new ColumnInteger('monitornumber', _n('Monitor', 'Monitors', 2)),
-    new ColumnInteger('printernumber', _n('Printer', 'Printers', 2)),
-    new ColumnInteger('peripheralnumber', _n('Device', 'Devices', 2)),
-    new ColumnInteger('phonenumber', _n('Phone', 'Phones', 2))]);
+// The report aggregates the volumetry of six asset types, and the report right alone used to be
+// enough to obtain it: nothing confronted the read right of Computer, Monitor, Printer,
+// Peripheral, Phone or NetworkEquipment, although every sibling report of this plugin does.
+// A profile deliberately denied the assets still got the exact count of each park, location by
+// location. Build the columns, the projection and the derived sub-queries from the types the
+// profile may actually read, so a denied type leaves no trace in the result at all -- it has no
+// column, so no total can give it back by subtraction either.
+$asset_types = [
+    \Computer::class => ['alias' => 'comp', 'column' => 'computernumber',
+        'table' => 'glpi_computers', 'label' => _n('Computer', 'Computers', 2)],
+    \NetworkEquipment::class => ['alias' => 'net', 'column' => 'networknumber',
+        'table' => 'glpi_networkequipments', 'label' => _n('Network', 'Networks', 2)],
+    \Monitor::class => ['alias' => 'mon', 'column' => 'monitornumber',
+        'table' => 'glpi_monitors', 'label' => _n('Monitor', 'Monitors', 2)],
+    \Printer::class => ['alias' => 'pri', 'column' => 'printernumber',
+        'table' => 'glpi_printers', 'label' => _n('Printer', 'Printers', 2)],
+    \Peripheral::class => ['alias' => 'per', 'column' => 'peripheralnumber',
+        'table' => 'glpi_peripherals', 'label' => _n('Device', 'Devices', 2)],
+    \Phone::class => ['alias' => 'pho', 'column' => 'phonenumber',
+        'table' => 'glpi_phones', 'label' => _n('Phone', 'Phones', 2)],
+];
+
+$columns = [new Column('entity', __('Entity')),
+    new Column('location', __('Location'))];
+
+$select = ['glpi_entities.completename AS entity',
+    'glpi_locations.completename AS location'];
+
+$joins = [
+    'glpi_entities' => [
+        'ON' => [
+            'glpi_entities'  => 'id',
+            'glpi_locations' => 'entities_id',
+        ],
+    ],
+];
+
+foreach ($asset_types as $itemtype => $asset) {
+    $item = new $itemtype();
+    if (!$item->canView()) {
+        continue;
+    }
+
+    $columns[] = new ColumnInteger($asset['column'], $asset['label']);
+    $select[]  = $asset['alias'] . '.' . $asset['column'];
+    // Table name, alias and column name all come from the static map above: no request value
+    // ever reaches the expression, which is why it may be written as one.
+    $joins[$asset['alias']] = [
+        'TABLE' => new QueryExpression('(
+                SELECT COUNT(*) AS ' . $asset['column'] . ', locations_id
+                FROM ' . $asset['table'] . '
+                WHERE is_deleted = 0 AND is_template = 0
+                ' . $dbu->getEntitiesRestrictRequest(' AND ', $asset['table']) . '
+                GROUP BY locations_id
+            ) AS ' . $asset['alias']),
+        'ON' => [
+            $asset['alias']  => 'locations_id',
+            'glpi_locations' => 'id',
+        ],
+    ];
+}
+
+if (count($columns) === 2) {
+    // Not one of the six types is readable: the profile would only get the list of the
+    // locations, which is not what this report is. Refuse rather than render an empty grid.
+    throw new \Glpi\Exception\Http\AccessDeniedHttpException();
+}
+
+$report->setColumns($columns);
 
 $criteria = [
-    'SELECT' => [
-        'glpi_entities.completename AS entity',
-        'glpi_locations.completename AS location',
-        'comp.computernumber',
-        'net.networknumber',
-        'mon.monitornumber',
-        'pri.printernumber',
-        'per.peripheralnumber',
-        'pho.phonenumber',
-    ],
+    'SELECT' => $select,
     'FROM' => 'glpi_locations',
-    'LEFT JOIN' => [
-        'glpi_entities' => [
-            'ON' => [
-                'glpi_entities'  => 'id',
-                'glpi_locations' => 'entities_id',
-            ],
-        ],
-        // Computers
-        'comp' => [
-            'TABLE' => new QueryExpression('(
-                SELECT COUNT(*) AS computernumber, locations_id
-                FROM glpi_computers
-                WHERE is_deleted = 0 AND is_template = 0
-                ' . $dbu->getEntitiesRestrictRequest(' AND ', 'glpi_computers') . '
-                GROUP BY locations_id
-            ) AS comp'),
-            'ON' => [
-                'comp' => 'locations_id',
-                'glpi_locations' => 'id',
-            ],
-        ],
-        // Network
-        'net' => [
-            'TABLE' => new QueryExpression('(
-                SELECT COUNT(*) AS networknumber, locations_id
-                FROM glpi_networkequipments
-                WHERE is_deleted = 0 AND is_template = 0
-                ' . $dbu->getEntitiesRestrictRequest(' AND ', 'glpi_networkequipments') . '
-                GROUP BY locations_id
-            ) AS net'),
-            'ON' => [
-                'net' => 'locations_id',
-                'glpi_locations' => 'id',
-            ],
-        ],
-        // Monitors
-        'mon' => [
-            'TABLE' => new QueryExpression('(
-                SELECT COUNT(*) AS monitornumber, locations_id
-                FROM glpi_monitors
-                WHERE is_deleted = 0 AND is_template = 0
-                ' . $dbu->getEntitiesRestrictRequest(' AND ', 'glpi_monitors') . '
-                GROUP BY locations_id
-            ) AS mon'),
-            'ON' => [
-                'mon' => 'locations_id',
-                'glpi_locations' => 'id',
-            ],
-        ],
-        // Printers
-        'pri' => [
-            'TABLE' => new QueryExpression('(
-                SELECT COUNT(*) AS printernumber, locations_id
-                FROM glpi_printers
-                WHERE is_deleted = 0 AND is_template = 0
-                ' . $dbu->getEntitiesRestrictRequest(' AND ', 'glpi_printers') . '
-                GROUP BY locations_id
-            ) AS pri'),
-            'ON' => [
-                'pri' => 'locations_id',
-                'glpi_locations' => 'id',
-            ],
-        ],
-        // Peripherals
-        'per' => [
-            'TABLE' => new QueryExpression('(
-                SELECT COUNT(*) AS peripheralnumber, locations_id
-                FROM glpi_peripherals
-                WHERE is_deleted = 0 AND is_template = 0
-                ' . $dbu->getEntitiesRestrictRequest(' AND ', 'glpi_peripherals') . '
-                GROUP BY locations_id
-            ) AS per'),
-            'ON' => [
-                'per' => 'locations_id',
-                'glpi_locations' => 'id',
-            ],
-        ],
-        // Phones
-        'pho' => [
-            'TABLE' => new QueryExpression('(
-                SELECT COUNT(*) AS phonenumber, locations_id
-                FROM glpi_phones
-                WHERE is_deleted = 0 AND is_template = 0
-                ' . $dbu->getEntitiesRestrictRequest(' AND ', 'glpi_phones') . '
-                GROUP BY locations_id
-            ) AS pho'),
-            'ON' => [
-                'pho' => 'locations_id',
-                'glpi_locations' => 'id',
-            ],
-        ],
-    ],
+    'LEFT JOIN' => $joins,
     'WHERE' => [],
     'GROUPBY'   => ['glpi_locations.id'],
     'ORDERBY' => [

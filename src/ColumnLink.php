@@ -70,16 +70,20 @@ class ColumnLink extends Column
             return '';
         }
 
-        if (!is_int($row[$this->name])) {
+        // The MySQL driver hands integer columns back as strings depending on the connection
+        // settings, so is_int() made the link silently disappear on some installations. Test
+        // the shape of the value, then work on the integer.
+        if (!is_scalar($row[$this->name]) || !ctype_digit((string) $row[$this->name])) {
             return '';
         }
+        $items_id = (int) $row[$this->name];
 
-        if (!$this->obj || !$this->obj->getFromDB($row[$this->name])) {
-            return $row[$this->name];
+        if (!$this->obj || !$this->obj->getFromDB($items_id)) {
+            return (string) $items_id;
         }
 
         if ($this->with_navigate) {
-            Session::addToNavigateListItems($this->obj->getType(), $row[$this->name]);
+            Session::addToNavigateListItems($this->obj->getType(), $items_id);
         }
 
         if ($output_type == Search::HTML_OUTPUT && ($this->obj != null)) {

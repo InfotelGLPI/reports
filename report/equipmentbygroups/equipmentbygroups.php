@@ -41,12 +41,15 @@ Report::title();
 
 global $DB;
 
+// The request used to be merged back into $_GET, which rewrote a superglobal for the rest of
+// the page (and for anything included after it). Keep the merged values in a local array and
+// hand it to the form explicitly.
+$params = getValues($_GET, $_POST);
 if (isset($_GET["reset_search"])) {
-    resetSearch();
+    $params["groups_id"] = 0;
 }
-$_GET = getValues($_GET, $_POST);
 
-displaySearchForm();
+displaySearchForm($params);
 
 $where = ['entities_id' => $_SESSION["glpiactive_entity"],
     'is_itemgroup' => 1,
@@ -54,10 +57,10 @@ $where = ['entities_id' => $_SESSION["glpiactive_entity"],
 // The dropdown used to be named "group" while this condition read "groups_id", a key nothing
 // ever filled: the report listed every item group of the active entity whatever the user had
 // selected. Both ends now use the name Group::dropdown() defaults to.
-if (!empty($_GET["groups_id"])) {
+if (!empty($params["groups_id"])) {
     $where = [
         'entities_id' => [$_SESSION["glpiactive_entity"]],
-        'id' => (int) $_GET['groups_id'],
+        'id' => (int) $params['groups_id'],
     ];
 }
 
@@ -87,9 +90,12 @@ Html::footer();
 /**
  * Display group form
  **/
-function displaySearchForm()
+/**
+ * @param array<string, mixed> $params Merged request values of the report
+ **/
+function displaySearchForm(array $params)
 {
-    global $_SERVER, $_GET, $CFG_GLPI;
+    global $CFG_GLPI;
 
     echo "<form action='" . htmlescape($_SERVER["REQUEST_URI"]) . "' method='post'>";
     echo "<table class='tab_cadre' cellpadding='5'>";
@@ -98,7 +104,7 @@ function displaySearchForm()
     echo __('Group') . "&nbsp;&nbsp;";
     Group::dropdown([
         'name' => "groups_id",
-        'value' => (int) $_GET["groups_id"],
+        'value' => (int) $params["groups_id"],
         'entity' => $_SESSION["glpiactive_entity"],
         'condition' => ['is_itemgroup' => 1],
     ]);
@@ -131,13 +137,6 @@ function getValues($get, $post)
 }
 
 
-/**
- * Reset search
- **/
-function resetSearch()
-{
-    $_GET["groups_id"] = 0;
-}
 
 
 /**
@@ -152,11 +151,23 @@ function getObjectsByGroupAndEntity($group_id, $entity)
 
     $display_header = false;
 
-    foreach ($CFG_GLPI["asset_types"] as $key => $itemtype) {
+    // Two problems in the original loop. It removed entries from $CFG_GLPI['asset_types']
+    // while walking it, which mutated the global list for the rest of the request, and it
+    // had no continue, so Certificate and SoftwareLicense were queried all the same. And no
+    // read right was ever confronted: the only guards on this report are the plugin right
+    // and the active entity, so a profile with no right on Printer, NetworkEquipment, PDU,
+    // Enclosure or a custom asset still received their name, serial number, inventory and
+    // immobilisation numbers, supplier and purchase date. report/pcsbyentity already filters
+    // its type list with canView() for exactly that reason.
+    $asset_types = $CFG_GLPI["asset_types"];
+    foreach ($asset_types as $itemtype) {
         if (($itemtype == 'Certificate') || ($itemtype == 'SoftwareLicense')) {
-            unset($CFG_GLPI["asset_types"][$key]);
+            continue;
         }
         $item = new $itemtype();
+        if (!$item->canView()) {
+            continue;
+        }
 
         $criteria = [
             'SELECT' => [

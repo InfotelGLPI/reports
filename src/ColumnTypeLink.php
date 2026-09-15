@@ -73,7 +73,11 @@ class ColumnTypeLink extends Column
         }
 
         if (!$this->obj || !$this->obj->getFromDB($row[$this->name])) {
-            return 'ID #' . $row[$this->name];
+            // Every other Column class escapes what it returns on the HTML path. The value is a
+            // numeric foreign key today, so nothing is exploitable, but the escaping belongs
+            // here so that a column carrying something else cannot reopen an XSS.
+            $items_id = (string) $row[$this->name];
+            return 'ID #' . ($output_type == Search::HTML_OUTPUT ? htmlescape($items_id) : $items_id);
         }
 
         if ($output_type == Search::HTML_OUTPUT) {

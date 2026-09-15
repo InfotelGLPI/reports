@@ -53,20 +53,11 @@ if (isset($_POST['report'])) {
 
 $prof = new Profile();
 
-if (isset($_POST['delete']) && $report) {
-    // Broken access control: this branch mutates profile rights for every profile at once
-    // (deleteByCriteria then re-add with default access), so it must require write access on
-    // "profile" like the update branch — the page-level READ check is not enough.
-    Session::checkRight('profile', UPDATE);
-    // Only accept a report token that maps to a real registered report so a forged POST
-    // cannot delete/re-create arbitrary plugin_reports_* rows in glpi_profilerights.
-    if (!Profile::isValidReport($report)) {
-        throw new \Glpi\Exception\Http\BadRequestHttpException();
-    }
-    $profile_right = new ProfileRight();
-    $profile_right->deleteByCriteria(['name' => "plugin_reports_$report"]);
-    ProfileRight::addProfileRights(["plugin_reports_$report"]);
-} elseif (isset($_POST['update']) && $report) {
+// No template of this plugin ever emits a "delete" field: the branch that used to answer it
+// reset the right of a report for every profile at once (deleteByCriteria, then re-add with
+// the default access). Keeping an unreachable mass-mutation reachable by a forged POST buys
+// nothing, so the entry point now only honours the update the form actually posts.
+if (isset($_POST['update']) && $report) {
     Session::checkRight('profile', UPDATE);
     Profile::updateForReport($_POST);
 }

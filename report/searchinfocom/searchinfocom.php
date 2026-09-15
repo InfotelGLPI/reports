@@ -51,6 +51,12 @@ $dbu = new DbUtils();
 // Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
 Session::checkRight("plugin_reports_searchinfocom", READ);
 
+// This report selects every column of glpi_infocoms: supplier, order and invoice numbers,
+// purchase date and value, amortization and warranty. Those are gated in the core by the
+// dedicated "infocom" right, which the plugin right must not stand in for -- Infocom itself
+// refuses to display them without it.
+Session::checkRight(Infocom::$rightname, READ);
+
 $report = new AutoReport(__('Search in the financial information', 'reports'));
 
 //Report's search criterias

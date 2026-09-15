@@ -44,6 +44,15 @@ $dbu = new DbUtils();
 // Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
 Session::checkRight("plugin_reports_licensesexpires", READ);
 
+// The plugin right gates the report, not the data it publishes: this listing emits the serial
+// number and the comments of every license of the entity tree, together with the computers
+// they are assigned to. Confront the itemtypes the report reads, as doublons, histohard and
+// histoinst already do.
+$softwarelicense = new SoftwareLicense();
+$softwarelicense->checkGlobal(READ);
+$computer = new Computer();
+$computer->checkGlobal(READ);
+
 $report = new AutoReport(__('Licenses by expiration date', 'reports'));
 
 $report->setColumns(['expire'       => __('Valid to', 'reports'),

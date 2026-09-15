@@ -57,6 +57,13 @@ class ArrayCriteria extends DropdownCriteria
         if (empty($val) || $val == 'all') {
             return '';
         }
+        // $val comes straight from the request. A value missing from the choice list raised an
+        // "Undefined array key" warning and truncated the subtitle; an array value made the
+        // offset access throw a TypeError, answering 500 instead of the report. The two other
+        // methods of this class already force a scalar context, this one was forgotten.
+        if (!is_scalar($val) || !isset($this->choice[$val])) {
+            return '';
+        }
         return " " . sprintf(__('%1$s: %2$s'), $this->getCriteriaLabel(), $this->choice[$val]);
     }
 

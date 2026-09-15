@@ -31,6 +31,7 @@
  */
 
 use Glpi\DBAL\QueryExpression;
+use Glpi\Exception\Http\AccessDeniedHttpException;
 use GlpiPlugin\Reports\AutoReport;
 use GlpiPlugin\Reports\Column;
 use GlpiPlugin\Reports\ColumnDateTime;
@@ -144,6 +145,27 @@ if ($report->criteriasValidated()) {
     $criteria['WHERE'][] = getEntitiesRestrictCriteria(
         'glpi_tickets',
     );
+
+    // The entity boundary applied above is wider than the ITIL visibility perimeter, and this
+    // report publishes nominative tickets: a ColumnLink on Ticket emits the title and a direct
+    // link to each of them. A profile limited to its own tickets (READMY) or to those of its
+    // groups (READGROUP) therefore received every unsolved ticket of its entities, titles
+    // included. The core builds that perimeter in Ticket::getCriteriaFromProfile(); replaying
+    // it is the only way a hand written query can honour it, as statticketsrennesmetropolesaa
+    // and statticketsrennesmetropoledeploiement already do.
+    $visibility_criteria = Ticket::getCriteriaFromProfile();
+    if (!Session::haveRight('ticket', Ticket::READALL) && !isset($visibility_criteria['WHERE'])) {
+        // No ticket visibility right at all: the core perimeter is empty, so there is nothing
+        // this report may legitimately show.
+        throw new AccessDeniedHttpException();
+    }
+    if (isset($visibility_criteria['LEFT JOIN'])) {
+        // The tu and gt aliases the core uses are not taken by the joins declared above.
+        $criteria['LEFT JOIN'] += $visibility_criteria['LEFT JOIN'];
+    }
+    if (isset($visibility_criteria['WHERE'])) {
+        $criteria['WHERE'][] = $visibility_criteria['WHERE'];
+    }
 
     $criteria = $criteria + $report->getNewOrderBy('priority');
 

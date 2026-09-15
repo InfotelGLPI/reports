@@ -66,37 +66,26 @@ class Pluginfield extends CommonDBTM
         return false;
     }
 
+    // The per-item variants -- canCreateItem(), canUpdateItem(), canDeleteItem() and
+    // canPurgeItem() -- are deliberately left to CommonDBTM. They are the hook where the core
+    // applies its per-row control, checkEntity() among others, and answering them with the
+    // global right removes that control for good: the day an entities_id column is added to
+    // glpi_plugin_reports_pluginfields, a profile holding config UPDATE on one entity would
+    // silently be able to write the rows of another. The right this itemtype needs is carried
+    // by the global variants below.
     public static function canUpdate(): bool
     {
         return Session::haveRight(static::$rightname, UPDATE);
     }
 
-    public function canUpdateItem(): bool
-    {
-        return Session::haveRight(static::$rightname, UPDATE);
-    }
     public static function canDelete(): bool
     {
         return Session::haveRight(static::$rightname, UPDATE);
     }
 
-    public function canDeleteItem(): bool
-    {
-        return Session::haveRight(static::$rightname, UPDATE);
-    }
     public static function canPurge(): bool
     {
         return Session::haveRight(static::$rightname, UPDATE);
-    }
-
-    public function canPurgeItem(): bool
-    {
-        return Session::haveRight(static::$rightname, UPDATE);
-    }
-    public function canCreateItem(): bool
-    {
-
-        return Session::haveRight(self::$rightname, UPDATE);
     }
 
     /**

@@ -238,6 +238,16 @@ class DropdownCriteria extends AutoCriteria
 
         $value = $this->getParameterValue();
         if ($value) {
+            // The dropdown is rendered under an entity restriction, but that control protects
+            // the listed rows, not the POSTed value: a forged identifier taken from another
+            // entity still resolved to its completename here, which leaked the location, group
+            // or category nomenclature of entities the caller cannot read -- the result rows
+            // stayed empty, only the subtitle talked. Resolve the label only once the target
+            // has been confronted to the entity perimeter of the session.
+            if (!$this->isValueReadable($value)) {
+                return $this->getCriteriaLabel();
+            }
+
             return $this->getCriteriaLabel() . " : " . Dropdown::getDropdownName($this->getTable(), $value);
         }
 
@@ -248,6 +258,21 @@ class DropdownCriteria extends AutoCriteria
 
         // All
         return '';
+    }
+
+
+    /**
+     * Tell whether the value posted for this criteria designates a row the current session
+     * is allowed to read, so that its label may be echoed back in the report subtitle.
+     *
+     * Fails closed: a table with no resolvable itemtype, or a row that no longer exists,
+     * yields no label rather than an unchecked one.
+     *
+     * @param mixed $value identifier posted for the criteria
+     **/
+    private function isValueReadable($value): bool
+    {
+        return $this->isIdentifierReadable($this->getItemType(), $value);
     }
 
 
@@ -297,6 +322,14 @@ class DropdownCriteria extends AutoCriteria
         $dbu = new DbUtils();
 
         if ($this->getParameterValue() || $this->searchzero) {
+            if ($this->getParameterValue() && !$this->isValueReadable($this->getParameterValue())) {
+                // getSubName() already refuses to echo the label of a row outside the entity
+                // perimeter of the session, but the restriction itself was built from the
+                // posted identifier whatever it designated. Returning an empty restriction
+                // here would WIDEN the result set, so the criteria is kept and made
+                // unsatisfiable instead: no dropdown row ever carries the identifier -1.
+                return $link . " " . $this->getSqlField() . "='-1' ";
+            }
             if (!$this->childrens) {
                 // Force a scalar context so an array-typed value (param[]=x) cannot
                 // reach $DB->escape(), which expects a string; scalar values are unaffected.
@@ -329,6 +362,14 @@ class DropdownCriteria extends AutoCriteria
         }
 
         if (!empty($this->getParameterValue()) || $this->searchzero) {
+            if (!$this->isValueReadable($this->getParameterValue())) {
+                // Same fail closed reasoning as getSqlCriteriasRestriction(): an identifier
+                // the session may not read must not filter the report on a row it cannot see,
+                // and dropping the criteria altogether would widen the result set instead of
+                // narrowing it. -1 is never a dropdown identifier, so the report comes back
+                // empty, which is what the caller is entitled to.
+                return [$this->getSqlField() => -1];
+            }
             if (!$this->childrens) {
                 return [$this->getSqlField() => $this->getParameterValue()];
             }

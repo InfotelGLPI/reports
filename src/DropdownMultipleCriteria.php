@@ -242,9 +242,17 @@ class DropdownMultipleCriteria extends AutoCriteria
     public function getSubName()
     {
 
-        $value = $this->getParameterValue();
-        if ($value) {
-            return $this->getCriteriaLabel() . " : " . Dropdown::getDropdownName($this->getTable(), $value);
+        // Only label the identifiers the session may actually read: the subtitle used to echo
+        // back the name of whatever row was posted, which turned the criteria into an oracle
+        // on the dropdown tables of the other entities. getDropdownName() was also handed the
+        // whole array on a multi-select, where it renders nothing usable.
+        $values = $this->getReadableParameterValues();
+        if ($values !== []) {
+            $names = [];
+            foreach ($values as $one) {
+                $names[] = Dropdown::getDropdownName($this->getTable(), $one);
+            }
+            return $this->getCriteriaLabel() . " : " . implode(', ', $names);
         }
 
         if ($this->searchzero) {
@@ -326,7 +334,20 @@ class DropdownMultipleCriteria extends AutoCriteria
     {
         global $DB;
 
-        $value = $this->getParameterValue();
+        $raw_value = $this->getParameterValue();
+
+        // The identifiers come straight from the request. Confront them with the entity
+        // perimeter of the session before they reach the query: nothing else in this class
+        // did, so a forged value pivoted the report onto a row of another entity.
+        $value = $this->getReadableParameterValues();
+        if (!empty($raw_value) && $value === []) {
+            // Every posted identifier was rejected. Match nothing rather than dropping the
+            // criteria, which would widen the report instead of narrowing it.
+            return $link . " " . $this->getSqlField() . " IN ('-1') ";
+        }
+        if (!is_array($raw_value)) {
+            $value = $value === [] ? $raw_value : reset($value);
+        }
 
         if ($value || $this->searchzero) {
             if (!$this->childrens) {
@@ -373,22 +394,68 @@ class DropdownMultipleCriteria extends AutoCriteria
     public function getNewSqlCriteriasRestriction($link = 'AND')
     {
 
-        if (empty($this->getParameterValue())) {
+        $raw_value = $this->getParameterValue();
+        if (empty($raw_value)) {
             return [];
         }
 
-        if (!empty($this->getParameterValue()) || $this->searchzero) {
-            if (!$this->childrens) {
-                return [$this->getSqlField() => $this->getParameterValue()];
-            }
-            if ($this->getParameterValue()) {
-                $childs = getSonsOf(
-                    $this->getTable(),
-                    $this->getParameterValue(),
-                );
-                return [$this->getSqlField() => $childs];
-            }
-            // 0 + its child means ALL
+        // Same perimeter control as getSqlCriteriasRestriction(): the posted identifiers are
+        // confronted with the entities the session may see before they reach the builder.
+        $value = $this->getReadableParameterValues();
+        if ($value === []) {
+            // Fail closed: match nothing rather than returning no criteria at all.
+            return [$this->getSqlField() => -1];
         }
+        if (!is_array($raw_value)) {
+            $value = reset($value);
+        }
+
+        if (!$this->childrens) {
+            return [$this->getSqlField() => $value];
+        }
+
+        // getSonsOf() takes a single identifier, so a multi-select has to be expanded one
+        // value at a time; the free function used here resolved to nothing in this namespace.
+        $dbu    = new DbUtils();
+        $childs = [];
+        foreach ((is_array($value) ? $value : [$value]) as $one) {
+            $childs = array_merge($childs, $dbu->getSonsOf($this->getTable(), (int) $one));
+        }
+        $childs = array_values(array_unique(array_map('intval', $childs)));
+
+        // An empty list renders as "IN ()" and breaks the query, so degrade to a criteria
+        // that simply matches nothing.
+        return [$this->getSqlField() => $childs === [] ? [-1] : $childs];
+    }
+
+    /**
+     * Identifiers posted for this criteria that the current session is allowed to read.
+     *
+     * A table with no entity perimeter (no resolvable itemtype, or one shared by every
+     * entity) keeps its values untouched.
+     *
+     * @return array<int, mixed>
+     **/
+    private function getReadableParameterValues(): array
+    {
+        $value = $this->getParameterValue();
+        if (empty($value)) {
+            return [];
+        }
+
+        $values   = is_array($value) ? $value : [$value];
+        $itemtype = $this->getItemType();
+        if (!$this->hasEntityPerimeter($itemtype)) {
+            return array_values($values);
+        }
+
+        $readable = [];
+        foreach ($values as $one) {
+            if (is_scalar($one) && $this->isIdentifierReadable($itemtype, $one)) {
+                $readable[] = $one;
+            }
+        }
+
+        return $readable;
     }
 }

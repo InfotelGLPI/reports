@@ -81,9 +81,17 @@ function plugin_reports_install()
 
 function plugin_reports_uninstall()
 {
-    // Remove every profile right the plugin dynamically created (name LIKE 'plugin_reports_%'),
-    // otherwise these lines stay orphaned in glpi_profilerights after uninstall.
-    (new ProfileRight())->deleteByCriteria(['name' => ['LIKE', 'plugin_reports_%']]);
+    // Remove the profile rights the plugin created, enumerating the reports it actually ships
+    // exactly as the install seed does. The purge used to run on the pattern
+    // 'plugin_reports_%', which also matches the rights of any other plugin whose key starts
+    // with "reports" (plugin_reports_foo_*): uninstalling this plugin silently revoked them.
+    $names = [];
+    foreach (glob(Plugin::getPhpDir('reports') . '/report/*', GLOB_ONLYDIR) as $path) {
+        $names[] = 'plugin_reports_' . basename($path);
+    }
+    if (count($names) > 0) {
+        (new ProfileRight())->deleteByCriteria(['name' => $names]);
+    }
 
     // Drop the plugin table, plus the legacy ones inherited from older versions if they still
     // exist.

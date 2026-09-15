@@ -103,21 +103,39 @@ if ($report->criteriasValidated()
 
     $report->setSubNameAuto();
 
-    $queries[] = getSqlSubRequest("Computer", $loc, new Computer());
+    // The only guards on this report are the plugin right and the entity restriction, so the
+    // union used to publish the name, serial number, inventory number, model and status of
+    // every infocom type, including the ones the profile cannot open anywhere else in the
+    // interface. equipmentbygroups.php and pcsbyentity.php already filter their type list
+    // with canView(); apply the same rule here.
+    $queries  = [];
+    $computer = new Computer();
+    if ($computer->canView()) {
+        $queries[] = getSqlSubRequest("Computer", $loc, $computer);
+    }
     foreach ($CFG_GLPI["infocom_types"] as $itemtype) {
         $obj = new $itemtype();
+        if (!$obj->canView()) {
+            continue;
+        }
         if ($obj->isField('locations_id') && ($itemtype != "Computer")) {
             $queries[] = getSqlSubRequest($itemtype, $loc, $obj);
         }
     }
 
-    $union = new QueryUnion($queries, true);
+    if (count($queries) === 0) {
+        // QueryUnion refuses an empty list, and an empty list means the caller may read none
+        // of the types this report aggregates.
+        echo "<div class='alert alert-danger center'>" . __('No results found') . "</div>";
+    } else {
+        $union = new QueryUnion($queries, true);
 
-    $req = ['FROM' => $union];
+        $req = ['FROM' => $union];
 
-    $report->setSqlRequest($req);
+        $report->setSqlRequest($req);
 
-    $report->execute();
+        $report->execute();
+    }
 
 } else {
     echo "<div class='alert alert-danger center'>" . __('Location not selected', 'reports') . "</div>";

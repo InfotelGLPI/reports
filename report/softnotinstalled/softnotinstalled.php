@@ -45,6 +45,14 @@ global $DB;
 // Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
 Session::checkRight("plugin_reports_softnotinstalled", READ);
 
+// The plugin right gates the report, not the data it publishes: this listing enumerates the
+// computers of the entity tree -- name, operating system, status, location -- selected from
+// the software inventory. Confront both itemtypes it reads, as histoinst already does.
+$computer = new Computer();
+$computer->checkGlobal(READ);
+$software = new Software();
+$software->checkGlobal(READ);
+
 $report = new AutoReport(__('Detailed report of software installation by status', 'reports'));
 $soft   = new TextCriteria($report, 'software', _n('Software', 'Software', 1));
 $soft->setSqlField('glpi_softwares.name');

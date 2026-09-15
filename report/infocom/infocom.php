@@ -55,6 +55,12 @@ $DBCONNECTION_REQUIRED  = 0;
 
 global $DB, $CFG_GLPI;
 
+// This report publishes the financial columns of glpi_infocoms -- supplier, purchase date and
+// value, warranty -- for every asset family. Those are gated in the core by the dedicated
+// "infocom" right, which the plugin right must not stand in for: Infocom itself refuses to
+// display them without it.
+Session::checkRight(Infocom::$rightname, READ);
+
 global $DB;
 $dbu = new DbUtils();
 /*
@@ -131,7 +137,18 @@ if ($report->criteriasValidated()) {
     // Whitelist the user-supplied itemtype against the allowed infocom types before it reaches
     // new $itemtype() and the QueryExpression: this prevents arbitrary class instantiation and
     // bypass of the $ignored list (mirrors transferreditems.php / pcsbyentity.php).
-    $allowed_types = array_diff($CFG_GLPI['infocom_types'], $ignored);
+    // Filtering the type list here rather than inside the loop below also removes the types
+    // the profile cannot read from the itemtype dropdown of the criteria form. This report
+    // aggregates financial data -- supplier, purchase date and value, warranty -- and the
+    // plugin right alone must not turn into a transversal read right over the whole asset
+    // base. equipmentbygroups.php and pcsbyentity.php apply the same rule.
+    $allowed_types = [];
+    foreach (array_diff($CFG_GLPI['infocom_types'], $ignored) as $infocom_type) {
+        $infocom_item = new $infocom_type();
+        if ($infocom_item->canView()) {
+            $allowed_types[] = $infocom_type;
+        }
+    }
     if ($sel && $sel != "all" && in_array($sel, $allowed_types, true)) {
         $types = [$sel];
     } else {
@@ -352,12 +369,18 @@ if ($report->criteriasValidated()) {
     }
 
 
-    $union = new QueryUnion($queries, true);
+    if (count($queries) === 0) {
+        // QueryUnion refuses an empty list, and an empty list means the caller may read none
+        // of the infocom types this report aggregates.
+        echo "<div class='alert alert-danger center'>" . __('No results found') . "</div>";
+    } else {
+        $union = new QueryUnion($queries, true);
 
-    $req = ['FROM' => $union];
-    $report->setSqlRequest($req);
+        $req = ['FROM' => $union];
+        $report->setSqlRequest($req);
 
-    $report->execute();
+        $report->execute();
+    }
 
 }
 

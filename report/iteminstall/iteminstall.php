@@ -105,10 +105,18 @@ if ($report->criteriasValidated()) {
 
     $result = [];
     foreach ($types as $type) {
-        if (!class_exists($type)) {
+        // The "all" branch above collects the itemtypes straight out of glpi_infocoms, so the
+        // list is driven by the data, not by what the session may read: without the canView()
+        // below the plugin right alone published the purchase counts and amounts of every
+        // asset family, including the ones the profile has no read right on. infocom.php
+        // applies the same rule on the same itemtype list.
+        if (!class_exists($type) || !is_a($type, CommonDBTM::class, true)) {
             continue;
         }
         $item  = new $type();
+        if (!$item->canView()) {
+            continue;
+        }
         $table = $item->getTable();
 
         // Total of buy equipment

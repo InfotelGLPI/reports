@@ -41,6 +41,10 @@ global $DB;
 
 // Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
 Session::checkRight("plugin_reports_location", READ);
+// The report lists the location tree itself: confront the read right of the itemtype it
+// lists, as every other data-bearing report of this plugin does. The report right alone
+// used to be enough, which was the one remaining inconsistency of the rule.
+(new \Location())->checkGlobal(READ);
 
 $report = new AutoReport(__('Location tree', 'reports'));
 

@@ -43,6 +43,12 @@ global $DB;
 // Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
 Session::checkRight("plugin_reports_listgroups", READ);
 
+// The plugin right gates the report, not the data it publishes: this listing enumerates the
+// groups of the entity tree and their members, which is the organisation chart of the
+// customer. Confront the itemtype it reads, as doublons, histohard and histoinst already do.
+$group = new Group();
+$group->checkGlobal(READ);
+
 $report = new AutoReport(__('List of groups and members', 'reports'));
 
 $report->setColumns([new Column(

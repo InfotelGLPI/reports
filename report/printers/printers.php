@@ -49,6 +49,14 @@ $dbu = new DbUtils();
 // Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
 Session::checkRight("plugin_reports_printers", READ);
 
+// The plugin right gates the report, not the data it publishes: this listing emits the name,
+// serial number, inventory number, immobilization number, warranty dates, page counter and
+// holder of every printer of the entity tree. Confront the itemtype the report reads, as
+// doublons, histohard and histoinst already do, so the report right cannot be turned into a
+// read right over the printer base.
+$printer = new Printer();
+$printer->checkGlobal(READ);
+
 $report = new AutoReport(__('Printers', 'reports'));
 
 // Definition of the criteria

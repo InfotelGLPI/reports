@@ -66,11 +66,22 @@ $report->displayCriteriasForm();
 
 // Declare columns
 if ($report->criteriasValidated()) {
-    $itemtype = $_POST['itemtype'];
+    // The criteria value used to be read back from $_POST, where AutoCriteria injected it so a
+    // report reached through GET still saw it. Ask the criteria for what the request resolved
+    // to instead, now that the superglobals are left alone.
+    $itemtype = $typecritera->getParameterValue();
     if (!array_key_exists($itemtype, $types)) {
         Html::footer();
         exit;
     }
+
+    // The allow-list above bounds which table is read, not who may read it: this listing emits
+    // the name, the inventory number and the source and target entities of every item of the
+    // selected family that was transferred. Confront the itemtype itself, as doublons,
+    // histohard and histoinst already do.
+    $item = new $itemtype();
+    $item->checkGlobal(READ);
+
     $table = $dbu->getTableForItemType($itemtype);
 
     $columns = [new ColumnLink(
@@ -126,8 +137,13 @@ if ($report->criteriasValidated()) {
     // restriction on the joined item table, a user holding the report right in a child
     // entity could read the names, inventory numbers and source/target entities of items
     // transferred in entities outside their scope. Mirror the pattern used by the other
-    // reports (histoinst, pcsbyentity, ...). is_recursive is auto-detected from the table.
-    $criteria['WHERE'][] = getEntitiesRestrictCriteria($table);
+    // reports (histoinst, pcsbyentity, ...).
+    //
+    // The recursion flag is NOT auto-detected: getEntitiesRestrictCriteria() defaults to
+    // $is_recursive = false, which silently hid the recursive rows of the families that carry
+    // an is_recursive column (Software, SoftwareLicense, CartridgeItem) from the child
+    // entities they are shared with. Ask the itemtype instead of guessing from the table.
+    $criteria['WHERE'][] = getEntitiesRestrictCriteria($table, '', '', $item->maybeRecursive());
 
     $report->setSqlRequest($criteria);
 

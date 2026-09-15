@@ -192,10 +192,21 @@ class Profile extends \Profile
         $rightname = "plugin_reports_$report";
         $current   = self::getAllProfilesRights(['name' => $rightname], true);
 
+        // The form only ever offers the rights Report::getRights() declares (READ), but the
+        // posted value was written to glpi_profilerights verbatim: a forged POST persisted an
+        // arbitrary bitmask under a plugin_reports_* right name, which every later
+        // haveRight()/haveRightsOr() call on that name would then honour. Mask the value down
+        // to the bits the report actually defines.
+        $mask = 0;
+        foreach (array_keys((new Report())->getRights()) as $right_bit) {
+            $mask |= (int) $right_bit;
+        }
+
         foreach ($input as $profiles_id => $right) {
             if ($right == 'NULL') {
                 $right = 0;
             }
+            $right = (int) $right & $mask;
             if (is_numeric($profiles_id)) {
                 if (isset($current[$profiles_id])) {
                     $prof->update(['id'     => $current[$profiles_id]['id'],
@@ -220,8 +231,17 @@ class Profile extends \Profile
 
         $profile_right = new ProfileRight();
 
+        // $reports only carries the reports of the activated plugins, which is what the
+        // configuration form displays. The reconciliation below needs more than that: it used to
+        // list every glpi_profilerights row matching 'plugin_reports_%' and delete, for all
+        // profiles at once, each name missing from that list. A right declared by another plugin
+        // as plugin_reports_<plugin>_<report> matches the pattern but leaves the keep list as
+        // soon as its provider is deactivated, so it was destroyed -- silently, and with the
+        // value configured for every profile. This is the defect already corrected in
+        // plugin_reports_uninstall(); enumerate here the reports of every plugin present on the
+        // instance, whatever its state, so that only a report existing nowhere is purged.
         $rights = [];
-        foreach ($reports as $report => $plug) {
+        foreach ($reports + Report::searchReport(true) as $report => $plug) {
             if ($plug == 'reports') {
                 $rights["plugin_reports_$report"] = 1;
             } else {
@@ -229,30 +249,21 @@ class Profile extends \Profile
             }
         }
 
-        $current_rights = [];
+        $obsolete_rights = [];
         foreach ($DB->request(['SELECT'   => 'name',
             'DISTINCT' => true,
             'FROM' => 'glpi_profilerights',
             'WHERE'    => ['name' => ['LIKE', 'plugin_reports_%']]]) as $data) {
-            $current_rights[$data['name']] = 1;
-        }
-
-        // Remove old reports
-        foreach ($current_rights as $right => $value) {
-            if (!isset($rights[$right])) {
-                // Delete the lines for old reports
-                $profile_right->deleteByCriteria(['name' => $right]);
-            } else {
-                unset($rights[$right]);
+            if (!isset($rights[$data['name']])) {
+                $obsolete_rights[] = $data['name'];
             }
         }
-        /*
-              // Add new reports
-              $rights_name = array_keys($rights);
-              ProfileRight::addProfileRights($rights_name);
-              if ($_SESSION['glpiactiveprofile']['id'] == 4) {
-                 $profile_right->updateProfileRights(4, $rights);
-               }*/
+
+        // Delete the leftovers of the reports that no longer exist, in a single statement bound
+        // to the computed set of names rather than one statement per name.
+        if (count($obsolete_rights) > 0) {
+            $profile_right->deleteByCriteria(['name' => $obsolete_rights]);
+        }
     }
 
 

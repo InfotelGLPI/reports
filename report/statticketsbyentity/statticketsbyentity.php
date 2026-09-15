@@ -31,6 +31,7 @@
  */
 
 use Glpi\DBAL\QuerySubQuery;
+use Glpi\Exception\Http\AccessDeniedHttpException;
 use GlpiPlugin\Reports\AutoReport;
 use GlpiPlugin\Reports\Column;
 use GlpiPlugin\Reports\ColumnDateTime;
@@ -48,6 +49,18 @@ $dbu = new DbUtils();
 
 // Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
 Session::checkRight("plugin_reports_statticketsbyentity", READ);
+
+// The ticket counts and the oldest/newest ticket dates published below are restricted to the
+// entity tree only, a boundary wider than the ITIL visibility perimeter: a profile limited to
+// its own tickets (READMY) or to those of its groups (READGROUP) was counting every ticket of
+// its entities. The core builds that perimeter in Ticket::getCriteriaFromProfile(); replaying
+// it is the only way a hand written query can honour it, as statticketsbypriority already
+// does. The core returns an empty array both for READALL and for a profile that may see no
+// ticket at all, so the two cases are told apart by the READALL check.
+$visibility_criteria = Ticket::getCriteriaFromProfile();
+if (!Session::haveRight('ticket', Ticket::READALL) && !isset($visibility_criteria['WHERE'])) {
+    throw new AccessDeniedHttpException();
+}
 
 $report = new AutoReport(__('Helpdesk requesters and tickets by entity', 'reports'));
 
@@ -146,6 +159,15 @@ if ($report->criteriasValidated()) {
     $criteria['WHERE'][] = getEntitiesRestrictCriteria(
         'glpi_entities',
     );
+
+    // The WHERE fragments the core builds reference glpi_tickets by its table name, which is
+    // exactly how the LEFT JOIN above names it, and the tu/gt aliases are free here.
+    if (isset($visibility_criteria['LEFT JOIN'])) {
+        $criteria['LEFT JOIN'] += $visibility_criteria['LEFT JOIN'];
+    }
+    if (isset($visibility_criteria['WHERE'])) {
+        $criteria['WHERE'][] = $visibility_criteria['WHERE'];
+    }
 
     $criteria = $criteria + $report->getNewOrderBy('name');
 

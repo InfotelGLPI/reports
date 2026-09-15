@@ -40,6 +40,7 @@ use Glpi\Exception\Http\BadRequestHttpException;
 use Glpi\Search\Output\HTMLSearchOutput;
 use Glpi\Search\SearchEngine;
 use Html;
+use InvalidArgumentException;
 use SavedSearch;
 use Search;
 use Session;
@@ -66,6 +67,30 @@ class AutoReport extends CommonDBTM
     private $subname = "";
     private $cpt = 0;
     private $title = '';
+    /**
+     * Output type actually requested, validated against the modes the core supports.
+     * Read back by footer(), which runs in another scope than execute().
+     */
+    private $output_type = Search::HTML_OUTPUT;
+    /**
+     * Whether execute() already emitted the GLPI footer, so footer() does not emit a second one.
+     */
+    private $footer_displayed = false;
+    /**
+     * Criteria values resolved for the current request, plus the find, sort and order flags that
+     * go with them. This holds what used to be written back into $_POST: the pager and the export
+     * form are built from it, so a report reached through GET keeps its criteria without any
+     * superglobal being rewritten.
+     *
+     * @var array
+     */
+    private $request_parameters = [];
+    /**
+     * Sort direction the report falls back to when the request carries none.
+     *
+     * @var string
+     */
+    private $default_order = 'ASC';
 
 
     public function __construct($title = '')
@@ -177,11 +202,24 @@ class AutoReport extends CommonDBTM
 
 
     /**
-     * Set sql request to be executed
-     * @param sql the sql request as a string
+     * Set the criteria of the request to be executed.
+     *
+     * A raw SQL string used to be accepted here and handed straight to $DB->doQuery().
+     * None of the reports shipped with the plugin took that branch, but the method is
+     * public and the third party plugins that declare their own reports under report/
+     * inherited an engine that executes arbitrary SQL, which is how an injection gets
+     * written. Only query builder criteria are accepted now.
+     *
+     * @param array $sql criteria, in the $DB->request() format
      **/
     public function setSqlRequest($sql)
     {
+        if (!is_array($sql)) {
+            throw new InvalidArgumentException(
+                'AutoReport::setSqlRequest() expects query builder criteria, not a raw SQL string.',
+            );
+        }
+
         $this->sql = $sql;
     }
 
@@ -264,7 +302,7 @@ class AutoReport extends CommonDBTM
      **/
     public function criteriasValidated()
     {
-        return isset($_POST['find']);
+        return isset($this->request_parameters['find']);
     }
 
 
@@ -348,7 +386,10 @@ class AutoReport extends CommonDBTM
 
         if (!empty($additional_info)) {
             echo "<td class='tab_bg_2'>";
-            echo $additional_info;
+            // The pager cell is echoed verbatim by every caller. No shipped report fills this
+            // parameter today, but it is public API: a report passing a value built from the
+            // request would inject markup straight into the page. Escape at the sink.
+            echo htmlescape($additional_info);
             echo "</td>";
         }
         if (
@@ -379,9 +420,18 @@ class AutoReport extends CommonDBTM
             $count_split = count($split);
             for ($i = 0; $i < $count_split; $i++) {
                 $pos = Toolbox::strpos($split[$i], '=');
-                $length = Toolbox::strlen($split[$i]);
+                if ($pos === false) {
+                    continue;
+                }
+                $field_name = urldecode(Toolbox::substr($split[$i], 0, $pos));
+                // Second barrier against the session token reaching an URL: this form is
+                // declared method='GET', so every hidden field written here comes back in
+                // the query string of the export request.
+                if (str_starts_with($field_name, '_glpi_')) {
+                    continue;
+                }
                 echo Html::hidden(
-                    Toolbox::substr($split[$i], 0, $pos),
+                    $field_name,
                     ['value' => urldecode(Toolbox::substr($split[$i], $pos + 1))],
                 );
             }
@@ -447,35 +497,28 @@ class AutoReport extends CommonDBTM
             // SQL injection: list_limit flows unfiltered into $limit and is concatenated raw
             // into the "LIMIT $start,$limit" clause of a doQuery() below. Force an integer.
             $_SESSION['glpilist_limit'] = (int) $_POST['list_limit'];
-            unset($_POST['list_limit']);
         }
 
         $limit = (int) $_SESSION['glpilist_limit'];
 
         $output_type = Search::HTML_OUTPUT;
         if (isset($_GET["display_type"])) {
-            $output_type = $_GET["display_type"];
+            $output_type = self::validateOutputType($_GET["display_type"]);
         }
 
-        $default_values["start"] = $start = 0;
-        $default_values["id"] = $id = 0;
-        $default_values["export"] = $export = false;
+        // $values never existed in this scope: the variable variables loop that used to stand
+        // here, and the display_type override that followed it, could not run. The export
+        // links carry display_type in the request, which is read above.
+        $start = 0;
 
-        foreach ($default_values as $key => $val) {
-            if (isset($values[$key])) {
-                $$key = $values[$key];
-            }
-        }
         $itemtype = self::class;
-        // Set display type for export if define
-        $output_type = $output_type ?? Search::HTML_OUTPUT;
+
+        // Keep the resolved type on the instance: footer() runs in a scope of its own and used
+        // to read an undefined variable, which the ?? operator silently turned into HTML.
+        $this->output_type = $output_type;
         $output = SearchEngine::getOutputForLegacyKey($output_type);
         $is_html_output = $output instanceof HTMLSearchOutput;
         $html_output = '';
-
-        if (isset($values["display_type"])) {
-            $output_type = $values["display_type"];
-        }
         $title = $this->title;
         if ($this->subname) {
             $title = sprintf(__('%1$s - %2$s'), $title, $this->subname);
@@ -483,14 +526,11 @@ class AutoReport extends CommonDBTM
 
         $numrows = 0;
         $res = [];
+        // setSqlRequest() now refuses anything but criteria, so there is no raw string branch
+        // left to run here. The test remains for a report that never called it at all.
         if (is_array($this->sql)) {
             $res = $DB->request($this->sql);
             $numrows = ($res ? count($res) : 0);
-        } else {
-            if ($this->sql) {
-                $res = $DB->doQuery($this->sql);
-                $numrows = ($res ? $DB->numrows($res) : 0);
-            }
         }
 
         if ($limit) {
@@ -501,15 +541,12 @@ class AutoReport extends CommonDBTM
             if (($start > 0) || (($start + $limit) < $numrows)) {
                 if (is_array($this->sql)) {
                     $criteria = $this->sql;
-                    // "LIMIT $start,$limit" is only valid on the raw SQL branch below; the query
-                    // builder expects two keys. The concatenation turned page 2 of a 20 row page
-                    // into LIMIT '2020', so the pagination never moved and the server rendered an
-                    // arbitrarily large result set.
+                    // The query builder expects two keys; a concatenated "LIMIT $start,$limit"
+                    // turned page 2 of a 20 row page into LIMIT '2020', so the pagination never
+                    // moved and the server rendered an arbitrarily large result set.
                     $criteria['START'] = (int) $start;
                     $criteria['LIMIT'] = (int) $limit;
                     $res = $DB->request($criteria);
-                } else {
-                    $res = $DB->doQuery($this->sql . " LIMIT $start,$limit");
                 }
             }
         } else {
@@ -523,6 +560,7 @@ class AutoReport extends CommonDBTM
             }
             echo "<div class='center'><h3>" . htmlescape($title) . "</h3></div>";
             echo "<div class='alert alert-danger center'>" . __('No results found') . "</div>";
+            $this->footer_displayed = true;
             Html::footer();
         } elseif ($is_html_output) {
             if (!$HEADER_LOADED) {
@@ -532,7 +570,31 @@ class AutoReport extends CommonDBTM
 
             echo "<div class='center'><h3>" . htmlescape($title) . "</h3></div>";
             $param = "";
-            foreach ($_POST as $key => $val) {
+            // The pager links and the hidden fields of the export form republish the request.
+            // They used to be built from $_POST alone, which is why the resolved criteria were
+            // injected into it; take them from the values resolved for this request instead, and
+            // complete them with what was actually posted.
+            $republished = $this->request_parameters;
+            foreach ($_POST as $post_key => $post_val) {
+                if (!array_key_exists($post_key, $republished)) {
+                    $republished[$post_key] = $post_val;
+                }
+            }
+            foreach ($republished as $key => $val) {
+                // The criteria form is closed by Html::closeForm(), which emits a hidden
+                // _glpi_csrf_token: the token was therefore part of $_POST and ended up
+                // concatenated into the pagination string, which printPager() publishes in
+                // every href and re-splits into the hidden fields of a method='GET' export
+                // form. A session token valid until consumption was thus written to the
+                // browser history, the proxy access logs and the Referer header. Internal
+                // _glpi_* fields have no business in a report URL, and every generated form
+                // gets a fresh token of its own anyway.
+                // list_limit is consumed above, where it becomes the session preference. It used
+                // to be unset from $_POST so it would not be republished here; the superglobal is
+                // now left alone and the exclusion is expressed where it belongs.
+                if (str_starts_with((string) $key, '_glpi_') || $key === 'list_limit') {
+                    continue;
+                }
                 if (is_array($val)) {
                     foreach ($val as $k => $v) {
                         // Concatenating a string and an array yields the literal "Array", so every
@@ -542,14 +604,14 @@ class AutoReport extends CommonDBTM
                         if (!empty($param)) {
                             $param .= "&";
                         }
-                        $param .= $key . "[" . $k . "]=" . urlencode($v);
+                        $param .= urlencode($key . '[' . $k . ']') . '=' . urlencode($v);
                     }
                 } else {
                     echo Html::hidden($key, ['value' => $val]);
                     if (!empty($param)) {
                         $param .= "&";
                     }
-                    $param .= "$key=" . urlencode($val);
+                    $param .= urlencode((string) $key) . '=' . urlencode($val);
                 }
             }
             self::printPager($start, $numrows, $_SERVER['REQUEST_URI'], $param, "GlpiPlugin\Reports\AutoReport");
@@ -747,17 +809,54 @@ class AutoReport extends CommonDBTM
             }
         }
         if ($is_html_output) {
+            $this->footer_displayed = true;
             Html::footer();
         }
     }
 
+    /**
+     * Confront a requested display type with the output modes the core actually supports.
+     *
+     * SearchEngine::getOutputForLegacyKey(int $output_type) raises a TypeError on a non numeric
+     * value and a RuntimeException on a key outside the enumeration. The plugin declares no
+     * strict_types and catches neither, so an arbitrary display_type answered 500 with a full
+     * stack trace instead of a 400, giving a trivial way to generate server errors at will.
+     *
+     * @param mixed $output_type
+     */
+    private static function validateOutputType($output_type): int
+    {
+        $allowed_output_types = [
+            Search::GLOBAL_SEARCH,
+            Search::HTML_OUTPUT,
+            Search::PDF_OUTPUT_LANDSCAPE,
+            Search::PDF_OUTPUT_PORTRAIT,
+            Search::CSV_OUTPUT,
+            Search::ODS_OUTPUT,
+            Search::XLSX_OUTPUT,
+            Search::NAMES_OUTPUT,
+        ];
+
+        if (!is_numeric($output_type) || !in_array((int) $output_type, $allowed_output_types, true)) {
+            throw new BadRequestHttpException();
+        }
+
+        return (int) $output_type;
+    }
+
     public function footer()
     {
-        $output_type = $output_type ?? Search::HTML_OUTPUT;
-        $output = SearchEngine::getOutputForLegacyKey($output_type);
-        $is_html_output = $output instanceof HTMLSearchOutput;
+        // $output_type was never assigned in this scope: the ?? operator only hid the undefined
+        // variable notice and always yielded HTML_OUTPUT. Html::footer() was therefore appended
+        // whatever the requested display type, corrupting every CSV, ODS and XLSX export, and
+        // duplicating the footer in HTML since execute() had already emitted it.
+        if ($this->footer_displayed) {
+            return;
+        }
 
-        if ($is_html_output) {
+        $output = SearchEngine::getOutputForLegacyKey($this->output_type);
+        if ($output instanceof HTMLSearchOutput) {
+            $this->footer_displayed = true;
             Html::footer();
         }
     }
@@ -772,7 +871,8 @@ class AutoReport extends CommonDBTM
         $this->manageCriteriasValues();
 
         //Display Html::header is output is HTML
-        if (isset($_REQUEST["display_type"]) && $_REQUEST["display_type"] != Search::HTML_OUTPUT) {
+        if (isset($_REQUEST["display_type"])
+            && self::validateOutputType($_REQUEST["display_type"]) !== Search::HTML_OUTPUT) {
             return;
         }
         if (!$HEADER_LOADED) {
@@ -843,21 +943,53 @@ class AutoReport extends CommonDBTM
 
     public function manageCriteriasValues()
     {
+        // Collect here what the request resolved to, instead of injecting it into $_POST: the
+        // superglobals stay read-only for the whole request, and the pager and the export form
+        // are built from this array by displayReport().
+        $this->request_parameters = [];
         foreach ($this->criterias as $criteria) {
             $criteria->manageCriteriaValues();
+            foreach ($criteria->getParameters() as $parameter => $value) {
+                $this->request_parameters[$parameter] = $value;
+            }
         }
 
         //If selectio form is validated, then stores it
         if (isset($_GET['find']) || isset($_POST['find'])) {
-            $_POST['find'] = true;
+            $this->request_parameters['find'] = true;
         }
         // Order by
         if (isset($_GET['sort'])) {
-            $_POST['sort'] = $_GET['sort'];
+            $this->request_parameters['sort'] = $_GET['sort'];
+        } elseif (isset($_POST['sort'])) {
+            $this->request_parameters['sort'] = $_POST['sort'];
         }
         if (isset($_GET['order'])) {
-            $_POST['order'] = $_GET['order'];
+            $this->request_parameters['order'] = $_GET['order'];
+        } elseif (isset($_POST['order'])) {
+            $this->request_parameters['order'] = $_POST['order'];
         }
+    }
+
+    /**
+     * Criteria values resolved for the current request.
+     *
+     * @return array
+     **/
+    public function getRequestParameters()
+    {
+        return $this->request_parameters;
+    }
+
+    /**
+     * Value a criteria resolved to for the current request.
+     *
+     * @param string $name    name of the criteria
+     * @param mixed  $default value returned when the request carries none
+     **/
+    public function getRequestParameter(string $name, $default = null)
+    {
+        return $this->request_parameters[$name] ?? $default;
     }
 
 
@@ -975,6 +1107,32 @@ class AutoReport extends CommonDBTM
     }
 
     /**
+     * Set the sort direction the report falls back to when the request carries none.
+     *
+     * Reports used to write their default straight into $_REQUEST, which made every later read
+     * of the sort direction return a value the plugin had produced rather than the submitted one.
+     *
+     * @param string $order ASC or DESC
+     **/
+    public function setDefaultOrder($order)
+    {
+        $this->default_order = $order === 'DESC' ? 'DESC' : 'ASC';
+    }
+
+    /**
+     * Sort direction requested for this report: the default of the report unless the request
+     * explicitly asked for another one.
+     *
+     * @return string
+     **/
+    private function getRequestedOrder()
+    {
+        $order = $this->request_parameters['order'] ?? $_REQUEST['order'] ?? $this->default_order;
+
+        return $order === 'DESC' ? 'DESC' : 'ASC';
+    }
+
+    /**
      * Get the fields used for order
      *
      * @param $default string, name of the column used by default
@@ -983,10 +1141,10 @@ class AutoReport extends CommonDBTM
      */
     public function getOrderByFields($default)
     {
-        if (!isset($_REQUEST['sort'])) {
-            $_REQUEST['sort'] = $default;
-        }
-        $colsort = $_REQUEST['sort'];
+        // The default used to be written into $_REQUEST, which turned every later read of the
+        // sort column into a read of a value the plugin had produced. Resolve it locally, so
+        // what the request actually carries stays what the rest of the code reads.
+        $colsort = $this->request_parameters['sort'] ?? $_REQUEST['sort'] ?? $default;
 
         foreach ($this->columns as $colname => $column) {
             if ($colname == $colsort) {
@@ -1006,10 +1164,7 @@ class AutoReport extends CommonDBTM
      */
     public function getOrderBy($default, $setgroupby = false)
     {
-        if (!isset($_REQUEST['order']) || $_REQUEST['order'] != 'DESC') {
-            $_REQUEST['order'] = 'ASC';
-        }
-        $order = $_REQUEST['order'];
+        $order = $this->getRequestedOrder();
 
         $tab = $this->getOrderByFields($default);
 
@@ -1032,10 +1187,7 @@ class AutoReport extends CommonDBTM
      */
     public function getNewOrderBy($default, $setgroupby = false)
     {
-        if (!isset($_REQUEST['order']) || $_REQUEST['order'] != 'DESC') {
-            $_REQUEST['order'] = 'ASC';
-        }
-        $order = $_REQUEST['order'];
+        $order = $this->getRequestedOrder();
 
         $tab = $this->getOrderByFields($default);
         $tab = array_filter($tab);

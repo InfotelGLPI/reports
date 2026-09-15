@@ -32,6 +32,9 @@
 
 namespace GlpiPlugin\Reports;
 
+use CommonDBTM;
+use Session;
+
 /**
  * AutCriteria class manage a new search & filtering criteria
  * It manage display & sql code associated
@@ -322,18 +325,67 @@ abstract class AutoCriteria
     {
 
         foreach ($this->parameters as $parameter => $value) {
-
-            //Add GET & POST values in order to get pager & export working correctly
+            // The resolved value used to be written back into $_POST, so that the pager and the
+            // export form, both built from the whole $_POST, carried the criteria of a report
+            // reached through GET. Rewriting a superglobal makes every later read of $_POST
+            // return a value the plugin produced rather than the one the user submitted, which
+            // is the very pattern equipmentbygroups stopped using. Keep the resolved value here;
+            // AutoReport publishes it through getRequestParameters().
             if (isset($_GET[$parameter])) {
-                $_POST[$parameter] = $this->parameters[$parameter] = $_GET[$parameter];
-            } else {
-                if (isset($_POST[$parameter])) {
-                    $this->parameters[$parameter] = $_POST[$parameter];
-                } else {
-                    $_POST[$parameter] = $this->parameters[$parameter];
-                }
+                $this->parameters[$parameter] = $_GET[$parameter];
+            } elseif (isset($_POST[$parameter])) {
+                $this->parameters[$parameter] = $_POST[$parameter];
             }
         }
     }
 
+    /**
+     * Tell whether the table backing a criteria carries an entity perimeter its posted
+     * identifiers can be confronted with. A table with no resolvable itemtype, or one shared
+     * by every entity, has none: its identifiers are kept as they were posted.
+     *
+     * @param mixed $itemtype itemtype resolved from the criteria table
+     **/
+    protected function hasEntityPerimeter($itemtype): bool
+    {
+        if (!is_string($itemtype) || !is_a($itemtype, CommonDBTM::class, true)) {
+            return false;
+        }
+
+        $item = new $itemtype();
+
+        return $item->isEntityAssign();
+    }
+
+    /**
+     * Tell whether an identifier posted for a criteria designates a row the current session is
+     * allowed to read, so that it may be handed to the query or echoed back as a label.
+     *
+     * Fails closed: a table with no resolvable itemtype, or a row that no longer exists,
+     * yields no match rather than an unchecked one.
+     *
+     * @param mixed $itemtype itemtype resolved from the criteria table
+     * @param mixed $value    identifier posted for the criteria
+     **/
+    protected function isIdentifierReadable($itemtype, $value): bool
+    {
+        if (!is_string($itemtype) || !is_a($itemtype, CommonDBTM::class, true)) {
+            return false;
+        }
+
+        $item = new $itemtype();
+        if (!$item->getFromDB((int) $value)) {
+            return false;
+        }
+
+        if (!$item->isEntityAssign()) {
+            // Table shared by every entity: there is no perimeter to confront.
+            return true;
+        }
+
+        return Session::haveAccessToEntity(
+            $item->fields['entities_id'],
+            (bool) ($item->fields['is_recursive'] ?? false),
+        );
+    }
 }
