@@ -204,15 +204,19 @@ abstract class AutoCriteria
      * @param $link   - default 'AND')
      *
      * @return string the where sql request ('' when no criteria applies)
+     *
+     * @deprecated Kept for third-party reports that still concatenate SQL. Prefer
+     *             getNewSqlCriteriasRestriction(): its array criteria are quoted by
+     *             $DB->request() itself.
     **/
     public function getSqlCriteriasRestriction($link = 'AND')
     {
         global $DB;
-        // Force a scalar context before $DB->escape(): a value posted as an array
-        // (param[]=x) would otherwise reach escape() — which expects a string — and
+        // Force a scalar context before $DB::quoteValue(): a value posted as an array
+        // (param[]=x) would otherwise reach the helper — which expects a string — and
         // raise a PHP error instead of failing cleanly. Legitimate scalar values are
         // unaffected (the result is quoted as a string literal either way).
-        return $link . " " . $this->getSqlField() . "='" . $DB->escape((string) $this->getParameterValue()) . "' ";
+        return $link . " " . $DB::quoteName($this->getSqlField()) . "=" . $DB::quoteValue((string) $this->getParameterValue()) . " ";
     }
 
     /**

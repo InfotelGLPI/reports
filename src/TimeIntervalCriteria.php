@@ -113,21 +113,26 @@ class TimeIntervalCriteria extends AutoCriteria
 
     /**
      * @see plugins/reports/inc/AutoCriteria::getSqlCriteriasRestriction()
+     *
+     * @deprecated Kept for third-party reports that still concatenate SQL. Prefer
+     *             getNewSqlCriteriasRestriction(): its array criteria are quoted by
+     *             $DB->request() itself.
     **/
     public function getSqlCriteriasRestriction($link = 'AND')
     {
+        global $DB;
 
         $begin = $this->getSafeTime('starttime');
         $end   = $this->getSafeTime('endtime');
 
         if ($this->getParameter("starttime") < $this->getParameter("endtime")) {
             // ex  08:00:00 <= time < 18:00:00
-            return " $link TIME(" . $this->getSqlField() . ") >= '" . $begin . "'
-                 AND TIME(" . $this->getSqlField() . ") < '" . $end . "'";
+            return " $link TIME(" . $DB::quoteName($this->getSqlField()) . ") >= '" . $begin . "'
+                 AND TIME(" . $DB::quoteName($this->getSqlField()) . ") < '" . $end . "'";
         }
         // ex time < 08:00:00 or 18:00:00 <= time
-        return " $link (TIME(" . $this->getSqlField() . ") >= '" . $begin . "'
-                      OR TIME(" . $this->getSqlField() . ") < '" . $end . "')";
+        return " $link (TIME(" . $DB::quoteName($this->getSqlField()) . ") >= '" . $begin . "'
+                      OR TIME(" . $DB::quoteName($this->getSqlField()) . ") < '" . $end . "')";
     }
 
     /**

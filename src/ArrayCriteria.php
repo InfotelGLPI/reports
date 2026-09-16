@@ -79,6 +79,10 @@ class ArrayCriteria extends DropdownCriteria
 
     /**
      * Get SQL code associated with the criteria
+     *
+     * @deprecated Kept for third-party reports that still concatenate SQL. Prefer
+     *             getNewSqlCriteriasRestriction(): its array criteria are quoted by
+     *             $DB->request() itself.
      */
     public function getSqlCriteriasRestriction($link = 'AND')
     {
@@ -89,8 +93,8 @@ class ArrayCriteria extends DropdownCriteria
             return '';
         }
         // Force a scalar context so an array-typed value (param[]=x) cannot reach
-        // $DB->escape(), which expects a string; scalar values are unaffected.
-        return $link . " " . $this->getSqlField() . "='" . $DB->escape((string) $val) . "' ";
+        // $DB::quoteValue(), which expects a scalar; scalar values are unaffected.
+        return $link . " " . $DB::quoteName($this->getSqlField()) . "=" . $DB::quoteValue((string) $val) . " ";
     }
 
     /**

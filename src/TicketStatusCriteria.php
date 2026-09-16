@@ -72,9 +72,14 @@ class TicketStatusCriteria extends ArrayCriteria
      * Get SQL code associated with the criteria
      *
      * @see plugins/reports/inc/ArrayCriteria::getSqlCriteriasRestriction()
+     *
+     * @deprecated Kept for third-party reports that still concatenate SQL. Prefer
+     *             getNewSqlCriteriasRestriction(): its array criteria are quoted by
+     *             $DB->request() itself.
     **/
     public function getSqlCriteriasRestriction($link = 'AND')
     {
+        global $DB;
 
         // Force a scalar context so an array-typed value (param[]=x) collapses to a
         // string and matches the "all"/default branch cleanly instead of raising a
@@ -130,7 +135,7 @@ class TicketStatusCriteria extends ArrayCriteria
             default:
                 return '';
         }
-        return $link . " " . $this->getSqlField() . " IN ('" . $list . "') ";
+        return $link . " " . $DB::quoteName($this->getSqlField()) . " IN ('" . $list . "') ";
     }
 
     /**

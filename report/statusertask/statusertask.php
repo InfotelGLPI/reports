@@ -57,7 +57,9 @@ $display_type = Search::HTML_OUTPUT;
 if ($report->criteriasValidated()) {
 
     $cols = [new Column('realname', __('User')),
-        new Column('date', __('Date')),
+        // The SELECT aliases the formatted date as tdate (date is a reserved word) and
+        // the GROUP BY follows: the column has to read the row under that very key.
+        new Column('tdate', __('Date')),
         new Column('ticketid', __('Ticket task id')),
         new Column('duree', __('Duration')),
         new Column('nbretask', __('Number created tasks', 'reports')),

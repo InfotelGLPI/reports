@@ -145,15 +145,20 @@ class IntegerCriteria extends DropdownCriteria
 
     /**
      * @see plugins/reports/inc/DropdownCriteria::getSqlCriteriasRestriction()
+     *
+     * @deprecated Kept for third-party reports that still concatenate SQL. Prefer
+     *             getNewSqlCriteriasRestriction(): its array criteria are quoted by
+     *             $DB->request() itself.
     **/
     public function getSqlCriteriasRestriction($link = 'AND')
     {
+        global $DB;
 
         // Cast to int: this criterion is always numeric, and a value posted as an
         // array (param[]=x) would otherwise hit the "$param * coef" arithmetic and
         // raise a PHP TypeError instead of degrading to a harmless scalar.
         $param = (int) $this->getParameterValue();
-        return $link . " " . $this->getSqlField() . $this->getSign() . "'" . ($param * $this->coef) . "' ";
+        return $link . " " . $DB::quoteName($this->getSqlField()) . $this->getSign() . "'" . ($param * $this->coef) . "' ";
     }
 
     /**

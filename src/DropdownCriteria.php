@@ -317,6 +317,10 @@ class DropdownCriteria extends AutoCriteria
      * Get SQL code associated with the criteria
      *
      * @see plugins/reports/inc/AutoCriteria::getSqlCriteriasRestriction()
+     *
+     * @deprecated Kept for third-party reports that still concatenate SQL. Prefer
+     *             getNewSqlCriteriasRestriction(): its array criteria are quoted by
+     *             $DB->request() itself.
     **/
     public function getSqlCriteriasRestriction($link = 'AND')
     {
@@ -331,17 +335,17 @@ class DropdownCriteria extends AutoCriteria
                 // posted identifier whatever it designated. Returning an empty restriction
                 // here would WIDEN the result set, so the criteria is kept and made
                 // unsatisfiable instead: no dropdown row ever carries the identifier -1.
-                return $link . " " . $this->getSqlField() . "='-1' ";
+                return $link . " " . $DB::quoteName($this->getSqlField()) . "='-1' ";
             }
             if (!$this->childrens) {
-                // Cast kept although the accessor already answers a string: $DB->escape() is
-                // typed against one, and the guarantee belongs next to the call that needs it.
-                return $link . " " . $this->getSqlField() . "='" . $DB->escape((string) $this->getScalarParameterValue()) . "' ";
+                // Cast kept although the accessor already answers a string: $DB::quoteValue()
+                // is typed against one, and the guarantee belongs next to the call that needs it.
+                return $link . " " . $DB::quoteName($this->getSqlField()) . "=" . $DB::quoteValue((string) $this->getScalarParameterValue()) . " ";
             }
             if ($this->getScalarParameterValue()) {
                 // getSonsOf() expects a single id, hence the cast on a value that is a string
                 // by construction here.
-                return $link . " " . $this->getSqlField()
+                return $link . " " . $DB::quoteName($this->getSqlField())
                        . " IN (" . implode(',', $dbu->getSonsOf(
                            $this->getTable(),
                            (int) $this->getScalarParameterValue(),

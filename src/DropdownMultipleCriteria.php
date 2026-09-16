@@ -351,6 +351,10 @@ class DropdownMultipleCriteria extends AutoCriteria
      * Get SQL code associated with the criteria
      *
      * @see plugins/reports/inc/PluginReportsAutoCriteria::getSqlCriteriasRestriction()
+     *
+     * @deprecated Kept for third-party reports that still concatenate SQL. Prefer
+     *             getNewSqlCriteriasRestriction(): its array criteria are quoted by
+     *             $DB->request() itself.
      * */
     public function getSqlCriteriasRestriction($link = 'AND')
     {
@@ -365,7 +369,7 @@ class DropdownMultipleCriteria extends AutoCriteria
         if (!empty($raw_value) && $value === []) {
             // Every posted identifier was rejected. Match nothing rather than dropping the
             // criteria, which would widen the report instead of narrowing it.
-            return $link . " " . $this->getSqlField() . " IN ('-1') ";
+            return $link . " " . $DB::quoteName($this->getSqlField()) . " IN ('-1') ";
         }
         if (!is_array($raw_value)) {
             $value = $value === [] ? $raw_value : reset($value);
@@ -374,20 +378,20 @@ class DropdownMultipleCriteria extends AutoCriteria
         if ($value || $this->searchzero) {
             if (!$this->childrens) {
                 // Multi-select posts an array (param[]=x); a single selection arrives as
-                // a scalar. Escape every value and build an IN() list so an array can
-                // never reach $DB->escape() as-is (it expects a string and would raise a
+                // a scalar. Quote every value and build an IN() list so an array can
+                // never reach $DB::quoteValue() as-is (it expects a scalar and would raise a
                 // PHP error). The scalar path keeps its original "= 'value'" form.
                 if (is_array($value)) {
                     $escaped = [];
                     foreach ($value as $one) {
-                        $escaped[] = "'" . $DB->escape((string) $one) . "'";
+                        $escaped[] = $DB::quoteValue((string) $one);
                     }
                     if (empty($escaped)) {
                         return '';
                     }
-                    return $link . " " . $this->getSqlField() . " IN (" . implode(',', $escaped) . ") ";
+                    return $link . " " . $DB::quoteName($this->getSqlField()) . " IN (" . implode(',', $escaped) . ") ";
                 }
-                return $link . " " . $this->getSqlField() . "='" . $DB->escape((string) $value) . "' ";
+                return $link . " " . $DB::quoteName($this->getSqlField()) . "=" . $DB::quoteValue((string) $value) . " ";
             }
             if ($value) {
                 // With child resolution, expand every selected id to its descendants.
@@ -402,7 +406,7 @@ class DropdownMultipleCriteria extends AutoCriteria
                 if (empty($ids)) {
                     return '';
                 }
-                return $link . " " . $this->getSqlField() . " IN (" . implode(',', $ids) . ") ";
+                return $link . " " . $DB::quoteName($this->getSqlField()) . " IN (" . implode(',', $ids) . ") ";
             }
             // 0 + its child means ALL
         }

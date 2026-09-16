@@ -1049,6 +1049,10 @@ class AutoReport extends CommonDBTM
     /**
      * Append date and time restriction in an sql request
      * @param link with previous condition
+     *
+     * @deprecated Kept for third-party reports that still concatenate SQL. Prefer
+     *             getNewSqlCriteriasRestriction(): its array criteria are quoted by
+     *             $DB->request() itself.
      */
     public function addSqlCriteriasRestriction($link = 'AND')
     {

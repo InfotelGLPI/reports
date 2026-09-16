@@ -81,6 +81,11 @@ class TextCriteria extends DropdownCriteria
         return '';
     }
 
+    /**
+     * @deprecated Kept for third-party reports that still concatenate SQL. Prefer
+     *             getNewSqlCriteriasRestriction(): its array criteria are quoted by
+     *             $DB->request() itself.
+     */
     public function getSqlCriteriasRestriction($link = 'AND')
     {
 

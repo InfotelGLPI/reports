@@ -97,6 +97,10 @@ class PriorityCriteria extends AutoCriteria
 
     /**
      * @see plugins/reports/inc/AutoCriteria::getSqlCriteriasRestriction()
+     *
+     * @deprecated Kept for third-party reports that still concatenate SQL. Prefer
+     *             getNewSqlCriteriasRestriction(): its array criteria are quoted by
+     *             $DB->request() itself.
     */
     public function getSqlCriteriasRestriction($link = 'AND')
     {
@@ -107,16 +111,16 @@ class PriorityCriteria extends AutoCriteria
         //If value < 0 : means "priority above the priority selected"
 
         // Priority is always an integer; cast defensively so a value posted as an
-        // array (param[]=x) collapses to a scalar instead of reaching $DB->escape()
+        // array (param[]=x) collapses to a scalar instead of reaching $DB::quoteValue()
         // / abs() and raising a PHP error.
         $priority = (int) $this->getParameterValue();
 
         if ($priority > 0) {
-            return $link . " " . $this->getSqlField() . "= '" . $DB->escape((string) $priority) . "'";
+            return $link . " " . $DB::quoteName($this->getSqlField()) . "= " . $DB::quoteValue((string) $priority);
         }
 
         if ($priority < 0) {
-            return $link . " " . $this->getSqlField() . ">= '" . abs($priority) . "'";
+            return $link . " " . $DB::quoteName($this->getSqlField()) . ">= '" . abs($priority) . "'";
         }
 
         // priority == 0 => no priority selected => no restriction

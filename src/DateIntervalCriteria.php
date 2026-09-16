@@ -145,8 +145,14 @@ class DateIntervalCriteria extends AutoCriteria
     }
 
 
+    /**
+     * @deprecated Kept for third-party reports that still concatenate SQL. Prefer
+     *             getNewSqlCriteriasRestriction(): its array criteria are quoted by
+     *             $DB->request() itself.
+     */
     public function getSqlCriteriasRestriction($link = 'AND')
     {
+        global $DB;
 
         $start = $this->getSafeDate($this->getStartDate());
         $end   = $this->getSafeDate($this->getEndDate());
@@ -157,7 +163,7 @@ class DateIntervalCriteria extends AutoCriteria
 
         $sql = '';
         if (!empty($start)) {
-            $sql .= $this->getSqlField() . ">= '" . $start . " 00:00:00'";
+            $sql .= $DB::quoteName($this->getSqlField()) . ">= '" . $start . " 00:00:00'";
         }
 
         if (!empty($start) && !empty($end)) {
@@ -165,7 +171,7 @@ class DateIntervalCriteria extends AutoCriteria
         }
 
         if (!empty($end)) {
-            $sql .= $this->getSqlField() . "<='" . $end . " 23:59:59' ";
+            $sql .= $DB::quoteName($this->getSqlField()) . "<='" . $end . " 23:59:59' ";
         }
 
         return $link . " ($sql)";
