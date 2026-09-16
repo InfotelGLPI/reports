@@ -95,6 +95,9 @@ class Report extends CommonDBTM
             foreach ((array) glob($plugin_dir . "/report/*", GLOB_ONLYDIR) as $path) {
                 $tab[basename($path)] = $plug['directory'];
                 self::includeLocales(basename($path), $plug['directory']);
+                if (is_file($path . "/" . basename($path) . "." . $_SESSION['glpilanguage'] . ".php")) {
+                    include $path . "/" . basename($path) . "." . $_SESSION['glpilanguage'] . ".php";
+                }
             }
         }
 
