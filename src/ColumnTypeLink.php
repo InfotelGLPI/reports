@@ -32,7 +32,6 @@
 
 namespace GlpiPlugin\Reports;
 
-
 /**
  * class ColumnTypeLink to manage output
  */

@@ -56,8 +56,7 @@ $crits = [0 => Dropdown::EMPTY_VALUE,
     6 => __('Inventory number')];
 
 // $crit is a numeric report selector; cast to int at every source so a value like
-// "1&foo=bar" cannot survive the "$crit > 0" gate and pollute the bookmark URL that
-// gets persisted as a saved search (see buildBookmarkUrl below).
+// "1&foo=bar" cannot survive the "$crit > 0" gate and reach the query below.
 if (isset($_GET["crit"])) {
     $crit = (int) $_GET["crit"];
 
@@ -90,9 +89,15 @@ echo "</td>";
 
 if ($crit > 0) {
     echo "<td>";
-    //Add parameters to uri to be saved as bookmarks
-    $_SERVER["REQUEST_URI"] = buildBookmarkUrl($_SERVER["REQUEST_URI"], $crit);
-    //   SavedSearch::showSaveButton(SavedSearch::SEARCH,'Computer');
+    // $_SERVER["REQUEST_URI"] was overwritten here with a rebuilt "<path>?crit=<int>" so that the
+    // save button of the core would store a reproducible bookmark. It never did: the button reads
+    // window.location.pathname + window.location.search in the browser (js/modules/Search/
+    // GenericView.js) and the template below takes no URL at all, so the superglobal was not
+    // consulted for the bookmark. What the write did do was hand every component called after
+    // this line -- breadcrumb, pagination links, logging, and whatever a future version of the
+    // core derives from it -- a REQUEST_URI that no longer describes the request received, with
+    // all the other filtering parameters of the page dropped. The form action above is emitted
+    // before, so it kept the real URI; nothing else needs this value rewritten.
     TemplateRenderer::getInstance()->render('pages/tools/savedsearch/save_button.html.twig', [
         'type' => SavedSearch::SEARCH,
         'itemtype' => 'Computer',
@@ -635,13 +640,9 @@ if ($crit > 0) { // Display result
 Html::footer();
 
 
-function buildBookmarkUrl($url, $crit)
-{
-    // Defense in depth: $crit is already cast to int at read time, but urlencode the
-    // integer selector so this helper can never inject extra query parameters into the
-    // URL stored as a saved search.
-    return $url . "?crit=" . urlencode((string) (int) $crit);
-}
+// buildBookmarkUrl() stood here. Its only caller was the REQUEST_URI write removed above, and
+// the URL it built was wrong in its own right: it appended "?crit=<n>" to a REQUEST_URI that
+// already carried a query string, producing a second "?". It goes with its caller.
 
 
 function getLastInventory($computers_id)

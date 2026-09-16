@@ -261,11 +261,16 @@ function displayUserDevices($type, $result, $can_view_infocom)
         $link = "<a href='" . $url . "?id=" . (int) $data["id"] . "'>" . $link
             . (($CFG_GLPI["is_ids_visible"] || empty($link)) ? " (" . (int) $data["groups_id"] . ")" : "")
             . "</a>";
-        $linktype = "";
-        if (isset($groups[$data["id"]])) {
-            $linktype = sprintf(__('%1$s %2$s'), __('Group'), $groups[$data["groups_id"]]);
-        }
-
+        // A $linktype was built here from a $groups array that this function never receives and
+        // never declares -- the lookup was made on one key ($data["id"]) and the label read from
+        // another ($data["groups_id"]) -- and the result was assigned to a variable no line of the
+        // plugin ever echoed. There is no column to restore either: the header above emits Type,
+        // Name, Serial, Inventory and, under the infocom right, the three financial cells, which
+        // is exactly what the row below emits. The block was therefore dead from both ends and is
+        // dropped rather than repaired on a guess. Should a "linked items" column ever be wanted,
+        // it has to be added to the header as well, and the itemtype it walks must go through
+        // is_a($linktype, CommonDBTM::class, true) then canView() before any query, the way
+        // report/histohard/histohard.php does.
         echo "<tr class='tab_bg_1'><td class='center'>" . $item->getTypeName() . "</td>"
             . "<td class='center'>$link</td>";
 
