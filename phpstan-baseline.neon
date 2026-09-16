@@ -157,12 +157,6 @@ parameters:
 			path: src/AutoReport.php
 
 		-
-			message: '#^Access to constant HTML_OUTPUT on an unknown class GlpiPlugin\\Reports\\Search\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Column.php
-
-		-
 			message: '#^Property GlpiPlugin\\Reports\\Column\:\:\$extrabold is never read, only written\.$#'
 			identifier: property.onlyWritten
 			count: 1

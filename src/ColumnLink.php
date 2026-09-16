@@ -32,7 +32,6 @@
 
 namespace GlpiPlugin\Reports;
 
-use Search;
 use Session;
 
 /**
@@ -86,7 +85,7 @@ class ColumnLink extends Column
             Session::addToNavigateListItems($this->obj->getType(), $items_id);
         }
 
-        if ($output_type == Search::HTML_OUTPUT && ($this->obj != null)) {
+        if (AutoReport::isHtmlOutputType($output_type) && ($this->obj != null)) {
             return $this->obj->getLink();
         }
 

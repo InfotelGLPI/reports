@@ -74,7 +74,7 @@ class Column
     public function showTitle($output, $output_type, &$num)
     {
 
-        if (($output_type != Search::HTML_OUTPUT) || !$this->sorton) {
+        if (!AutoReport::isHtmlOutputType($output_type) || !$this->sorton) {
             //          echo Search::showHeaderItem($output_type,$this->title , $num);
             echo $output::showHeaderItem($this->title, $num);
             return;
@@ -177,7 +177,11 @@ class Column
             // Stored XSS: GLPI 10+/11 stores field values unescaped and the core HTML search
             // output writes this value into a <td> without escaping. Escape free-text DB values
             // for HTML output (leave CSV/PDF/other exports untouched so they are not corrupted).
-            if ($output_type == \Search::HTML_OUTPUT) {
+            // The test asks the core which renderer it would build rather than comparing the
+            // display type with the value of HTML_OUTPUT: the core answers an HTMLSearchOutput
+            // for GLOBAL_SEARCH (-1) too, and that single number was enough to walk past the
+            // escaping below on every report of this engine.
+            if (AutoReport::isHtmlOutputType($output_type)) {
                 return htmlspecialchars((string) $row[$this->name], ENT_QUOTES);
             }
             return $row[$this->name];

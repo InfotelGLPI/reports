@@ -129,8 +129,15 @@ $criteria = [
     ],
 ];
 
+// glpi_locations is recursive and getEntitiesRestrictCriteria() does not infer it from the
+// table name: without the fourth argument, a location shared down from a parent entity was
+// dropped here, and with it every piece of equipment attached to that location. Same
+// reasoning as listgroups.php.
 $criteria['WHERE'][] = getEntitiesRestrictCriteria(
     'glpi_locations',
+    '',
+    '',
+    true,
 );
 
 $report->setSqlRequest($criteria);

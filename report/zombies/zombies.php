@@ -60,6 +60,14 @@ if (!Session::canViewAllEntities()) {
     throw new AccessDeniedHttpException();
 }
 
+// The plugin right gates the report, not the data it publishes: the columns below are the
+// nominative directory of the organisation -- login, e-mail, phone, location, last login and
+// ticket counts, all exportable as CSV. Confront the itemtype it actually reads, as listgroups,
+// histohard and iteminstall already do, so that a profile stripped of the core user right
+// cannot read here what that removal was meant to deny it.
+$user = new User();
+$user->checkGlobal(READ);
+
 $report = new AutoReport(__('Users with no right', 'reports'));
 
 $name = new TextCriteria($report, 'name', __('Login'));

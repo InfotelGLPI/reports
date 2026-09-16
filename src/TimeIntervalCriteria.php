@@ -139,9 +139,26 @@ class TimeIntervalCriteria extends AutoCriteria
         $begin = $this->getSafeTime('starttime');
         $end   = $this->getSafeTime('endtime');
 
+        // A range that does not cross midnight is the conjunction of its two bounds; one that
+        // does -- 20:00 to 06:00, which is the whole point of the "night tickets" report -- is
+        // their disjunction, and nothing else can match. The members of a WHERE array are joined
+        // by AND, so returning the two expressions unconditionally silently turned every night
+        // range into an impossible condition. The bounds compared here are the ones normalised by
+        // getSafeTime(), so the branch always matches the literals actually injected below.
+        if ($begin < $end) {
+            return [
+                new QueryExpression("TIME(" . $this->getSqlField() . ") >= '$begin'"),
+                new QueryExpression("TIME(" . $this->getSqlField() . ") < '$end'"),
+            ];
+        }
+
         return [
-            new QueryExpression("TIME(" . $this->getSqlField() . ") >= '$begin'"),
-            new QueryExpression("TIME(" . $this->getSqlField() . ") < '$end'"),
+            [
+                'OR' => [
+                    new QueryExpression("TIME(" . $this->getSqlField() . ") >= '$begin'"),
+                    new QueryExpression("TIME(" . $this->getSqlField() . ") < '$end'"),
+                ],
+            ],
         ];
     }
 

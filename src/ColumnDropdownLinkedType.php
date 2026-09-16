@@ -33,7 +33,6 @@
 namespace GlpiPlugin\Reports;
 
 use AllowDynamicProperties;
-use Search;
 
 /**
  * class ColumnDropdownLinkedType to manage output
@@ -84,7 +83,7 @@ class ColumnDropdownLinkedType extends Column
             return $this->displayRawValue($output_type, $row[$this->name]);
         }
 
-        if ($output_type == Search::HTML_OUTPUT) {
+        if (AutoReport::isHtmlOutputType($output_type)) {
             return $this->obj->getLink();
         }
 
@@ -106,7 +105,7 @@ class ColumnDropdownLinkedType extends Column
      */
     private function displayRawValue($output_type, $value)
     {
-        if ($output_type == Search::HTML_OUTPUT) {
+        if (AutoReport::isHtmlOutputType($output_type)) {
             return htmlspecialchars((string) $value, ENT_QUOTES);
         }
 

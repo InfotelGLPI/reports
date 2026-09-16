@@ -33,7 +33,6 @@
 namespace GlpiPlugin\Reports;
 
 use Html;
-use Search;
 
 /**
  * class ColumnItemCheckbox to manage output
@@ -70,7 +69,7 @@ class ColumnItemCheckbox extends Column
             return '';
         }
         if ($this->obj
-            && ($output_type == Search::HTML_OUTPUT)
+            && (AutoReport::isHtmlOutputType($output_type))
             && $this->obj->can($row[$this->name], UPDATE)) {
             return Html::getMassiveActionCheckBox(get_class($this->obj), $row[$this->name]);
         }

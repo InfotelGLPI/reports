@@ -48,6 +48,13 @@ $dbu = new DbUtils();
 // Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
 Session::checkRight("plugin_reports_iteminstall", READ);
 
+// Every figure of this report is read from glpi_infocoms -- purchase date, budget, start-up delay
+// -- and the core gates those behind its own dedicated "infocom" right, which is deliberately kept
+// separate from the read right on the assets themselves. The plugin right must not stand in for it:
+// report/infocom/infocom.php and report/searchinfocom/searchinfocom.php enforce the same rule on
+// the same data. There is nothing left to display without it, so the whole page is gated.
+Session::checkRight(Infocom::$rightname, READ);
+
 $report = new AutoReport(__('Time before equipment start-up', 'reports'));
 
 //Report's search criterias
@@ -157,8 +164,17 @@ if ($report->criteriasValidated()) {
             $result[$type]['buy'] = $data['cpt'];
         }
 
+        // Keep a pristine copy of the criteria built above: each slice below appends its own
+        // date bounds, and the array was never reset between two iterations. The previous
+        // slice's DATE_ADD conditions therefore survived and were ANDed with the current ones;
+        // the slices being disjoint by construction, the conjunction became unsatisfiable from
+        // the second iteration on and every bucket after 0-2 reported zero -- the trailing
+        // "12+" count included, since it reused the same accumulated array.
+        $base_criteria = $criteria;
+
         for ($deb = 0 ; $deb < 12 ; $deb = $fin) {
             $fin = $deb + 2;
+            $criteria = $base_criteria;
             if ($deb) {
                 $criteria['WHERE'][] = ['use_date' => ['>=', new QueryExpression("DATE_ADD(" . $DB->quoteName("buy_date") . ", INTERVAL $deb MONTH)")]];
             }
@@ -170,6 +186,7 @@ if ($report->criteriasValidated()) {
                 $result[$type]["$deb-$fin"] = $data['cpt'];
             }
         }
+        $criteria = $base_criteria;
         $criteria['WHERE'][] = [
             'OR' => [
                 ['use_date' => ['<', new QueryExpression("DATE_ADD(" . $DB->quoteName("buy_date") . ", INTERVAL 12 MONTH)")]],

@@ -78,8 +78,15 @@ class SoftwareWithLicenseCriteria extends DropdownCriteria
             'GROUPBY' => ['glpi_softwares.name'],
         ];
 
+        // glpi_softwarelicenses is recursive and getEntitiesRestrictCriteria() does not infer it
+        // from the table name: without the fourth argument, a licence shared down from a parent
+        // entity was excluded, so the softwares it covers were proposed as "without licence" by
+        // this criterion. Same reasoning as listgroups.php.
         $criteria['WHERE'][] = getEntitiesRestrictCriteria(
             'glpi_softwarelicenses',
+            '',
+            '',
+            true,
         );
         $iterator = $DB->request($criteria);
 

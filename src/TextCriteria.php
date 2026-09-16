@@ -64,7 +64,7 @@ class TextCriteria extends DropdownCriteria
         $this->getReport()->endColumn();
 
         $this->getReport()->startColumn();
-        echo "<input type='text' name='" . $this->getName() . "' value='" . htmlescape($this->getParameterValue()) . "'>";
+        echo "<input type='text' name='" . $this->getName() . "' value='" . htmlescape($this->getScalarParameterValue()) . "'>";
         $this->getReport()->endColumn();
     }
 
@@ -74,9 +74,9 @@ class TextCriteria extends DropdownCriteria
     public function getSubName()
     {
 
-        $param = $this->getParameterValue();
+        $param = $this->getScalarParameterValue();
         if ($param) {
-            return $this->getCriteriaLabel() . ' : ' . $this->getParameterValue();
+            return $this->getCriteriaLabel() . ' : ' . $param;
         }
         return '';
     }
@@ -84,7 +84,7 @@ class TextCriteria extends DropdownCriteria
     public function getSqlCriteriasRestriction($link = 'AND')
     {
 
-        $param = $this->getParameterValue();
+        $param = $this->getScalarParameterValue();
         if ($param) {
             return Search::makeTextCriteria($this->getSqlField(), $param, false, $link);
         }
@@ -98,7 +98,7 @@ class TextCriteria extends DropdownCriteria
     {
         global $DB;
 
-        $param = $this->getParameterValue();
+        $param = $this->getScalarParameterValue();
         if (empty($param)) {
             return [];
         }

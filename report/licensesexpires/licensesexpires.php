@@ -128,8 +128,15 @@ $criteria = [
         'glpi_softwarelicenses.name'],
     'ORDERBY'   => 'glpi_softwarelicenses.expire, glpi_softwarelicenses.name',
 ];
+// glpi_softwarelicenses is recursive and getEntitiesRestrictCriteria() does not infer it from
+// the table name: without the fourth argument, a licence shared down from a parent entity was
+// hidden from the child entities, so an expiry the operator is responsible for went unnoticed
+// precisely in the report meant to surface it. Same reasoning as listgroups.php.
 $criteria['WHERE'][] = getEntitiesRestrictCriteria(
     'glpi_softwarelicenses',
+    '',
+    '',
+    true,
 );
 
 $report->setSqlRequest($criteria);

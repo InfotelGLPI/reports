@@ -106,6 +106,30 @@ abstract class AutoCriteria
 
 
     /**
+     * Same value, reduced to a string.
+     *
+     * manageCriteriaValues() copies the criteria out of $_GET/$_POST as they came, so a
+     * criteria named "name" submitted as name[]=x arrives here as an array. Every consumer of
+     * a text value -- htmlescape() when the form is redrawn, Search::makeTextCriteria() when
+     * the restriction is built -- is typed against a string and raised an uncaught TypeError
+     * on that array: a 500 in place of the report, and the full server paths in the trace on
+     * an instance left with display_errors on. IntegerCriteria already defended itself with a
+     * cast of its own; putting the coercion here lets every criteria inherit it rather than
+     * repeat the guard class by class.
+     *
+     * A non-scalar answers the empty string, which every caller already reads as "criteria
+     * left blank" -- the report is rendered whole rather than half built on a value nobody
+     * could have typed.
+     **/
+    public function getScalarParameterValue(): string
+    {
+        $value = $this->getParameterValue();
+
+        return is_scalar($value) ? (string) $value : '';
+    }
+
+
+    /**
      * Get sql_field associated with the criteria
      *
      * @return - the sql_field associated with the criteria
@@ -370,6 +394,15 @@ abstract class AutoCriteria
     protected function isIdentifierReadable($itemtype, $value): bool
     {
         if (!is_string($itemtype) || !is_a($itemtype, CommonDBTM::class, true)) {
+            return false;
+        }
+
+        // An array cast to int is 1 in PHP 8, with a warning and nothing else: the perimeter
+        // below was then confronted on row 1 of the dropdown table rather than on anything the
+        // caller actually posted, so a criteria submitted as name[]=42&name[]=43 walked past
+        // the check as soon as row 1 happened to be readable. Refuse the whole shape here, at
+        // the base of every criteria class, rather than trust each of them to normalise first.
+        if (!is_scalar($value)) {
             return false;
         }
 

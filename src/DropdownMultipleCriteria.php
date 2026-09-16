@@ -228,7 +228,29 @@ class DropdownMultipleCriteria extends AutoCriteria
         $dbu       = new DbUtils();
         $itemtype  = $dbu->getItemTypeForTable($this->table);
         $item      = $dbu->getItemForItemtype($itemtype);
-        $items     = $item->find($this->condition, $this->order);
+
+        // Scope the proposed labels to the entity perimeter, as DropdownCriteria already does by
+        // handing 'entity' to the core Dropdown::show(). getSqlCriteriasRestriction() fails closed
+        // on an out-of-scope identifier, so the data was never reachable through this class, but an
+        // unrestricted list still discloses the naming of sibling entities -- sites, buildings,
+        // groups, budgets -- to whichever third-party report reuses this public API.
+        // The recursion flag matters: without it, items shared down from a parent entity would
+        // vanish from the list. A condition that is not an array belongs to a caller using the
+        // legacy string form; leave it untouched rather than corrupt it.
+        $condition = $this->condition;
+        if (is_array($condition) && $item->isEntityAssign()) {
+            $condition = array_merge(
+                $condition,
+                $dbu->getEntitiesRestrictCriteria(
+                    $item->getTable(),
+                    '',
+                    $this->getEntityRestrict(),
+                    $item->maybeRecursive(),
+                ),
+            );
+        }
+
+        $items     = $item->find($condition, $this->order);
         $listItems = [];
         foreach ($items as $id => $item) {
             $listItems[$id] = $item['name'];

@@ -136,8 +136,16 @@ if ($report->criteriasValidated()
         'GROUPBY'   => ['license'],
         'ORDERBY'   => ['license'],
     ];
+    // glpi_softwares is recursive: a software declared recursive in a parent entity is
+    // legitimately visible from the child entities. getEntitiesRestrictCriteria() defaults to
+    // $is_recursive = false and never infers it from the table, so without this flag those
+    // shared softwares -- and the licence counts that hang off them -- were missing from the
+    // report while the native GLPI search still listed them. Same reasoning as listgroups.php.
     $criteria['WHERE'][] = getEntitiesRestrictCriteria(
         'glpi_softwares',
+        '',
+        '',
+        true,
     );
 
     $criteria['WHERE'][] = $license->getNewSqlCriteriasRestriction();

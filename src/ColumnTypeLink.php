@@ -32,7 +32,6 @@
 
 namespace GlpiPlugin\Reports;
 
-use Search;
 
 /**
  * class ColumnTypeLink to manage output
@@ -77,10 +76,10 @@ class ColumnTypeLink extends Column
             // numeric foreign key today, so nothing is exploitable, but the escaping belongs
             // here so that a column carrying something else cannot reopen an XSS.
             $items_id = (string) $row[$this->name];
-            return 'ID #' . ($output_type == Search::HTML_OUTPUT ? htmlescape($items_id) : $items_id);
+            return 'ID #' . (AutoReport::isHtmlOutputType($output_type) ? htmlescape($items_id) : $items_id);
         }
 
-        if ($output_type == Search::HTML_OUTPUT) {
+        if (AutoReport::isHtmlOutputType($output_type)) {
             return $this->obj->getLink();
         }
 

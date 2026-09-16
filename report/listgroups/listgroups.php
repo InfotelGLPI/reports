@@ -105,8 +105,15 @@ $criteria = [
     ],
     'GROUPBY'   => ['completename', 'groupid', 'userid'],
 ];
+// Groups carry an is_recursive column, but getEntitiesRestrictCriteria() defaults to
+// $is_recursive = false and never infers it from the table: without the flag, a group declared
+// recursive in a parent entity disappeared from the report for every user logged in a child
+// entity it is shared with. Same reasoning as transferreditems.php.
 $criteria['WHERE'][] = getEntitiesRestrictCriteria(
     'glpi_groups',
+    '',
+    '',
+    true,
 );
 
 $criteria = $criteria + $report->getNewOrderBy('completename, groupid, userid');

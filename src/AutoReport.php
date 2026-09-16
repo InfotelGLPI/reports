@@ -41,6 +41,7 @@ use Glpi\Search\Output\HTMLSearchOutput;
 use Glpi\Search\SearchEngine;
 use Html;
 use InvalidArgumentException;
+use RuntimeException;
 use SavedSearch;
 use Search;
 use Session;
@@ -826,8 +827,13 @@ class AutoReport extends CommonDBTM
      */
     private static function validateOutputType($output_type): int
     {
+        // Search::GLOBAL_SEARCH (-1) is deliberately absent: it belongs to the global search of
+        // the core and no report of this plugin has any use for it. It was accepted here while
+        // the escaping of the columns keyed on the value Search::HTML_OUTPUT (0), and the core
+        // maps -1 onto an HTMLSearchOutput all the same -- so display_type=-1 rendered every
+        // cell of every AutoReport into a <td> unescaped. isHtmlOutputType() now closes that
+        // divergence at the sink; withdrawing the format closes it at the entry as well.
         $allowed_output_types = [
-            Search::GLOBAL_SEARCH,
             Search::HTML_OUTPUT,
             Search::PDF_OUTPUT_LANDSCAPE,
             Search::PDF_OUTPUT_PORTRAIT,
@@ -842,6 +848,36 @@ class AutoReport extends CommonDBTM
         }
 
         return (int) $output_type;
+    }
+
+    /**
+     * Whether a legacy display type is rendered as HTML, and so whether the values that go into
+     * it have to be escaped.
+     *
+     * The columns used to decide that by comparing the display type with the value
+     * Search::HTML_OUTPUT (0), while the core picks its renderer from a class:
+     * SearchEngine::getOutputForLegacyKey() answers an HTMLSearchOutput for HTML_OUTPUT and for
+     * GLOBAL_SEARCH (-1) alike. Every cell of a report opened with display_type=-1 therefore
+     * reached HTMLSearchOutput::showItem(), which writes it into a <td> as it stands -- a stored
+     * XSS on every report of this engine. Ask the core which renderer it would build rather than
+     * reading the number, so a format added later and rendered as HTML is covered here for free.
+     *
+     * A display type the core does not know cannot be rendered at all, so answer true: an
+     * unexpected value is escaped rather than let through.
+     *
+     * @param mixed $output_type
+     */
+    public static function isHtmlOutputType($output_type): bool
+    {
+        if (!is_numeric($output_type)) {
+            return true;
+        }
+
+        try {
+            return SearchEngine::getOutputForLegacyKey((int) $output_type) instanceof HTMLSearchOutput;
+        } catch (RuntimeException $e) {
+            return true;
+        }
     }
 
     public function footer()

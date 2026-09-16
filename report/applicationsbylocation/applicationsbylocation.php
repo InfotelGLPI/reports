@@ -175,8 +175,15 @@ $criteria = [
     ],
     'WHERE' => [],
 ];
+// glpi_softwareversions is recursive and getEntitiesRestrictCriteria() does not infer it from
+// the table name: without the fourth argument, the versions of a software shared down from a
+// parent entity were absent from the report, so the applications installed on the equipment of
+// the current entity simply did not appear. Same reasoning as listgroups.php.
 $criteria['WHERE'][] = getEntitiesRestrictCriteria(
     'glpi_softwareversions',
+    '',
+    '',
+    true,
 );
 
 $criteria['WHERE'][] = $report->addNewSqlCriteriasRestriction();

@@ -57,6 +57,14 @@ Session::checkRight("plugin_reports_printers", READ);
 $printer = new Printer();
 $printer->checkGlobal(READ);
 
+// The immobilization number and the purchase / startup dates are financial data held by
+// glpi_infocoms, which the core gates behind its own dedicated "infocom" right: being allowed to
+// read a printer never grants the right to read its purchase record. The report right must not
+// stand in for it, so the columns -- and the join that feeds them -- are only built when the
+// profile really holds that right. Dropping the columns also removes them from the CSV / ODS /
+// XLSX exports, which are rendered from the very same column list.
+$can_view_infocom = Session::haveRight(Infocom::$rightname, READ);
+
 $report = new AutoReport(__('Printers', 'reports'));
 
 // Definition of the criteria
@@ -88,17 +96,19 @@ $cols = [
     ),
     new Column('serial', __('Serial number')),
     new Column('otherserial', __('Inventory number')),
-    new Column('immo_number', __('Immobilization number')),
-    new ColumnDate(
-        'buy_date',
-        __('Date of purchase'),
-        ['sorton' => 'glpi_infocoms.buy_date'],
-    ),
-    new ColumnDate(
-        'use_date',
-        __('Startup date'),
-        ['sorton' => 'glpi_infocoms.use_date'],
-    ),
+    ...($can_view_infocom ? [
+        new Column('immo_number', __('Immobilization number')),
+        new ColumnDate(
+            'buy_date',
+            __('Date of purchase'),
+            ['sorton' => 'glpi_infocoms.buy_date'],
+        ),
+        new ColumnDate(
+            'use_date',
+            __('Startup date'),
+            ['sorton' => 'glpi_infocoms.use_date'],
+        ),
+    ] : []),
     new ColumnInteger('last_pages_counter', __('Printed pages')),
     new ColumnLink('user', __('User'), 'User'),
     new ColumnLink(
@@ -239,9 +249,11 @@ $criteria = [
         //            'glpi_printers.comploc',
         'glpi_locations.id AS location',
         //            'glpi_printers.userloc',
-        'glpi_infocoms.immo_number',
-        'glpi_infocoms.buy_date',
-        'glpi_infocoms.use_date',
+        ...($can_view_infocom ? [
+            'glpi_infocoms.immo_number',
+            'glpi_infocoms.buy_date',
+            'glpi_infocoms.use_date',
+        ] : []),
         'glpi_states.name AS state',
     ],
     'FROM' => 'glpi_printers',
@@ -264,17 +276,19 @@ $criteria = [
                 'glpi_states' => 'id',
             ],
         ],
-        'glpi_infocoms' => [
-            'ON' => [
-                'glpi_printers' => 'id',
-                'glpi_infocoms' => 'items_id',
-                [
-                    'AND' => [
-                        'glpi_infocoms.itemtype' => 'Printer',
+        ...($can_view_infocom ? [
+            'glpi_infocoms' => [
+                'ON' => [
+                    'glpi_printers' => 'id',
+                    'glpi_infocoms' => 'items_id',
+                    [
+                        'AND' => [
+                            'glpi_infocoms.itemtype' => 'Printer',
+                        ],
                     ],
                 ],
             ],
-        ],
+        ] : []),
         'glpi_locations' => [
             'ON' => [
                 'glpi_printers' => 'locations_id',

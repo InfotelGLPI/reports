@@ -236,7 +236,7 @@ class DropdownCriteria extends AutoCriteria
     public function getSubName()
     {
 
-        $value = $this->getParameterValue();
+        $value = $this->getScalarParameterValue();
         if ($value) {
             // The dropdown is rendered under an entity restriction, but that control protects
             // the listed rows, not the POSTed value: a forged identifier taken from another
@@ -248,7 +248,10 @@ class DropdownCriteria extends AutoCriteria
                 return $this->getCriteriaLabel();
             }
 
-            return $this->getCriteriaLabel() . " : " . Dropdown::getDropdownName($this->getTable(), $value);
+            // getDropdownName() is typed against an int, and the accessor answers the posted
+            // value as a string: the cast belongs here, next to the call that needs it, rather
+            // than in the accessor, whose contract is "the value as text".
+            return $this->getCriteriaLabel() . " : " . Dropdown::getDropdownName($this->getTable(), (int) $value);
         }
 
         if ($this->searchzero) {
@@ -299,7 +302,7 @@ class DropdownCriteria extends AutoCriteria
     {
 
         $options = ['name'     => $this->getName(),
-            'value'    => $this->getParameterValue(),
+            'value'    => $this->getScalarParameterValue(),
             'comments' => $this->getDisplayComments(),
             'entity'   => $this->getEntityRestrict()];
 
@@ -321,8 +324,8 @@ class DropdownCriteria extends AutoCriteria
 
         $dbu = new DbUtils();
 
-        if ($this->getParameterValue() || $this->searchzero) {
-            if ($this->getParameterValue() && !$this->isValueReadable($this->getParameterValue())) {
+        if ($this->getScalarParameterValue() || $this->searchzero) {
+            if ($this->getScalarParameterValue() && !$this->isValueReadable($this->getScalarParameterValue())) {
                 // getSubName() already refuses to echo the label of a row outside the entity
                 // perimeter of the session, but the restriction itself was built from the
                 // posted identifier whatever it designated. Returning an empty restriction
@@ -331,17 +334,17 @@ class DropdownCriteria extends AutoCriteria
                 return $link . " " . $this->getSqlField() . "='-1' ";
             }
             if (!$this->childrens) {
-                // Force a scalar context so an array-typed value (param[]=x) cannot
-                // reach $DB->escape(), which expects a string; scalar values are unaffected.
-                return $link . " " . $this->getSqlField() . "='" . $DB->escape((string) $this->getParameterValue()) . "' ";
+                // Cast kept although the accessor already answers a string: $DB->escape() is
+                // typed against one, and the guarantee belongs next to the call that needs it.
+                return $link . " " . $this->getSqlField() . "='" . $DB->escape((string) $this->getScalarParameterValue()) . "' ";
             }
-            if ($this->getParameterValue()) {
-                // Cast to int before getSonsOf() (which expects a single id) so an
-                // array-typed value degrades safely instead of raising a PHP error.
+            if ($this->getScalarParameterValue()) {
+                // getSonsOf() expects a single id, hence the cast on a value that is a string
+                // by construction here.
                 return $link . " " . $this->getSqlField()
                        . " IN (" . implode(',', $dbu->getSonsOf(
                            $this->getTable(),
-                           (int) $this->getParameterValue(),
+                           (int) $this->getScalarParameterValue(),
                        )) . ") ";
             }
             // 0 + its child means ALL
@@ -357,12 +360,21 @@ class DropdownCriteria extends AutoCriteria
     public function getNewSqlCriteriasRestriction($link = 'AND')
     {
 
-        if (empty($this->getParameterValue())) {
+        // Every read of the posted value goes through getScalarParameterValue(): this dropdown
+        // holds a single identifier, and an array posted as name[]=42&name[]=43 used to reach
+        // both isIdentifierReadable() -- where (int) on an array is 1, so the entity perimeter
+        // was confronted on row 1 of the table instead of on what was posted -- and the
+        // restriction itself, which the query builder turned into an IN (...) on those very
+        // identifiers. A non-scalar now reads as the empty string, that is as a criteria left
+        // blank, which is the only reading that neither widens nor narrows the report on a
+        // value the caller was never offered. DropdownMultipleCriteria, which legitimately
+        // carries several identifiers, validates them one by one and is untouched by this.
+        if (empty($this->getScalarParameterValue())) {
             return [];
         }
 
-        if (!empty($this->getParameterValue()) || $this->searchzero) {
-            if (!$this->isValueReadable($this->getParameterValue())) {
+        if (!empty($this->getScalarParameterValue()) || $this->searchzero) {
+            if (!$this->isValueReadable($this->getScalarParameterValue())) {
                 // Same fail closed reasoning as getSqlCriteriasRestriction(): an identifier
                 // the session may not read must not filter the report on a row it cannot see,
                 // and dropping the criteria altogether would widen the result set instead of
@@ -371,12 +383,14 @@ class DropdownCriteria extends AutoCriteria
                 return [$this->getSqlField() => -1];
             }
             if (!$this->childrens) {
-                return [$this->getSqlField() => $this->getParameterValue()];
+                return [$this->getSqlField() => $this->getScalarParameterValue()];
             }
-            if ($this->getParameterValue()) {
+            if ($this->getScalarParameterValue()) {
+                // Same reasoning as getSqlCriteriasRestriction(): getSonsOf() takes a single
+                // identifier as an int, so the cast is made at the call.
                 $childs = getSonsOf(
                     $this->getTable(),
-                    $this->getParameterValue(),
+                    (int) $this->getScalarParameterValue(),
                 );
                 return [$this->getSqlField() => $childs];
             }

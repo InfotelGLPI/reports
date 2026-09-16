@@ -78,8 +78,16 @@ $criteria = [
     ],
     'WHERE' => [],
 ];
+// Locations carry an is_recursive column, but getEntitiesRestrictCriteria() defaults to
+// $is_recursive = false and never infers it from the table: without the flag, a location
+// declared recursive in a parent entity disappeared from the report for every user logged in
+// a child entity it is shared with, although the native GLPI search shows it to them. Same
+// reasoning as listgroups.php.
 $criteria['WHERE'][] = getEntitiesRestrictCriteria(
     'glpi_locations',
+    '',
+    '',
+    true,
 );
 
 $criteria = $criteria + $report->getNewOrderBy('entity,location');

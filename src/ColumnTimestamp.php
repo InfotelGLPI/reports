@@ -33,7 +33,6 @@
 namespace GlpiPlugin\Reports;
 
 use Html;
-use Search;
 
 /**
  * class ColumnTimestamp to manage output
@@ -74,7 +73,7 @@ class ColumnTimestamp extends Column
 
         if ($this->export_timestamp) {
             if (isset($row[$this->name])) {
-                if ($output_type == Search::HTML_OUTPUT) {
+                if (AutoReport::isHtmlOutputType($output_type)) {
 
                     $this->total += intval($row[$this->name]);
                     return Html::timestampToString($row[$this->name], $this->withsec);

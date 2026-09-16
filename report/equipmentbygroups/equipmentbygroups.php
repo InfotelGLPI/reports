@@ -159,6 +159,12 @@ function getObjectsByGroupAndEntity($group_id, $entity)
     // Enclosure or a custom asset still received their name, serial number, inventory and
     // immobilisation numbers, supplier and purchase date. report/pcsbyentity already filters
     // its type list with canView() for exactly that reason.
+    // The immobilization number, the supplier and the purchase date all come from glpi_infocoms,
+    // which the core gates behind its own dedicated "infocom" right: reading an asset never grants
+    // the right to read its purchase record. The plugin right must not stand in for it, so those
+    // three columns -- and the join that feeds them -- are only built when the profile holds it.
+    $can_view_infocom = Session::haveRight(Infocom::$rightname, READ);
+
     $asset_types = $CFG_GLPI["asset_types"];
     foreach ($asset_types as $itemtype) {
         if (($itemtype == 'Certificate') || ($itemtype == 'SoftwareLicense')) {
@@ -176,19 +182,23 @@ function getObjectsByGroupAndEntity($group_id, $entity)
                 'groups_id',
                 'serial',
                 'otherserial',
-                'immo_number',
-                'suppliers_id',
-                'buy_date',
+                ...($can_view_infocom ? [
+                    'immo_number',
+                    'suppliers_id',
+                    'buy_date',
+                ] : []),
             ],
             'FROM' => $item->getTable(),
             'LEFT JOIN' => [
-                'glpi_infocoms' => [
-                    'FKEY' => [
-                        $item->getTable() => 'id',
-                        'glpi_infocoms' => 'items_id',
+                ...($can_view_infocom ? [
+                    'glpi_infocoms' => [
+                        'FKEY' => [
+                            $item->getTable() => 'id',
+                            'glpi_infocoms' => 'items_id',
+                        ],
+                        ['glpi_infocoms.itemtype' => $itemtype],
                     ],
-                    ['glpi_infocoms.itemtype' => $itemtype],
-                ],
+                ] : []),
                 'glpi_groups_items' => [
                     'FKEY' => [
                         $item->getTable() => 'id',
@@ -218,12 +228,14 @@ function getObjectsByGroupAndEntity($group_id, $entity)
                 echo "<br><table class='tab_cadre_fixehov'>";
                 echo "<tr><th>" . __('Type') . "</th><th>" . __('Name') . "</th>";
                 echo "<th>" . __('Serial number') . "</th><th>" . __('Inventory number') . "</th>";
-                echo "<th>" . __('Immobilization number') . "</th>";
-                echo "<th>" . __('Supplier') . "</th><th>" . __('Date of purchase') . "</th>";
+                if ($can_view_infocom) {
+                    echo "<th>" . __('Immobilization number') . "</th>";
+                    echo "<th>" . __('Supplier') . "</th><th>" . __('Date of purchase') . "</th>";
+                }
                 echo "</tr>";
                 $display_header = true;
             }
-            displayUserDevices($itemtype, $iterator);
+            displayUserDevices($itemtype, $iterator, $can_view_infocom);
         }
 
     }
@@ -236,8 +248,9 @@ function getObjectsByGroupAndEntity($group_id, $entity)
  *
  * @param $type - the objet type
  * @param $result - the resultset of all the devices found
+ * @param $can_view_infocom - whether the profile holds the core "infocom" right
  **/
-function displayUserDevices($type, $result)
+function displayUserDevices($type, $result, $can_view_infocom)
 {
     global $CFG_GLPI;
 
@@ -269,31 +282,39 @@ function displayUserDevices($type, $result)
         } else {
             echo '&nbsp;';
         }
-        echo "</td><td class='center'>";
+        echo "</td>";
 
-        if (isset($data["immo_number"]) && !empty($data["immo_number"])) {
-            echo htmlescape($data["immo_number"]);
-        } else {
-            echo '&nbsp;';
-        }
-        echo "</td><td class='center'>";
+        // The three financial cells below are only selected -- and only headed -- when the core
+        // "infocom" right is held, so they must be skipped here as well to keep the row aligned.
+        if ($can_view_infocom) {
+            echo "<td class='center'>";
 
-        if (isset($data["suppliers_id"]) && !empty($data["suppliers_id"])) {
-            // Security (stored XSS): Dropdown::getDropdownName() returns the label exactly as it
-            // is stored, and a supplier name is writable by any holder of the dropdown right or
-            // by an import. The immo_number cell just above escapes for that reason; this one
-            // did not.
-            echo htmlescape(Dropdown::getDropdownName("glpi_suppliers", $data["suppliers_id"]));
-        } else {
-            echo '&nbsp;';
-        }
-        echo "</td><td class='center'>";
+            if (isset($data["immo_number"]) && !empty($data["immo_number"])) {
+                echo htmlescape($data["immo_number"]);
+            } else {
+                echo '&nbsp;';
+            }
+            echo "</td><td class='center'>";
 
-        if (isset($data["buy_date"]) && !empty($data["buy_date"])) {
-            echo Html::convDate($data["buy_date"]);
-        } else {
-            echo '&nbsp;';
+            if (isset($data["suppliers_id"]) && !empty($data["suppliers_id"])) {
+                // Security (stored XSS): Dropdown::getDropdownName() returns the label exactly as
+                // it is stored, and a supplier name is writable by any holder of the dropdown
+                // right or by an import. The immo_number cell just above escapes for that reason;
+                // this one did not.
+                echo htmlescape(Dropdown::getDropdownName("glpi_suppliers", $data["suppliers_id"]));
+            } else {
+                echo '&nbsp;';
+            }
+            echo "</td><td class='center'>";
+
+            if (isset($data["buy_date"]) && !empty($data["buy_date"])) {
+                echo Html::convDate($data["buy_date"]);
+            } else {
+                echo '&nbsp;';
+            }
+            echo "</td>";
         }
-        echo "</td></tr>";
+
+        echo "</tr>";
     }
 }
