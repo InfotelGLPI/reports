@@ -9,348 +9,407 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GLPI Project - reports plugin\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-09-16 17:33+0200\n"
+"POT-Creation-Date: 2026-09-16 17:10+0200\n"
 "PO-Revision-Date: 2021-03-05 12:54+0000\n"
 "Last-Translator: Nelly Mahu-Lasson <nini.lasson@orange.fr>\n"
-"Language-Team: Finnish (Finland) (http://www.transifex.com/yllen/GLPI_reports/language/fi_FI/)\n"
+"Language-Team: Finnish (Finland) (http://www.transifex.com/yllen/"
+"GLPI_reports/language/fi_FI/)\n"
+"Language: fi_FI\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: fi_FI\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: front/config.form.php:42 front/config.form.php:46 front/report.form.php:39
-#: front/report.form.php:65
-msgid "Reports plugin configuration"
-msgstr "Liitännäisen asetukset"
+#: report/applicationsbylocation/applicationsbylocation.php:66
+msgid "Application"
+msgstr ""
 
-#: front/report.form.php:66
-msgid "Rights management by report"
-msgstr "Oikeuksien hallinta raporteittain"
+#: src/Report.php:138
+#: report/applicationsbylocation/applicationsbylocation.php:57
+msgid "Applications by locations and versions"
+msgstr ""
 
-#: inc/autoreport.class.php:451
-msgid "Search criteria"
-msgstr "Hakuehto"
-
-#: inc/dateintervalcriteria.class.php:150
-#: inc/timeintervalcriteria.class.php:110
-msgid "Date interval"
-msgstr "Ajanjakso"
-
-#: inc/dateintervalcriteria.class.php:152
-#: inc/timeintervalcriteria.class.php:112
-msgid "Time interval"
-msgstr "Aikaväli"
-
-#: inc/function.php:81
-msgid "_report_title"
-msgstr "_report_title"
-
-#: inc/prioritycriteria.class.php:79
+#: src/PriorityCriteria.php:80
 msgid "At least"
 msgstr "Vähintään"
 
-#: inc/profile.class.php:52
-msgid "Rights management by profil"
-msgstr "Oikeuksien hallinta profiileittain"
-
-#: inc/profile.class.php:86
-msgid "Profils rights"
-msgstr "Profiilioikeudet"
-
-#: inc/profile.class.php:112
-msgid "No right on Assistance / Statistics"
-msgstr "Ei oikeutta Tukeen / Tilastoihin"
-
-#: inc/profile.class.php:114
-msgid "No right on Tools / Reports"
-msgstr "Ei oikeutta Työkaluihin / Raportteihin"
-
-#: inc/timeintervalcriteria.class.php:70 inc/timeintervalcriteria.class.php:79
-msgid "Number pending"
-msgstr "Odottavien lukumäärä"
-
-#. TRANS: The name of the report = Applications by locations and versions
-#: report/applicationsbylocation/applicationsbylocation.php:41
-msgid "applicationsbylocation_report_title"
-msgstr "Sovellukset sijainneittain sekä versiot"
-
-#: report/applicationsbylocation/applicationsbylocation.php:47
-msgid "Applications"
-msgstr "Sovellukset"
-
-#: report/applicationsbylocation/applicationsbylocation.php:50
-#: report/softversioninstallations/softversioninstallations.php:48
+#: report/applicationsbylocation/applicationsbylocation.php:69
+#: report/softversioninstallations/softversioninstallations.php:69
 msgid "Computer status"
 msgstr "Tietokoneen tila"
 
-#. TRANS: The name of the report = Duplicate computers
-#: report/doublons/doublons.php:44
-msgid "doublons_report_title"
-msgstr "Tietokoneiden kaksoiskappaleet"
-
-#: report/doublons/doublons.php:79 report/doublons/doublons.php:377
-msgid "Duplicate computers"
-msgstr "Tietokoneiden kaksoiskappaleet"
-
-#: report/doublons/doublons.php:261
-msgid "First computer"
-msgstr "Ensimmäinen tietokone"
-
-#: report/doublons/doublons.php:262
-msgid "Second computer"
-msgstr "Toinen tietokone"
-
-#: report/doublons/doublons.php:278 report/doublons/doublons.php:293
-msgid "Last inventory date"
-msgstr "Viimeisin inventointipäivä"
-
-#. TRANS: The name of the report = List all devices of a group, ordered by
-#. users
-#: report/equipmentbygroups/equipmentbygroups.php:40
-msgid "equipmentbygroups_report_title"
-msgstr "Luettelo kaikista ryhmän laitteista"
-
-#. TRANS: The name of the report = Number of equipments by location
-#: report/equipmentbylocation/equipmentbylocation.php:38
-msgid "equipmentbylocation_report_title"
-msgstr "Laitteiden määrä sijainnin mukaan"
-
-#. TRANS: The name of the report = Global History (for Test / example only)
-#: report/globalhisto/globalhisto.php:38
-msgid "globalhisto_report_title"
-msgstr "Globaali historia (testi/esimerkki)"
-
-#. TRANS: The name of the report = History of last hardware's installations
-#: report/histohard/histohard.php:46
-msgid "histohard_report_title"
-msgstr "Viimeisten laitteistoasennusten historia"
-
-#: report/histohard/histohard.php:53
-msgid "History of last hardware's installations"
-msgstr "Viimeisten laitteistoasennusten historia"
+#: src/DateIntervalCriteria.php:223 src/TimeIntervalCriteria.php:176
+msgid "Date interval"
+msgstr "Ajanjakso"
 
 #: report/histohard/histohard.php:55
 msgid "Date of inventory"
 msgstr "Inventointipäivä"
 
-#: report/histohard/histohard.php:59
-msgid "Modification"
-msgstr "Muutos"
+#: src/Report.php:147 report/licenses/licenses.php:56
+msgid "Detailed license report"
+msgstr ""
 
-#: report/histohard/histohard.php:156
-msgid "The list is limited to 100 items and 21 days"
-msgstr "Luettelo on rajoitettu 100 kohteeseen ja 21 päivään"
+#: src/Report.php:156 report/softnotinstalled/softnotinstalled.php:56
+msgid "Detailed report of software installation by status"
+msgstr ""
 
-#. TRANS: The name of the report = History of last software's installations
-#: report/histoinst/histoinst.php:47
-msgid "histoinst_report_title"
-msgstr "Viimeisten ohjelmistoasennusten historia"
+#: report/pcsbyentity/pcsbyentity.php:287
+msgid "Display"
+msgstr "Näytä"
 
-#: report/histoinst/histoinst.php:54
+#. TRANS: The name of the report = Duplicate computers
+#: src/Report.php:139 report/doublons/doublons.php:46
+#: report/doublons/doublons.php:78 report/doublons/doublons.php:620
+msgid "Duplicate computers"
+msgstr "Tietokoneiden kaksoiskappaleet"
+
+#: report/pcsbyentity/pcsbyentity.php:288
+msgid "Entity tree"
+msgstr "Yksiköittäin"
+
+#: src/Report.php:145 report/infocom/infocom.php:78
+msgid "Financial information"
+msgstr ""
+
+#: report/doublons/doublons.php:497
+msgid "First computer"
+msgstr "Ensimmäinen tietokone"
+
+#: src/Report.php:142 report/globalhisto/globalhisto.php:65
+msgid "Global History (for Test / example only)"
+msgstr ""
+
+#: src/Report.php:159 report/statticketsbyentity/statticketsbyentity.php:65
+msgid "Helpdesk requesters and tickets by entity"
+msgstr ""
+
+#: src/Report.php:143 report/histohard/histohard.php:46
+#: report/histohard/histohard.php:53
+msgid "History of last hardware's installations"
+msgstr "Viimeisten laitteistoasennusten historia"
+
+#: src/Report.php:144 report/histoinst/histoinst.php:48
+#: report/histoinst/histoinst.php:55
 msgid "History of last software's installations"
 msgstr "Viimeisten ohjelmistoasennusten historia"
 
-#: report/histoinst/histoinst.php:103
-msgid "The list is limited to 200 items and 21 days"
-msgstr "Luettelo on rajoitettu 200 kohteeseen ja 21 päivään"
+#: report/doublons/doublons.php:514 report/doublons/doublons.php:529
+msgid "Last inventory date"
+msgstr "Viimeisin inventointipäivä"
 
-#. TRANS: The name of the report = Financial information
-#: report/infocom/infocom.php:55
-msgid "infocom_report_title"
-msgstr "Taloustiedot"
-
-#. TRANS: The name of the report = Time before equipment start-up
-#: report/iteminstall/iteminstall.php:42
-msgid "iteminstall_report_title"
-msgstr "Aika ennen laitteen käyttöönottoa"
-
-#. TRANS: The name of the report = Licenses by expiration date
-#: report/licensesexpires/licensesexpires.php:40
-msgid "licensesexpires_report_title"
-msgstr "Lisenssit voimassaolopäivän mukaan"
-
-#: report/licensesexpires/licensesexpires.php:42
-msgid "Valid to"
-msgstr "Voimassa"
-
-#. TRANS: The name of the report = Detailed license report
-#: report/licenses/licenses.php:41
-msgid "licenses_report_title"
-msgstr "Yksityiskohtainen lisenssiraportti"
-
-#: report/licenses/licenses.php:60
-msgid "Used version"
-msgstr "Käytetty versio"
-
-#. TRANS: The name of the report = List of equipments by location
-#: report/listequipmentbylocation/listequipmentbylocation.php:40
-msgid "listequipmentbylocation_report_title"
-msgstr "Luettelo laitteista sijainnin mukaan"
-
-#: report/listequipmentbylocation/listequipmentbylocation.php:78
-msgid "Location not selected"
+#: src/Report.php:148 report/licensesexpires/licensesexpires.php:56
+msgid "Licenses by expiration date"
 msgstr ""
 
-#. TRANS: The name of the report = List of groups and members
-#: report/listgroups/listgroups.php:41
-msgid "listgroups_report_title"
-msgstr "Luettelo ryhmistä ja jäsenistä"
-
-#. TRANS: The name of the report = Location tree
-#: report/location/location.php:41
-msgid "location_report_title"
-msgstr "Sijaintipuu"
-
-#: report/location/location.php:46
+#: report/location/location.php:59
 msgid "Link"
 msgid_plural "Links"
 msgstr[0] "Linkki"
 msgstr[1] "Linkit"
 
-#. TRANS: The name of the report = Number of items by entity
-#: report/pcsbyentity/pcsbyentity.php:211
-msgid "pcsbyentity_report_title"
-msgstr "Kohteiden lukumäärä yksiköittäin"
+#: src/Report.php:140 report/equipmentbygroups/equipmentbygroups.php:38
+msgid "List all devices of a group, ordered by users"
+msgstr ""
 
-#: report/pcsbyentity/pcsbyentity.php:220
-msgid "Number of items by entity"
-msgstr "Kohteiden lukumäärä yksiköittäin"
+#: src/Report.php:149
+#: report/listequipmentbylocation/listequipmentbylocation.php:52
+msgid "List of equipments by location"
+msgstr ""
 
-#: report/pcsbyentity/pcsbyentity.php:246
-msgid "Display"
-msgstr "Näytä"
+#: src/Report.php:150 report/listgroups/listgroups.php:52
+msgid "List of groups and members"
+msgstr ""
 
-#: report/pcsbyentity/pcsbyentity.php:247
-msgid "Entity tree"
-msgstr "Yksiköittäin"
+#: src/Report.php:162 report/transferreditems/transferreditems.php:49
+msgid "List of transfered objects"
+msgstr ""
 
-#: report/pcsbyentity/pcsbyentity.php:250
-msgid "Sort by count"
-msgstr "Lukumäärän mukaan"
+#: report/listequipmentbylocation/listequipmentbylocation.php:141
+msgid "Location not selected"
+msgstr ""
 
-#: report/pcsbyentity/pcsbyentity.php:267
-#: report/pcsbyentity/pcsbyentity.php:274
-msgid "Unknown"
-msgstr "Tuntematon"
+#: src/Report.php:151 report/location/location.php:49
+msgid "Location tree"
+msgstr ""
 
-#: report/pcsbyentity/pcsbyentity.php:288
-msgid "Selection of type is mandatory"
-msgstr "Tyypin valinta on pakollinen"
+#: report/histohard/histohard.php:59
+msgid "Modification"
+msgstr "Muutos"
 
-#. TRANS: The name of the report = Printers
-#: report/printers/printers.php:41
-msgid "printers_report_title"
-msgstr "Tulostimet"
-
-#: report/printers/printers.php:72
-msgid "Computers in the group"
-msgstr "Ryhmän tietokoneet"
-
-#: report/printers/printers.php:73
-msgid "Users in the group"
-msgstr "Ryhmän käyttäjät"
-
-#: report/printers/printers.php:76
-msgid "Computers in the location"
-msgstr "Sijainnin tietokoneet"
-
-#: report/printers/printers.php:77
-msgid "Users in the location"
-msgstr "Sijainnin käyttäjät"
-
-#. TRANS: The name of the report = Rule's catalog
-#: report/rules/rules.php:50 report/rules/rules.php:98
-#: report/rules/rules.php:115
-msgid "rules_report_title"
-msgstr "Sääntöluettelo"
-
-#. TRANS: The name of the report = Search in the financial information
-#. (plural)
-#: report/searchinfocom/searchinfocom.php:41
-msgid "searchinfocom_report_title"
-msgstr "Haku taloustiedoista"
-
-#. TRANS: The name of the report = Detailed report of software installation by
-#. status
-#: report/softnotinstalled/softnotinstalled.php:41
-msgid "softnotinstalled_report_title"
-msgstr "Yksityiskohtainen raportti ohjelmiston asennuksesta tilan mukaan"
-
-#. TRANS: The name of the report = Not installed important software (plural)
-#: report/softversioninstallations/softversioninstallations.php:41
-msgid "softversioninstallations_report_title"
-msgstr "Asentamattomat tärkeät ohjelmat"
-
-#: report/softversioninstallations/softversioninstallations.php:44
-msgid "Software version status"
-msgstr "Ohjelmistoversion tila"
-
-#. TRANS: The name of the report = Tickets opened at night, sorted by priority
-#: report/statnightticketsbypriority/statnightticketsbypriority.php:41
-msgid "statnightticketsbypriority_report_title"
-msgstr "Yöllä avatut tiketit prioriteetin mukaan"
-
-#. TRANS: The name of the report = Helpdesk requesters and tickets by entity
-#: report/statticketsbyentity/statticketsbyentity.php:43
-msgid "statticketsbyentity_report_title"
-msgstr "Helpdesk toimeksiantajat ja tiketit yksiköittäin"
-
-#: report/statticketsbyentity/statticketsbyentity.php:59
-msgid "Users count"
-msgstr "Käyttäjien määrä"
-
-#: report/statticketsbyentity/statticketsbyentity.php:62
-msgid "Tickets count"
-msgstr "Tikettien määrä"
-
-#: report/statticketsbyentity/statticketsbyentity.php:65
-msgid "Older"
-msgstr "Vanhempi"
-
-#: report/statticketsbyentity/statticketsbyentity.php:67
+#: report/statticketsbyentity/statticketsbyentity.php:107
 msgid "Newer"
 msgstr "Uudempi"
 
-#. TRANS: The name of the report = Tickets no closed, sorted by priority
-#: report/statticketsbypriority/statticketsbypriority.php:41
-msgid "statticketsbypriority_report_title"
-msgstr "Tiketit, joita ei ole suljettu, prioriteetin mukaan"
+#: src/Profile.php:133
+msgid "No right on Assistance / Statistics"
+msgstr "Ei oikeutta Tukeen / Tilastoihin"
 
-#: report/statusertask/statusertask.php:39
-msgid "statusertask_report_title"
-msgstr ""
+#: src/Profile.php:134
+msgid "No right on Tools / Reports"
+msgstr "Ei oikeutta Työkaluihin / Raportteihin"
 
-#: report/statusertask/statusertask.php:42
-msgid "Tasks created"
-msgstr ""
-
-#: report/statusertask/statusertask.php:56
+#: report/statusertask/statusertask.php:65
 msgid "Number created tasks"
 msgstr ""
 
-#. TRANS: The name of the report = List of transfered objects
-#: report/transferreditems/transferreditems.php:42
-msgid "transferreditems_report_title"
-msgstr "Luettelo siirretyistä kohteista"
+#: src/Report.php:141 report/equipmentbylocation/equipmentbylocation.php:46
+msgid "Number of equipments by location"
+msgstr ""
 
-#: report/transferreditems/transferreditems.php:68
+#. TRANS: The name of the report = Number of items by entity
+#: src/Report.php:152 report/pcsbyentity/pcsbyentity.php:241
+#: report/pcsbyentity/pcsbyentity.php:250
+msgid "Number of items by entity"
+msgstr "Kohteiden lukumäärä yksiköittäin"
+
+#: src/TimeIntervalCriteria.php:75 src/TimeIntervalCriteria.php:84
+msgid "Number pending"
+msgstr "Odottavien lukumäärä"
+
+#: report/statticketsbyentity/statticketsbyentity.php:102
+msgid "Older"
+msgstr "Vanhempi"
+
+#: templates/report_config.html.twig:53
+msgctxt "button"
+msgid "Post"
+msgstr ""
+
+#: src/Report.php:153 report/printers/printers.php:68
+msgid "Printers"
+msgstr ""
+
+#: src/Profile.php:130
+msgid "Profiles rights"
+msgstr ""
+
+#: front/report.form.php:93 front/report.form.php:129 src/AutoReport.php:250
+msgid "Report"
+msgstr ""
+
+#: front/report.form.php:40 front/report.form.php:127
+msgid "Reports plugin configuration"
+msgstr "Liitännäisen asetukset"
+
+#: front/report.form.php:128
+msgid "Rights management by report"
+msgstr "Oikeuksien hallinta raporteittain"
+
+#. TRANS: The name of the report = Rule's catalog
+#: src/Report.php:154 report/rules/rules.php:50 report/rules/rules.php:103
+#: report/rules/rules.php:121
+msgid "Rule's catalog"
+msgstr ""
+
+#: templates/profile.html.twig:37
+msgctxt "button"
+msgid "Save"
+msgstr ""
+
+#: src/AutoReport.php:946
+msgid "Search criteria"
+msgstr "Hakuehto"
+
+#: src/Report.php:155 report/searchinfocom/searchinfocom.php:60
+msgid "Search in the financial information"
+msgstr ""
+
+#: report/doublons/doublons.php:498
+msgid "Second computer"
+msgstr "Toinen tietokone"
+
+#: report/pcsbyentity/pcsbyentity.php:357
+msgid "Selection of type is mandatory"
+msgstr "Tyypin valinta on pakollinen"
+
+#: src/Report.php:157
+#: report/softversioninstallations/softversioninstallations.php:57
+msgid "Software version installations"
+msgstr ""
+
+#: report/softversioninstallations/softversioninstallations.php:62
+msgid "Software version status"
+msgstr "Ohjelmistoversion tila"
+
+#: report/pcsbyentity/pcsbyentity.php:291
+msgid "Sort by count"
+msgstr "Lukumäärän mukaan"
+
+#: report/transferreditems/transferreditems.php:94
 msgid "Source entity"
 msgstr "Lähdeyksikkö"
 
-#: report/transferreditems/transferreditems.php:69
+#: report/transferreditems/transferreditems.php:95
 msgid "Target entity"
 msgstr "Kohdeyksikkö"
 
-#: report/transferreditems/transferreditems.php:70
+#: report/statusertask/statusertask.php:51
+msgid "Tasks created"
+msgstr ""
+
+#: src/Report.php:161 report/statusertask/statusertask.php:48
+msgid "Tasks list per user"
+msgstr ""
+
+#: report/histohard/histohard.php:204
+msgid "The list is limited to 100 items and 21 days"
+msgstr "Luettelo on rajoitettu 100 kohteeseen ja 21 päivään"
+
+#: report/histoinst/histoinst.php:143
+msgid "The list is limited to 200 items and 21 days"
+msgstr "Luettelo on rajoitettu 200 kohteeseen ja 21 päivään"
+
+#: report/statticketsbyentity/statticketsbyentity.php:96
+msgid "Tickets count"
+msgstr "Tikettien määrä"
+
+#: src/Report.php:160 report/statticketsbypriority/statticketsbypriority.php:54
+msgid "Tickets no closed, sorted by priority"
+msgstr ""
+
+#: src/Report.php:158
+#: report/statnightticketsbypriority/statnightticketsbypriority.php:54
+msgid "Tickets opened at night, sorted by priority"
+msgstr ""
+
+#: src/Report.php:146 report/iteminstall/iteminstall.php:58
+msgid "Time before equipment start-up"
+msgstr ""
+
+#: src/DateIntervalCriteria.php:225 src/TimeIntervalCriteria.php:178
+msgid "Time interval"
+msgstr "Aikaväli"
+
+#: report/transferreditems/transferreditems.php:96
 msgid "Transfert date"
 msgstr "Siirtopäivä"
 
-#. TRANS: The name of the report = Users with no right
-#: report/zombies/zombies.php:39
-msgid "zombies_report_title"
-msgstr "Käyttäjät, joilla ei ole oikeuksia"
+#: report/pcsbyentity/pcsbyentity.php:314
+#: report/pcsbyentity/pcsbyentity.php:343
+msgid "Unknown"
+msgstr "Tuntematon"
 
-#: report/zombies/zombies.php:45
+#: templates/report_rights.html.twig:52
+msgctxt "button"
+msgid "Update"
+msgstr ""
+
+#: report/licenses/licenses.php:75
+msgid "Used version"
+msgstr "Käytetty versio"
+
+#: report/statticketsbyentity/statticketsbyentity.php:90
+msgid "Users count"
+msgstr "Käyttäjien määrä"
+
+#: src/Report.php:163 report/zombies/zombies.php:71
+msgid "Users with no right"
+msgstr ""
+
+#: report/licensesexpires/licensesexpires.php:58
+msgid "Valid to"
+msgstr "Voimassa"
+
+#: report/zombies/zombies.php:77
 msgid "With no ticket"
 msgstr "Ilman tikettiä"
+
+#~ msgid "_report_title"
+#~ msgstr "_report_title"
+
+#~ msgid "Rights management by profil"
+#~ msgstr "Oikeuksien hallinta profiileittain"
+
+#~ msgid "Profils rights"
+#~ msgstr "Profiilioikeudet"
+
+#~ msgid "applicationsbylocation_report_title"
+#~ msgstr "Sovellukset sijainneittain sekä versiot"
+
+#~ msgid "Applications"
+#~ msgstr "Sovellukset"
+
+#~ msgid "doublons_report_title"
+#~ msgstr "Tietokoneiden kaksoiskappaleet"
+
+#~ msgid "equipmentbygroups_report_title"
+#~ msgstr "Luettelo kaikista ryhmän laitteista"
+
+#~ msgid "equipmentbylocation_report_title"
+#~ msgstr "Laitteiden määrä sijainnin mukaan"
+
+#~ msgid "globalhisto_report_title"
+#~ msgstr "Globaali historia (testi/esimerkki)"
+
+#~ msgid "histohard_report_title"
+#~ msgstr "Viimeisten laitteistoasennusten historia"
+
+#~ msgid "histoinst_report_title"
+#~ msgstr "Viimeisten ohjelmistoasennusten historia"
+
+#~ msgid "infocom_report_title"
+#~ msgstr "Taloustiedot"
+
+#~ msgid "iteminstall_report_title"
+#~ msgstr "Aika ennen laitteen käyttöönottoa"
+
+#~ msgid "licensesexpires_report_title"
+#~ msgstr "Lisenssit voimassaolopäivän mukaan"
+
+#~ msgid "licenses_report_title"
+#~ msgstr "Yksityiskohtainen lisenssiraportti"
+
+#~ msgid "listequipmentbylocation_report_title"
+#~ msgstr "Luettelo laitteista sijainnin mukaan"
+
+#~ msgid "listgroups_report_title"
+#~ msgstr "Luettelo ryhmistä ja jäsenistä"
+
+#~ msgid "location_report_title"
+#~ msgstr "Sijaintipuu"
+
+#~ msgid "pcsbyentity_report_title"
+#~ msgstr "Kohteiden lukumäärä yksiköittäin"
+
+#~ msgid "printers_report_title"
+#~ msgstr "Tulostimet"
+
+#~ msgid "Computers in the group"
+#~ msgstr "Ryhmän tietokoneet"
+
+#~ msgid "Users in the group"
+#~ msgstr "Ryhmän käyttäjät"
+
+#~ msgid "Computers in the location"
+#~ msgstr "Sijainnin tietokoneet"
+
+#~ msgid "Users in the location"
+#~ msgstr "Sijainnin käyttäjät"
+
+#~ msgid "rules_report_title"
+#~ msgstr "Sääntöluettelo"
+
+#~ msgid "searchinfocom_report_title"
+#~ msgstr "Haku taloustiedoista"
+
+#~ msgid "softnotinstalled_report_title"
+#~ msgstr "Yksityiskohtainen raportti ohjelmiston asennuksesta tilan mukaan"
+
+#~ msgid "softversioninstallations_report_title"
+#~ msgstr "Asentamattomat tärkeät ohjelmat"
+
+#~ msgid "statnightticketsbypriority_report_title"
+#~ msgstr "Yöllä avatut tiketit prioriteetin mukaan"
+
+#~ msgid "statticketsbyentity_report_title"
+#~ msgstr "Helpdesk toimeksiantajat ja tiketit yksiköittäin"
+
+#~ msgid "statticketsbypriority_report_title"
+#~ msgstr "Tiketit, joita ei ole suljettu, prioriteetin mukaan"
+
+#~ msgid "transferreditems_report_title"
+#~ msgstr "Luettelo siirretyistä kohteista"
+
+#~ msgid "zombies_report_title"
+#~ msgstr "Käyttäjät, joilla ei ole oikeuksia"
