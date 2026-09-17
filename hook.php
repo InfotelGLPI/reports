@@ -69,13 +69,70 @@ function plugin_reports_install()
         $rights['plugin_reports_' . basename($path)] = READ;
     }
     if (count($rights) > 0) {
-        ProfileRight::addProfileRights(array_keys($rights));
+        plugin_reports_addMissingProfileRights(array_keys($rights));
         foreach (Profile::getSuperAdminProfilesId() as $profiles_id) {
             ProfileRight::updateProfileRights($profiles_id, $rights);
         }
     }
 
     return true;
+}
+
+
+/**
+ * Create the glpi_profilerights rows that are missing for the given right names.
+ *
+ * ProfileRight::addProfileRights() inserts one row per profile without ever looking at what
+ * is already stored, and glpi_profilerights carries a unique key on (profiles_id, name). As
+ * soon as a single pair is already there — a re-install, an install replayed after a failure,
+ * or a plugin left in the "to be cleaned" state — the insert raises a 1062 that GLPI 11 turns
+ * into an uncaught RuntimeException: plugin_reports_install() aborts halfway and the plugin
+ * can no longer be installed without a manual clean-up of the table. Filling the gaps pair by
+ * pair makes the seed replayable, and repairs a partial seed as well (a profile created after
+ * the first install carries no row for these names).
+ *
+ * @param array<string> $names
+ *
+ * @return void
+ */
+function plugin_reports_addMissingProfileRights(array $names)
+{
+    global $DB;
+
+    if (count($names) === 0) {
+        return;
+    }
+
+    $existing = [];
+    $iterator = $DB->request([
+        'SELECT' => ['profiles_id', 'name'],
+        'FROM'   => ProfileRight::getTable(),
+        'WHERE'  => ['name' => $names],
+    ]);
+    foreach ($iterator as $row) {
+        $existing[(int) $row['profiles_id']][$row['name']] = true;
+    }
+
+    $profiles = $DB->request([
+        'SELECT' => ['id'],
+        'FROM'   => Profile::getTable(),
+    ]);
+    foreach ($profiles as $profile) {
+        $profiles_id = (int) $profile['id'];
+        foreach ($names as $name) {
+            if (isset($existing[$profiles_id][$name])) {
+                continue;
+            }
+            $DB->insert(ProfileRight::getTable(), [
+                'profiles_id' => $profiles_id,
+                'name'        => $name,
+            ]);
+        }
+    }
+
+    // addProfileRights() flushes this cache on every call: the list of possible rights is
+    // built from the very rows that were just created.
+    ProfileRight::cleanAllPossibleRights();
 }
 
 
