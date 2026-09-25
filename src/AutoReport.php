@@ -570,12 +570,12 @@ class AutoReport extends CommonDBTM
             }
 
             echo "<div class='center'><h3>" . htmlescape($title) . "</h3></div>";
-            $param = "";
             // The pager links and the hidden fields of the export form republish the request.
             // They used to be built from $_POST alone, which is why the resolved criteria were
             // injected into it; take them from the values resolved for this request instead, and
             // complete them with what was actually posted.
             $republished = $this->request_parameters;
+            $pairs       = [];
             foreach ($_POST as $post_key => $post_val) {
                 if (!array_key_exists($post_key, $republished)) {
                     $republished[$post_key] = $post_val;
@@ -596,25 +596,13 @@ class AutoReport extends CommonDBTM
                 if (str_starts_with((string) $key, '_glpi_') || $key === 'list_limit') {
                     continue;
                 }
-                if (is_array($val)) {
-                    foreach ($val as $k => $v) {
-                        // Concatenating a string and an array yields the literal "Array", so every
-                        // hidden field of a multi-valued criteria carried the same name and the
-                        // criteria was lost on paging and on export.
-                        echo Html::hidden($key . '[' . $k . ']', ['value' => $v]);
-                        if (!empty($param)) {
-                            $param .= "&";
-                        }
-                        $param .= urlencode($key . '[' . $k . ']') . '=' . urlencode($v);
-                    }
-                } else {
-                    echo Html::hidden($key, ['value' => $val]);
-                    if (!empty($param)) {
-                        $param .= "&";
-                    }
-                    $param .= urlencode((string) $key) . '=' . urlencode($val);
-                }
+                // Html::hidden() expands arrays recursively into name[key] fields
+                echo Html::hidden((string) $key, ['value' => $val]);
+                $pairs[$key] = $val;
             }
+            // http_build_query() handles nested values at any depth: urlencode() raised a
+            // TypeError (500) as soon as a posted parameter was nested more than one level
+            $param = http_build_query($pairs, '', '&');
             self::printPager($start, $numrows, $_SERVER['REQUEST_URI'], $param, "GlpiPlugin\Reports\AutoReport");
         }
 
@@ -995,15 +983,12 @@ class AutoReport extends CommonDBTM
             $this->request_parameters['find'] = true;
         }
         // Order by
-        if (isset($_GET['sort'])) {
-            $this->request_parameters['sort'] = $_GET['sort'];
-        } elseif (isset($_POST['sort'])) {
-            $this->request_parameters['sort'] = $_POST['sort'];
-        }
-        if (isset($_GET['order'])) {
-            $this->request_parameters['order'] = $_GET['order'];
-        } elseif (isset($_POST['order'])) {
-            $this->request_parameters['order'] = $_POST['order'];
+        // Sort and order are single values: a nested one (sort[]=x) is dropped
+        foreach (['sort', 'order'] as $key) {
+            $value = $_GET[$key] ?? $_POST[$key] ?? null;
+            if (is_scalar($value)) {
+                $this->request_parameters[$key] = $value;
+            }
         }
     }
 

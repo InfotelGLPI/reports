@@ -30,6 +30,7 @@
  * --------------------------------------------------------------------------
  */
 
+use Glpi\Exception\Http\AccessDeniedHttpException;
 use GlpiPlugin\Reports\AutoReport;
 use GlpiPlugin\Reports\Column;
 use GlpiPlugin\Reports\ColumnDate;
@@ -43,7 +44,7 @@ use GlpiPlugin\Reports\TextCriteria;
 $USEDBREPLICATE         = 1;
 $DBCONNECTION_REQUIRED  = 0;
 
-global $DB;
+global $DB, $CFG_GLPI;
 
 $dbu = new DbUtils();
 
@@ -112,11 +113,25 @@ if ($report->criteriasValidated()) {
 
     //   $report->execute();
 
+    // The infocom right does not grant the items themselves: only list the financial
+    // information of the itemtypes the session may read
+    $allowed_itemtypes = [];
+    foreach ($CFG_GLPI['infocom_types'] as $itemtype) {
+        if (!in_array($itemtype, $itemtypes, true)
+            && is_a($itemtype, CommonDBTM::class, true)
+            && $itemtype::canView()) {
+            $allowed_itemtypes[] = $itemtype;
+        }
+    }
+    if ($allowed_itemtypes === []) {
+        throw new AccessDeniedHttpException();
+    }
+
     $criteria = [
         'SELECT' => ['*'],
         'FROM' => 'glpi_infocoms',
         'WHERE' =>
-            ['itemtype' => ['NOT IN', $itemtypes]],
+            ['itemtype' => $allowed_itemtypes],
         'ORDERBY'   => ['itemtype'],
     ];
 
@@ -124,6 +139,9 @@ if ($report->criteriasValidated()) {
 
     $criteria['WHERE'][] = getEntitiesRestrictCriteria(
         'glpi_infocoms',
+        '',
+        '',
+        true,
     );
 
     $report->setGroupBy(['itemtype']);

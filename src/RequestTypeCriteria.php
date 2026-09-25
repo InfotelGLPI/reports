@@ -56,6 +56,17 @@ class RequestTypeCriteria extends DropdownCriteria
     }
 
 
+    /**
+     * The criteria is built without a table (NOT_AVAILABLE): name the itemtype explicitly,
+     * otherwise the identifier checks of DropdownCriteria never resolve it and every selected
+     * request source turns into an unsatisfiable restriction.
+    **/
+    public function getItemType()
+    {
+        return \RequestType::class;
+    }
+
+
     //Dropdown priorities is not a generic dropdown, so the function needs to be overwritten
     public function displayDropdownCriteria()
     {

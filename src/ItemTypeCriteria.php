@@ -94,6 +94,51 @@ class ItemTypeCriteria extends DropdownCriteria
     }
 
 
+    /**
+     * Itemtype posted, validated against the offered types
+     *
+     * The criteria has no table (NOT_AVAILABLE), so the identifier checks of DropdownCriteria
+     * always failed on it and turned every selected itemtype into an unsatisfiable restriction:
+     * the report came back empty. The offered types are the allow-list instead.
+     *
+     * @return string|null '' when no restriction applies, null when the value was never offered
+     **/
+    private function getValidatedItemtype(): ?string
+    {
+        $itemtype = $this->getScalarParameterValue();
+        if ($itemtype === '' || $itemtype === '0' || $itemtype === 'all') {
+            return '';
+        }
+
+        return array_key_exists($itemtype, $this->types) ? $itemtype : null;
+    }
+
+
+    public function getSqlCriteriasRestriction($link = 'AND')
+    {
+        global $DB;
+
+        $itemtype = $this->getValidatedItemtype();
+        if ($itemtype === '') {
+            return '';
+        }
+        // A value that was never offered keeps the report empty rather than unfiltered
+        return $link . " " . $DB::quoteName($this->getSqlField()) . "="
+            . $DB::quoteValue($itemtype ?? '-1') . " ";
+    }
+
+
+    public function getNewSqlCriteriasRestriction($link = 'AND')
+    {
+        $itemtype = $this->getValidatedItemtype();
+        if ($itemtype === '') {
+            return [];
+        }
+        // A value that was never offered keeps the report empty rather than unfiltered
+        return [$this->getSqlField() => $itemtype ?? -1];
+    }
+
+
     public function displayDropdownCriteria()
     {
         ksort($this->types);

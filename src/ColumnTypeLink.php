@@ -78,8 +78,12 @@ class ColumnTypeLink extends Column
             return 'ID #' . (AutoReport::isHtmlOutputType($output_type) ? htmlescape($items_id) : $items_id);
         }
 
+        // Only link to an item the session may read: the name alone otherwise
         if (AutoReport::isHtmlOutputType($output_type)) {
-            return $this->obj->getLink();
+            if ($this->obj->can($this->obj->getID(), READ)) {
+                return $this->obj->getLink();
+            }
+            return htmlescape($this->obj->getNameID());
         }
 
         return $this->obj->getNameID();
