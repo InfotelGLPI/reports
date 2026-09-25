@@ -73,8 +73,6 @@ class Profile extends \Profile
     **/
     public static function showForReport($report)
     {
-        global $DB;
-
         /* call from front/config.form.php
         * $report = "bar" (from reports) or "foo_bar" (other plugins)
          */
@@ -85,23 +83,19 @@ class Profile extends \Profile
         $canedit = Session::haveRight('profile', UPDATE);
 
         $profiles = [];
-        foreach ($DB->request([
-            'SELECT' => ['id', 'name'],
-            'FROM'   => 'glpi_profiles',
-            'ORDER'  => 'name',
-        ]) as $data) {
-            $profrights = ProfileRight::getProfileRights($data['id'], ['statistic', 'reports']);
-            $canstat    = (isset($profrights['statistic']) && $profrights['statistic']);
-            $canreport  = (isset($profrights['reports'])   && $profrights['reports']);
-
-            $canaccess = (isStat($report) && $canstat) || (!isStat($report) && $canreport);
+        foreach (self::getReportProfiles($report) as $data) {
+            $canaccess = $data['canaccess'];
 
             // Capture the GLPI right dropdown (or the hidden "no access" field) as already-safe
             // HTML so the Twig template can output it via |raw while auto-escaping the rest.
             ob_start();
-            if ($canaccess) {
+            if ($canaccess && !$data['editable']) {
+                // Profile above the current one: shown, but not offered for edition
+                // (updateForReport() would ignore it anyway).
+                echo htmlescape(($current[$data['id']] ?? 0) ? __('Read') : __('No access'));
+            } elseif ($canaccess) {
                 \Profile::dropdownRight(
-                    $data['id'],
+                    (string) $data['id'], // the input is named after the profile id
                     ['value'   => ($current[$data['id']] ?? 0),
                         'nonone'  => 0,
                         'noread'  => 0,
@@ -109,7 +103,7 @@ class Profile extends \Profile
                 );
             } else {
                 // Can't access because missing right from GLPI core
-                echo Html::hidden($data['id'], ['value' => 'NULL']);
+                echo Html::hidden((string) $data['id'], ['value' => 'NULL']);
             }
             $field = ob_get_clean();
 
@@ -172,6 +166,50 @@ class Profile extends \Profile
 
 
     /**
+     * Profiles listed on the rights page of a report, with the eligibility flags shared by the
+     * display and the write path, so that a forged POST cannot reach a profile the form does
+     * not offer.
+     *
+     * - canaccess: the profile holds the core right the report depends on (statistic/reports);
+     * - editable: the profile is under the active one (Profile::currentUserHaveMoreRightThan()),
+     *   so that the profile UPDATE right cannot be used to grant reports to a more privileged
+     *   profile, or to one's own.
+     *
+     * @param string $report
+     *
+     * @return array<int, array{id: int, name: string, canaccess: bool, editable: bool}>
+     */
+    private static function getReportProfiles($report)
+    {
+        global $DB;
+
+        $profiles = [];
+        foreach ($DB->request([
+            'SELECT' => ['id', 'name'],
+            'FROM'   => 'glpi_profiles',
+            'ORDER'  => 'name',
+        ]) as $data) {
+            $id         = (int) $data['id'];
+            $profrights = ProfileRight::getProfileRights($id, ['statistic', 'reports']);
+            $canstat    = (isset($profrights['statistic']) && $profrights['statistic']);
+            $canreport  = (isset($profrights['reports'])   && $profrights['reports']);
+
+            $profiles[$id] = [
+                'id'        => $id,
+                'name'      => $data['name'],
+                'canaccess' => (isStat($report) && $canstat) || (!isStat($report) && $canreport),
+                // The active profile always passes the hierarchy check (equal rights): only
+                // a profile creator, who may edit any profile in the core, may change it here.
+                'editable'  => \Profile::currentUserHaveMoreRightThan([$id])
+                    && ($id !== (int) ($_SESSION['glpiactiveprofile']['id'] ?? 0) || \Profile::canCreate()),
+            ];
+        }
+
+        return $profiles;
+    }
+
+
+    /**
      * @param $input
     **/
     public static function updateForReport($input)
@@ -202,12 +240,21 @@ class Profile extends \Profile
             $mask |= (int) $right_bit;
         }
 
+        $profiles = self::getReportProfiles($report);
+
         foreach ($input as $profiles_id => $right) {
             if ($right == 'NULL') {
                 $right = 0;
             }
             $right = (int) $right & $mask;
             if (is_numeric($profiles_id)) {
+                // Only write for the profiles the form offers: existing, holding the core right
+                // the report depends on, and under the active profile. Anything else (unknown
+                // id, profile without access, more privileged or own profile) is ignored.
+                $profile = $profiles[(int) $profiles_id] ?? null;
+                if ($profile === null || !$profile['canaccess'] || !$profile['editable']) {
+                    continue;
+                }
                 if (isset($current[$profiles_id])) {
                     $prof->update(['id'     => $current[$profiles_id]['id'],
                         'rights' => $right]);
