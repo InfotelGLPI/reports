@@ -237,6 +237,15 @@ class DropdownMultipleCriteria extends AutoCriteria
         // The recursion flag matters: without it, items shared down from a parent entity would
         // vanish from the list. A condition that is not an array belongs to a caller using the
         // legacy string form; leave it untouched rather than corrupt it.
+        // REPORTS_NO_ENTITY_RESTRICTION (-1) means "the active entities", as the 'entity' option
+        // of Dropdown::show(): handed as is, getEntitiesRestrictCriteria() reads it as the entity
+        // id -1 and the list comes out empty. An empty value selects the active entities and
+        // their recursive ancestors.
+        $entity_restrict = $this->getEntityRestrict();
+        if ($entity_restrict === -1 || $entity_restrict === '-1') {
+            $entity_restrict = '';
+        }
+
         $condition = $this->condition;
         if (is_array($condition) && $item->isEntityAssign()) {
             $condition = array_merge(
@@ -244,7 +253,7 @@ class DropdownMultipleCriteria extends AutoCriteria
                 $dbu->getEntitiesRestrictCriteria(
                     $item->getTable(),
                     '',
-                    $this->getEntityRestrict(),
+                    $entity_restrict,
                     $item->maybeRecursive(),
                 ),
             );
