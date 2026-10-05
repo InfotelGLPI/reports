@@ -126,7 +126,7 @@ $criteria = [
         'NOT'       => ['glpi_softwarelicenses.expire' => null]],
     'GROUPBY'   => ['glpi_softwarelicenses.expire',
         'glpi_softwarelicenses.name'],
-    'ORDERBY'   => 'glpi_softwarelicenses.expire, glpi_softwarelicenses.name',
+    'ORDERBY'   => ['glpi_softwarelicenses.expire', 'glpi_softwarelicenses.name'],
 ];
 // glpi_softwarelicenses is recursive and getEntitiesRestrictCriteria() does not infer it from
 // the table name: without the fourth argument, a licence shared down from a parent entity was
