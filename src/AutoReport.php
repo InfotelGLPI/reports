@@ -525,18 +525,6 @@ class AutoReport extends CommonDBTM
         return $values;
     }
 
-    //    public static function showOutputFormat()
-    //    {
-    //        $values[Search::PDF_OUTPUT_LANDSCAPE] = __s('All pages in landscape PDF');
-    //        $values[Search::PDF_OUTPUT_PORTRAIT] = __s('All pages in portrait PDF');
-    //        $values[Search::CSV_OUTPUT] = __s('All pages in CSV');
-    //
-    //        Dropdown::showFromArray('display_type', $values);
-    //        echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]);
-    //
-    //        echo Html::submit(_sx('button', 'Export'), ['name' => 'export', 'class' => 'btn btn-primary']);
-    //    }
-
     /**
      * Execute the report
      *
@@ -1242,10 +1230,10 @@ class AutoReport extends CommonDBTM
      **/
     public function startColumn()
     {
-        if ($this->cpt == 0) {
-            echo "<tr class='tab_bg_1'>";
-        }
-        echo "<td>";
+        TemplateRenderer::getInstance()->display('@reports/autoreport/legacy_column.html.twig', [
+            'open_row'  => $this->cpt == 0,
+            'open_cell' => true,
+        ]);
         $this->cpt++;
     }
 
@@ -1255,9 +1243,12 @@ class AutoReport extends CommonDBTM
      **/
     public function endColumn()
     {
-        echo "</td>";
-        if ($this->cpt == self::CRITERIA_COLUMNS) {
-            echo "</tr>";
+        $close_row = $this->cpt == self::CRITERIA_COLUMNS;
+        TemplateRenderer::getInstance()->display('@reports/autoreport/legacy_column.html.twig', [
+            'close_cell' => true,
+            'close_row'  => $close_row,
+        ]);
+        if ($close_row) {
             $this->cpt = 0;
         }
     }
@@ -1269,12 +1260,11 @@ class AutoReport extends CommonDBTM
     public function closeColumn()
     {
         if ($this->cpt > 0) {
-            while ($this->cpt < self::CRITERIA_COLUMNS) {
-                echo "<td></td>";
-                $this->cpt++;
-            }
+            TemplateRenderer::getInstance()->display('@reports/autoreport/legacy_column.html.twig', [
+                'empty_cells' => max(0, self::CRITERIA_COLUMNS - $this->cpt),
+                'close_row'   => true,
+            ]);
             $this->cpt = 0;
-            echo "</tr>";
         }
     }
 
