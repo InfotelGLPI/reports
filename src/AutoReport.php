@@ -838,9 +838,6 @@ class AutoReport extends CommonDBTM
 
                 $output->displayData($report_data, []);
             }
-        } elseif ($is_html_output && $numrows > 0) {
-            // Rows counted but none fetched: still close the page with its title and pager
-            TemplateRenderer::getInstance()->display('@reports/autoreport/results.html.twig', $view);
         }
         if ($is_html_output) {
             $this->footer_displayed = true;
