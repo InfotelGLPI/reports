@@ -94,31 +94,40 @@ class IntegerCriteria extends DropdownCriteria
         $this->unit  = $unit;
     }
 
-    public function displayCriteria()
+    /**
+     * Cells of the criteria: an optional comparison sign, the number, and its unit.
+    **/
+    public function getCriteriaFields()
     {
-
-        $this->getReport()->startColumn();
-        echo $this->getCriteriaLabel() . '&nbsp;:';
-        $this->getReport()->endColumn();
-
-        $this->getReport()->startColumn();
+        $field = '';
         if (empty($this->signe)) {
-            Dropdown::showFromArray(
+            $field .= Dropdown::showFromArray(
                 $this->getName() . "_sign",
                 ['<='    => '<=',
                     '>='    => '>='],
-                ['value' => $this->getParameter($this->getName() . "_sign")],
-            );
-            echo "&nbsp;";
+                ['value' => $this->getParameter($this->getName() . "_sign"), 'display' => false],
+            ) . '&nbsp;';
         }
-        $opt = ['value' => $this->getParameterValue(),
-            'min'   => $this->min,
-            'max'   => $this->max,
-            'step'  => 1];
-        Dropdown::showNumber($this->getName(), $opt);
-        echo '&nbsp; ' . $this->unit;
+        $opt = ['value'   => $this->getParameterValue(),
+            'min'     => $this->min,
+            'max'     => $this->max,
+            'step'    => 1,
+            'display' => false,
+        ];
+        $field .= Dropdown::showNumber($this->getName(), $opt);
 
-        $this->getReport()->endColumn();
+        return [[
+            'name'   => $this->getName(),
+            'label'  => $this->getCriteriaLabel(),
+            'field'  => $field,
+            'suffix' => (string) $this->unit,
+        ]];
+    }
+
+
+    public function displayCriteria()
+    {
+        $this->displayCriteriaFields();
     }
 
     /**

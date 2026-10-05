@@ -51,14 +51,15 @@ class UserCriteria extends DropdownCriteria
     }
 
 
-    public function displayDropdownCriteria()
+    public function getDropdownField(): string
     {
-
-        User::dropdown(['name'     => $this->getName(),
+        return (string) User::dropdown(['name'     => $this->getName(),
             'value'    => $this->getParameterValue(),
             'right'    => 'all',
             'comments' => $this->getDisplayComments(),
-            'entity'   => $this->getEntityRestrict()]);
+            'entity'   => $this->getEntityRestrict(),
+            'display'  => false,
+        ]);
     }
 
 }

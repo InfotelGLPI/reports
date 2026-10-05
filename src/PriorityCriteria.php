@@ -55,16 +55,24 @@ class PriorityCriteria extends AutoCriteria
         $this->addParameter($this->getName(), 1);
     }
 
-    public function displayCriteria()
+    /**
+     * Cells of the criteria: the priority dropdown of the core.
+    **/
+    public function getCriteriaFields()
     {
-
-        $this->getReport()->startColumn();
-        echo $this->getCriteriaLabel() . '&nbsp;:';
-        $this->getReport()->endColumn();
-
-        $this->getReport()->startColumn();
-        Ticket::dropdownPriority($this->getName(), $this->getParameterValue(), 1);
-        $this->getReport()->endColumn();
+        // Ticket::dropdownPriority() takes an array of options since GLPI 0.84: the positional
+        // call that stood here, (name, value, 1), raised a TypeError as soon as the form was
+        // displayed. 'search' mode offers "All" and the "At least" values getSubName() knows.
+        return [[
+            'name'  => $this->getName(),
+            'label' => $this->getCriteriaLabel(),
+            'field' => (string) Ticket::dropdownPriority([
+                'name'     => $this->getName(),
+                'value'    => $this->getParameterValue(),
+                'showtype' => 'search',
+                'display'  => false,
+            ]),
+        ]];
     }
 
     public function getSubName()

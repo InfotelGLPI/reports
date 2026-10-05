@@ -1,0 +1,102 @@
+{#
+ # -------------------------------------------------------------------------
+ #  LICENSE
+ #
+ # This file is part of Reports plugin for GLPI.
+ #
+ # Reports is free software: you can redistribute it and/or modify
+ # it under the terms of the GNU Affero General Public License as published by
+ # the Free Software Foundation, either version 3 of the License, or
+ # (at your option) any later version.
+ #
+ # Reports is distributed in the hope that it will be useful,
+ # but WITHOUT ANY WARRANTY; without even the implied warranty of
+ # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ # GNU Affero General Public License for more details.
+ #
+ # You should have received a copy of the GNU Affero General Public License
+ # along with Reports. If not, see <http://www.gnu.org/licenses/>.
+ #
+ # @authors   Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
+ # @copyright Copyright (c) 2009-2026 Reports plugin team
+ # @license   AGPL License 3.0 or (at your option) any later version
+ # @link      https://github.com/InfotelGLPI/reports
+ # @link      http://www.glpi-project.org/
+ # @package   reports
+ # @since     2009
+ #            http://www.gnu.org/licenses/agpl-3.0-standalone.html
+ # --------------------------------------------------------------------------
+ #}
+
+{#
+ # Pager of an AutoReport, rendered by AutoReport::printPager().
+ # Every URL is complete (built by PHP from the request) and escaped here as an attribute.
+ #}
+<div>
+    <table class="table align-middle">
+        <tr>
+            {% if back_href is not null %}
+                <th class="left">
+                    <a href="{{ first_href }}" class="btn btn-sm btn-ghost-secondary me-2"
+                       title="{{ __('Start') }}" data-bs-toggle="tooltip" data-bs-placement="top">
+                        <i class="ti ti-chevrons-left"></i>
+                    </a>
+                    <a href="{{ back_href }}" class="btn btn-sm btn-ghost-secondary me-2"
+                       title="{{ __('Previous') }}" data-bs-toggle="tooltip" data-bs-placement="top">
+                        <i class="ti ti-chevron-left"></i>
+                    </a>
+                </th>
+            {% endif %}
+
+            <td width="31%" class="tab_bg_2">
+                {# List limit form of the core (Html::printPagerForm(..., false)): the core
+                 # escapes the action and closes the form with its own CSRF token. #}
+                {{ pager_form|raw }}
+            </td>
+
+            {% if additional_info is not empty %}
+                <td class="tab_bg_2">{{ additional_info }}</td>
+            {% endif %}
+
+            {% if export is not null %}
+                <td class="tab_bg_2 responsive_hidden" width="30%">
+                    {# Declared method="get": every field below comes back in the query string
+                     # of the export request. Internal _glpi_* fields are filtered out by PHP, the
+                     # CSRF token included, so that no session token is written to an URL. #}
+                    <form method="get" action="{{ export.action }}" target="_blank">
+                        <input type="hidden" name="item_type" value="{{ export.item_type }}">
+                        {% if export.item_type_param is not null %}
+                            <input type="hidden" name="item_type_param" value="{{ export.item_type_param }}">
+                        {% endif %}
+                        {% for hidden in export.hidden %}
+                            <input type="hidden" name="{{ hidden.name }}" value="{{ hidden.value }}">
+                        {% endfor %}
+                        {# Output format selector of the core (Dropdown::showFromArray(..., 'display' => false)) #}
+                        {{ export.format_dropdown|raw }}
+                        <button type="submit" name="export" class="btn" title="{{ _x('button', 'Export') }}">
+                            <i class="ti ti-device-floppy"></i><span class="sr-only">{{ _x('button', 'Export') }}</span>
+                        </button>
+                    </form>
+                </td>
+            {% endif %}
+
+            <td width="20%" class="b">
+                {#- TRANS: %1$d, %2$d, %3$d are page numbers -#}
+                {{ __('From %1$d to %2$d of %3$d')|format(current_start, current_end, numrows) }}
+            </td>
+
+            {% if next_href is not null %}
+                <th class="right">
+                    <a href="{{ next_href }}" class="btn btn-sm btn-ghost-secondary"
+                       title="{{ __('Next') }}" data-bs-toggle="tooltip" data-bs-placement="top">
+                        <i class="ti ti-chevron-right"></i>
+                    </a>
+                    <a href="{{ last_href }}" class="btn btn-sm btn-ghost-secondary"
+                       title="{{ __('End') }}" data-bs-toggle="tooltip" data-bs-placement="top">
+                        <i class="ti ti-chevrons-right"></i>
+                    </a>
+                </th>
+            {% endif %}
+        </tr>
+    </table>
+</div>

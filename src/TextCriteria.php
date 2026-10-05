@@ -33,6 +33,7 @@
 namespace GlpiPlugin\Reports;
 
 use Glpi\DBAL\QueryExpression;
+use Html;
 use Search;
 
 /**
@@ -56,16 +57,33 @@ class TextCriteria extends DropdownCriteria
         $this->addParameter($this->getName(), '');
     }
 
+    /**
+     * Cells of the criteria: a text input.
+    **/
+    public function getCriteriaFields()
+    {
+        return [[
+            'name'  => $this->getName(),
+            'label' => $this->getCriteriaLabel(),
+            'field' => $this->getDropdownField(),
+        ]];
+    }
+
+
+    /**
+     * Text input built by Html::input(), which escapes the name and the value.
+    **/
+    public function getDropdownField(): string
+    {
+        return Html::input($this->getName(), [
+            'value' => $this->getScalarParameterValue(),
+        ]);
+    }
+
+
     public function displayCriteria()
     {
-
-        $this->getReport()->startColumn();
-        echo $this->getCriteriaLabel() . '&nbsp;:';
-        $this->getReport()->endColumn();
-
-        $this->getReport()->startColumn();
-        echo "<input type='text' name='" . $this->getName() . "' value='" . htmlescape($this->getScalarParameterValue()) . "'>";
-        $this->getReport()->endColumn();
+        $this->displayCriteriaFields();
     }
 
     /**

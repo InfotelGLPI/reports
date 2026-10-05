@@ -34,6 +34,7 @@ namespace GlpiPlugin\Reports;
 
 use DbUtils;
 use Dropdown;
+use Glpi\Application\View\TemplateRenderer;
 
 /**
  * Manage criterias from dropdown tables
@@ -318,13 +319,32 @@ class DropdownMultipleCriteria extends AutoCriteria
     }
 
     /**
-     * Display criteria in the criteria's selection form
+     * Cells of the criteria in the selection form: its label and its multiple select.
+     * */
+    public function getCriteriaFields()
+    {
+        return [[
+            'name'  => $this->getName(),
+            'label' => $this->getCriteriaLabel(),
+            'field' => $this->getDropdownField(),
+        ]];
+    }
+
+    /**
+     * Display criteria in the criteria's selection form (legacy API, see
+     * DropdownCriteria::displayCriteria())
      * */
     public function displayCriteria()
     {
+        if (!$this->isOverriddenBelowFields('displayDropdownCriteria')) {
+            $this->displayCriteriaFields();
+            return;
+        }
 
         $this->getReport()->startColumn();
-        echo $this->getCriteriaLabel() . '&nbsp;:';
+        TemplateRenderer::getInstance()->display('@reports/autoreport/criteria_cell.html.twig', [
+            'label' => $this->getCriteriaLabel(),
+        ]);
         $this->getReport()->endColumn();
 
         $this->getReport()->startColumn();
@@ -333,13 +353,14 @@ class DropdownMultipleCriteria extends AutoCriteria
     }
 
     /**
-     * Display dropdown
+     * HTML of the multiple select, built by the GLPI core helper with 'display' => false.
      * */
-    public function displayDropdownCriteria()
+    public function getDropdownField(): string
     {
         $values = [];
         if (!empty($this->getParameterValue())) {
-            $values = $this->getParameterValue();
+            // A single value posted as a scalar is still a selection of one
+            $values = (array) $this->getParameterValue();
         }
         $options = ['values' => $values,
             'multiple' => true,
@@ -350,10 +371,21 @@ class DropdownMultipleCriteria extends AutoCriteria
                 $options[$key] = $value;
             }
         }
+        $options['display'] = false;
 
         $items = $this->getItems();
-        Dropdown::showFromArray($this->getName(), $items, $options);
-        //Dropdown::show($this->getItemType(), $options);
+
+        return (string) Dropdown::showFromArray($this->getName(), $items, $options);
+    }
+
+    /**
+     * Display dropdown (legacy API, kept for its callers)
+     * */
+    public function displayDropdownCriteria()
+    {
+        TemplateRenderer::getInstance()->display('@reports/autoreport/criteria_cell.html.twig', [
+            'field' => $this->getDropdownField(),
+        ]);
     }
 
     /**

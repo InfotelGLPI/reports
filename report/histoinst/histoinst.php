@@ -30,6 +30,7 @@
  * --------------------------------------------------------------------------
  */
 
+use Glpi\Application\View\TemplateRenderer;
 use Glpi\DBAL\QueryFunction;
 
 $USEDBREPLICATE        = 1;
@@ -49,16 +50,22 @@ Html::header(__("History of last software's installations", 'reports'), '', "uti
 
 Report::title();
 
-echo "<div class='center'>";
-echo "<table class='tab_cadre_fixe' cellpadding='5'>\n";
-echo "<tr class='tab_bg_1 center'>" .
-      "<th colspan='4'>" . __("History of last software's installations", "reports") .
-      "</th></tr>\n";
-
-echo "<tr class='tab_bg_2'><th>" . __('Update date') . "</th>" .
-      "<th>" . __('User') . "</th>" .
-      "<th>" . __("Computer's name") . "</th>" .
-      "<th>" . sprintf(__('%1$s (%2$s)'), _n('Software', 'Software', 1), __('version')) . "</th></tr>\n";
+$table = [
+    'class'       => 'tab_cadre_fixe',
+    'header_rows' => [
+        ['class' => 'tab_bg_1 center', 'cells' => [[
+            'value'   => __("History of last software's installations", "reports"),
+            'colspan' => 4,
+        ]]],
+        ['class' => 'tab_bg_2', 'cells' => [
+            ['value' => __('Update date')],
+            ['value' => __('User')],
+            ['value' => __("Computer's name")],
+            ['value' => sprintf(__('%1$s (%2$s)'), _n('Software', 'Software', 1), __('version'))],
+        ]],
+    ],
+    'rows'        => [],
+];
 
 //$sql = "SELECT  `glpi_logs`.`date_mod` AS dat, `linked_action`, `itemtype`, `itemtype_link`,
 //               `old_value`, `new_value`, `glpi_computers`.`id` AS cid, `name`, `user_name`,
@@ -120,26 +127,31 @@ foreach ($iterator as $data) {
         $data["name"] = "(" . $data["cid"] . ")";
     }
     if ($prev == $data["dat"] . $data["name"]) {
-        echo "<br />";
+        // Same installation batch on the same computer: one more line in the last cell.
+        // glpi_logs values are stored raw: the template escapes every line.
+        $last = array_key_last($table['rows']);
+        $table['rows'][$last]['cells'][3]['lines'][] = $data["new_value"];
     } else {
-        if (!empty($prev)) {
-            echo "</td></tr>\n";
-        }
         $prev = $data["dat"] . $data["name"];
-        echo "<tr class='" . $class . " top'>" .
-              "<td class='center'>" . Html::convDateTime($data["dat"]) . "</td>" .
-              "<td>" . htmlescape($data["user_name"]) . "&nbsp;</td>" .
-              "<td><a href='" . Toolbox::getItemTypeFormURL('Computer') . "?id=" . (int) $data["cid"] . "'>" .
-                    htmlescape($data["name"]) . "</a></td>" .
-              "<td>";
+        $table['rows'][] = [
+            'class' => $class . ' top',
+            'cells' => [
+                ['value' => Html::convDateTime($data["dat"]), 'class' => 'center'],
+                ['value' => $data["user_name"]],
+                [
+                    'value' => $data["name"],
+                    'href'  => Toolbox::getItemTypeFormURL('Computer') . "?id=" . (int) $data["cid"],
+                ],
+                ['lines' => [$data["new_value"]]],
+            ],
+        ];
         $class = ($class == "tab_bg_2" ? "tab_bg_1" : "tab_bg_2");
     }
-    echo htmlescape($data["new_value"]);
 }
 
-if (!empty($prev)) {
-    echo "</td></tr>\n";
-}
-echo "</table><div class='alert alert-info center'>" . __('The list is limited to 200 items and 21 days', 'reports') . "</div></div>\n";
+TemplateRenderer::getInstance()->display('@reports/report/page.html.twig', [
+    'tables'          => [$table],
+    'footer_messages' => [['type' => 'info', 'text' => __('The list is limited to 200 items and 21 days', 'reports')]],
+]);
 
 Html::footer();

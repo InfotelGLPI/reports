@@ -67,27 +67,32 @@ class TimeIntervalCriteria extends AutoCriteria
         $this->addParameter('endtime', $endtime);
     }
 
-    public function displayCriteria()
+    /**
+     * Cells of the criteria: one hour selector for each bound of the interval.
+    **/
+    public function getCriteriaFields()
     {
-
-        $this->getReport()->startColumn();
-
-        printf(__('Start at %s'), __('Number pending', 'reports'));
-        echo "&nbsp;&nbsp;";
-        $this->getReport()->endColumn();
-
-        $this->getReport()->startColumn();
-        Dropdown::showHours("starttime", $this->getParameter('starttime'));
-        $this->getReport()->endColumn();
-
-        $this->getReport()->startColumn();
-        printf(__('End at %s'), __('Number pending', 'reports'));
-        echo "&nbsp;&nbsp;";
-        $this->getReport()->endColumn();
-
-        $this->getReport()->startColumn();
-        Dropdown::showHours("endtime", $this->getParameter('endtime'));
-        $this->getReport()->endColumn();
+        // Dropdown::showHours() takes its value in an options array: the positional call that
+        // stood here handed the string as $options and the selectors never showed the value of
+        // the request.
+        return [
+            [
+                'name'  => 'starttime',
+                'label' => sprintf(__('Start at %s'), __('Number pending', 'reports')),
+                'field' => (string) Dropdown::showHours('starttime', [
+                    'value'   => $this->getParameter('starttime'),
+                    'display' => false,
+                ]),
+            ],
+            [
+                'name'  => 'endtime',
+                'label' => sprintf(__('End at %s'), __('Number pending', 'reports')),
+                'field' => (string) Dropdown::showHours('endtime', [
+                    'value'   => $this->getParameter('endtime'),
+                    'display' => false,
+                ]),
+            ],
+        ];
     }
 
     /**

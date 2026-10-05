@@ -36,6 +36,7 @@ use AllowDynamicProperties;
 use CommonDBTM;
 use Dropdown;
 use Glpi\Application\View\TemplateRenderer;
+use Glpi\DBAL\QueryExpression;
 use Glpi\Exception\Http\BadRequestHttpException;
 use Glpi\Search\Output\HTMLSearchOutput;
 use Glpi\Search\SearchEngine;
@@ -59,6 +60,13 @@ use Toolbox;
 class AutoReport extends CommonDBTM
 {
     public static $rightname = 'config';
+
+    /**
+     * Number of <td> per row of the criteria form: two criteria (label + widget) per row.
+     * It is also the width of the grid the legacy startColumn() / endColumn() API fills.
+     */
+    public const CRITERIA_COLUMNS = 4;
+
     private $criterias = [];
     private $columns = [];
     private $group_by = [];
@@ -312,8 +320,8 @@ class AutoReport extends CommonDBTM
      * @param     $numrows
      * @param     $target
      * @param     $parameters
-     * @param int $item_type_output
-     * @param int $item_type_output_param
+     * @param string|int $item_type_output       itemtype the export is built for (0: no export)
+     * @param array|int  $item_type_output_param
      */
     public static function printPager(
         $start,
@@ -324,11 +332,73 @@ class AutoReport extends CommonDBTM
         $item_type_output_param = 0,
         $additional_info = ''
     ) {
-        global $CFG_GLPI;
+        TemplateRenderer::getInstance()->display(
+            '@reports/autoreport/pager.html.twig',
+            self::getPagerData(
+                $start,
+                $numrows,
+                $target,
+                $parameters,
+                $item_type_output,
+                $item_type_output_param,
+                $additional_info,
+            ),
+        );
+    }
 
+    /**
+     * Same pager as printPager(), returned as a string instead of being displayed.
+     *
+     * @param     $start
+     * @param     $numrows
+     * @param     $target
+     * @param     $parameters
+     * @param string|int $item_type_output       itemtype the export is built for (0: no export)
+     * @param array|int  $item_type_output_param
+     */
+    public static function renderPager(
+        $start,
+        $numrows,
+        $target,
+        $parameters,
+        $item_type_output = 0,
+        $item_type_output_param = 0,
+        $additional_info = ''
+    ): string {
+        return TemplateRenderer::getInstance()->render(
+            '@reports/autoreport/pager.html.twig',
+            self::getPagerData(
+                $start,
+                $numrows,
+                $target,
+                $parameters,
+                $item_type_output,
+                $item_type_output_param,
+                $additional_info,
+            ),
+        );
+    }
+
+    /**
+     * Variables of the pager template.
+     *
+     * Every URL is built here and escaped by the template; the two widgets of the core (list
+     * limit form and output format selector) are built with their display option turned off.
+     */
+    private static function getPagerData(
+        $start,
+        $numrows,
+        $target,
+        $parameters,
+        $item_type_output,
+        $item_type_output_param,
+        $additional_info
+    ): array {
         $start = (int) $start;
         $numrows = (int) $numrows;
         $list_limit = (int) $_SESSION['glpilist_limit'];
+        $target = (string) $target;
+        $parameters = (string) $parameters;
 
         // Forward is the next step forward
         $forward = $start + $list_limit;
@@ -337,7 +407,6 @@ class AutoReport extends CommonDBTM
         $end = $numrows - $list_limit;
 
         // Human readable count starts here
-
         $current_start = $start + 1;
 
         // And the human is viewing from start to end
@@ -358,110 +427,102 @@ class AutoReport extends CommonDBTM
             $back = $start - $list_limit;
         }
 
-        // Print it
-        echo "<div><table class='table align-middle'>";
-        echo "<tr>";
-
         if (!str_contains($target, '?')) {
             $fulltarget = $target . "?" . $parameters;
         } else {
             $fulltarget = $target . "&" . $parameters;
         }
-        // Back and fast backward button
-        if (!$start == 0) {
-            echo "<th class='left'>";
-            echo "<a href='" . htmlescape($fulltarget) . "&amp;start=0' class='btn btn-sm btn-ghost-secondary me-2'
-                  title=\"" . __s('Start') . "\" data-bs-toggle='tooltip' data-bs-placement='top'>";
-            echo "<i class='ti ti-chevrons-left'></i>";
-            echo "</a>";
-            echo "<a href='" . htmlescape($fulltarget) . "&amp;start=$back' class='btn btn-sm btn-ghost-secondary me-2'
-                  title=\"" . __s('Previous') . "\" data-bs-toggle='tooltip' data-bs-placement='top'>";
-            echo "<i class='ti ti-chevron-left'></i>";
-            echo "</a></th>";
-        }
 
-        // Print the "where am I?"
-        echo "<td width='31%' class='tab_bg_2'>";
-        Html::printPagerForm("$fulltarget&start=$start");
-        echo "</td>";
-
-        if (!empty($additional_info)) {
-            echo "<td class='tab_bg_2'>";
-            // The pager cell is echoed verbatim by every caller. No shipped report fills this
-            // parameter today, but it is public API: a report passing a value built from the
-            // request would inject markup straight into the page. Escape at the sink.
-            echo htmlescape($additional_info);
-            echo "</td>";
-        }
+        $export = null;
         if (
             !empty($item_type_output)
             && isset($_SESSION["glpiactiveprofile"])
             && (Session::getCurrentInterface() == "central")
             && $numrows > 0
         ) {
-            echo "<td class='tab_bg_2 responsive_hidden' width='30%'>";
-            echo "<form method='GET' action='" . htmlescape($_SERVER['REQUEST_URI']) . "' target='_blank'>\n";
-
-            echo Html::hidden('item_type', ['value' => $item_type_output]);
-
-            if (is_array($item_type_output_param)) {
-                echo Html::hidden(
-                    'item_type_param',
-                    ['value' => Toolbox::prepareArrayForInput($item_type_output_param)],
-                );
+            $export_parameters = trim($parameters, '&');
+            if (!str_contains($export_parameters, 'start')) {
+                $export_parameters .= "&start=$start";
             }
 
-            $parameters = trim($parameters, '&');
-            if (!str_contains($parameters, 'start')) {
-                $parameters .= "&start=$start";
-            }
-
-            $split = explode("&", $parameters);
-
-            $count_split = count($split);
-            for ($i = 0; $i < $count_split; $i++) {
-                $pos = Toolbox::strpos($split[$i], '=');
+            $hidden = [];
+            foreach (explode("&", $export_parameters) as $pair) {
+                $pos = Toolbox::strpos($pair, '=');
                 if ($pos === false) {
                     continue;
                 }
-                $field_name = urldecode(Toolbox::substr($split[$i], 0, $pos));
+                $field_name = urldecode(Toolbox::substr($pair, 0, $pos));
                 // Second barrier against the session token reaching an URL: this form is
                 // declared method='GET', so every hidden field written here comes back in
                 // the query string of the export request.
                 if (str_starts_with($field_name, '_glpi_')) {
                     continue;
                 }
-                echo Html::hidden(
-                    $field_name,
-                    ['value' => urldecode(Toolbox::substr($split[$i], $pos + 1))],
-                );
+                $hidden[] = [
+                    'name'  => $field_name,
+                    'value' => urldecode(Toolbox::substr($pair, $pos + 1)),
+                ];
             }
 
-            Dropdown::showOutputFormat($item_type_output);
-            Html::closeForm();
-            echo "</td>";
+            $export = [
+                'action'          => $_SERVER['REQUEST_URI'],
+                'item_type'       => $item_type_output,
+                'item_type_param' => is_array($item_type_output_param)
+                    ? Toolbox::prepareArrayForInput($item_type_output_param)
+                    : null,
+                'hidden'          => $hidden,
+                'format_dropdown' => Dropdown::showFromArray(
+                    'display_type',
+                    self::getOutputFormats($item_type_output),
+                    ['display' => false],
+                ),
+            ];
         }
 
-        echo "<td width='20%' class='b'>";
-        //TRANS: %1$d, %2$d, %3$d are page numbers
-        printf(__s('From %1$d to %2$d of %3$d'), $current_start, $current_end, $numrows);
-        echo "</td>";
+        return [
+            'first_href'      => $start != 0 ? $fulltarget . '&start=0' : null,
+            'back_href'       => $start != 0 ? $fulltarget . '&start=' . $back : null,
+            'next_href'       => $forward < $numrows ? $fulltarget . '&start=' . $forward : null,
+            'last_href'       => $forward < $numrows ? $fulltarget . '&start=' . $end : null,
+            'pager_form'      => Html::printPagerForm("$fulltarget&start=$start", false),
+            // Public API: a report passing a value built from the request must not inject markup,
+            // so the template escapes it.
+            'additional_info' => (string) $additional_info,
+            'export'          => $export,
+            'current_start'   => $current_start,
+            'current_end'     => $current_end,
+            'numrows'         => $numrows,
+        ];
+    }
 
-        // Forward and fast forward button
-        if ($forward < $numrows) {
-            echo "<th class='right'>";
-            echo "<a href='" . htmlescape($fulltarget) . "&amp;start=$forward' class='btn btn-sm btn-ghost-secondary'
-                  title=\"" . __s('Next') . "\" data-bs-toggle='tooltip' data-bs-placement='top'>
-               <i class='ti ti-chevron-right'></i>";
-            echo "</a>";
-            echo "<a href='" . htmlescape($fulltarget) . "&amp;start=$end' class='btn btn-sm btn-ghost-secondary'
-                  title=\"" . __s('End') . "\" data-bs-toggle='tooltip' data-bs-placement='top'>";
-            echo "<i class='ti ti-chevrons-right'></i>";
-            echo "</a>";
-            echo "</th>";
+    /**
+     * Output formats offered by the export selector of the pager: the list of
+     * Dropdown::showOutputFormat(), which can only echo its selector.
+     *
+     * @param mixed $itemtype itemtype the export is built for
+     *
+     * @return array<string|int, string>
+     */
+    private static function getOutputFormats($itemtype): array
+    {
+        $values = [];
+        $values[Search::PDF_OUTPUT_LANDSCAPE]       = __('Current page in landscape PDF');
+        $values[Search::PDF_OUTPUT_PORTRAIT]        = __('Current page in portrait PDF');
+        $values[Search::CSV_OUTPUT]                 = __('Current page in CSV');
+        $values[Search::ODS_OUTPUT]                 = __('Current page as Open Document format (.ods)');
+        $values[Search::XLSX_OUTPUT]                = __('Current page as Office Open XML (.xlsx)');
+        $values['-' . Search::PDF_OUTPUT_LANDSCAPE] = __('All pages in landscape PDF');
+        $values['-' . Search::PDF_OUTPUT_PORTRAIT]  = __('All pages in portrait PDF');
+        $values['-' . Search::CSV_OUTPUT]           = __('All pages in CSV');
+        $values['-' . Search::ODS_OUTPUT]           = __('All pages as Open Document format (.ods)');
+        $values['-' . Search::XLSX_OUTPUT]          = __('All pages as Office Open XML (.xlsx)');
+
+        if ($itemtype != "Stat") {
+            // Do not show this option for stat page
+            $values['-' . Search::NAMES_OUTPUT] = __('Copy names to clipboard');
         }
-        // End pager
-        echo "</tr></table></div>";
+
+        return $values;
     }
 
     //    public static function showOutputFormat()
@@ -527,6 +588,7 @@ class AutoReport extends CommonDBTM
 
         $numrows = 0;
         $res = [];
+        $paged_by_query = false;
         // setSqlRequest() now refuses anything but criteria, so there is no raw string branch
         // left to run here. The test remains for a report that never called it at all.
         if (is_array($this->sql)) {
@@ -548,19 +610,32 @@ class AutoReport extends CommonDBTM
                     $criteria['START'] = (int) $start;
                     $criteria['LIMIT'] = (int) $limit;
                     $res = $DB->request($criteria);
+                    $paged_by_query = true;
                 }
             }
         } else {
             $start = 0;
         }
 
+        // Variables of the result template (HTML output only). The export path below never reads
+        // them: it keeps building $headers and $rows for SearchEngine as it always did.
+        $view = [
+            'title'     => $title,
+            'empty'     => false,
+            'republish' => [],
+            'pager'     => '',
+            'massive'   => null,
+            'headers'   => [],
+            'rows'      => [],
+        ];
+
         if ($numrows == 0) {
             if (!$HEADER_LOADED) {
                 Html::header($title, '', "utils", "report");
                 \Report::title();
             }
-            echo "<div class='center'><h3>" . htmlescape($title) . "</h3></div>";
-            echo "<div class='alert alert-danger center'>" . __('No results found') . "</div>";
+            $view['empty'] = true;
+            TemplateRenderer::getInstance()->display('@reports/autoreport/results.html.twig', $view);
             $this->footer_displayed = true;
             Html::footer();
         } elseif ($is_html_output) {
@@ -569,7 +644,6 @@ class AutoReport extends CommonDBTM
                 \Report::title();
             }
 
-            echo "<div class='center'><h3>" . htmlescape($title) . "</h3></div>";
             // The pager links and the hidden fields of the export form republish the request.
             // They used to be built from $_POST alone, which is why the resolved criteria were
             // injected into it; take them from the values resolved for this request instead, and
@@ -582,36 +656,37 @@ class AutoReport extends CommonDBTM
                 }
             }
             foreach ($republished as $key => $val) {
-                // The criteria form is closed by Html::closeForm(), which emits a hidden
-                // _glpi_csrf_token: the token was therefore part of $_POST and ended up
-                // concatenated into the pagination string, which printPager() publishes in
-                // every href and re-splits into the hidden fields of a method='GET' export
-                // form. A session token valid until consumption was thus written to the
-                // browser history, the proxy access logs and the Referer header. Internal
-                // _glpi_* fields have no business in a report URL, and every generated form
-                // gets a fresh token of its own anyway.
+                // The criteria form is closed with a hidden _glpi_csrf_token: the token was
+                // therefore part of $_POST and ended up concatenated into the pagination string,
+                // which printPager() publishes in every href and re-splits into the hidden fields
+                // of a method='GET' export form. A session token valid until consumption was thus
+                // written to the browser history, the proxy access logs and the Referer header.
+                // Internal _glpi_* fields have no business in a report URL, and every generated
+                // form gets a fresh token of its own anyway.
                 // list_limit is consumed above, where it becomes the session preference. It used
                 // to be unset from $_POST so it would not be republished here; the superglobal is
                 // now left alone and the exclusion is expressed where it belongs.
                 if (str_starts_with((string) $key, '_glpi_') || $key === 'list_limit') {
                     continue;
                 }
-                // Html::hidden() expands arrays recursively into name[key] fields
-                echo Html::hidden((string) $key, ['value' => $val]);
+                // Arrays are expanded recursively into name[key] fields, as Html::hidden() did
+                $view['republish'] = array_merge($view['republish'], self::flattenHiddenFields((string) $key, $val));
                 $pairs[$key] = $val;
             }
             // http_build_query() handles nested values at any depth: urlencode() raised a
             // TypeError (500) as soon as a posted parameter was nested more than one level
             $param = http_build_query($pairs, '', '&');
-            self::printPager($start, $numrows, $_SERVER['REQUEST_URI'], $param, "GlpiPlugin\Reports\AutoReport");
+            $view['pager'] = self::renderPager($start, $numrows, $_SERVER['REQUEST_URI'], $param, "GlpiPlugin\Reports\AutoReport");
         }
 
         if ($res && ($numrows > 0)) {
             if (!isset($_GET["display_type"]) || $is_html_output) {
                 if (isset($options['withmassiveaction']) && class_exists($options['withmassiveaction'])) {
                     $massformid = 'massform' . $options['withmassiveaction'];
-                    Html::openMassiveActionsForm($massformid);
-                    Html::showMassiveActions(['container' => $massformid]);
+                    $view['massive'] = [
+                        'form_id' => $massformid,
+                        'actions' => Html::showMassiveActions(['container' => $massformid, 'display' => false]),
+                    ];
                 }
             }
 
@@ -632,10 +707,6 @@ class AutoReport extends CommonDBTM
             if (isset($_GET['export_all'])) {
                 $start = 0;
                 $end_display = $numrows;
-            }
-
-            if ($is_html_output) {
-                $html_output .= $output::showHeader($end_display - $start + 1, $nbcols);
             }
 
             // fill $sqlcols with default sql query fields so we can validate $columns
@@ -662,9 +733,6 @@ class AutoReport extends CommonDBTM
             }
 
             $header_num = 1;
-            if ($is_html_output) {
-                $html_output .= $output::showNewLine();
-            }
             $colsname = [];
             // if $columns is not empty, display $columns
             if (count($this->columns) > 0) {
@@ -672,7 +740,7 @@ class AutoReport extends CommonDBTM
                     // display only $columns that are valid
                     if (in_array($colname, $sqlcols)) {
                         if ($is_html_output) {
-                            $html_output .= $column->showHtmlTitle($output, $header_num);
+                            $view['headers'][] = (string) $column->showHtmlTitle($output, $header_num);
                         } else {
                             $headers[] = $column->showExportTitle($output, $header_num);
                         }
@@ -683,15 +751,12 @@ class AutoReport extends CommonDBTM
                 foreach ($sqlcols as $colname) {
                     $column = new Column($colname, $colname);
                     if ($is_html_output) {
-                        $html_output .= $column->showHtmlTitle($output, $header_num);
+                        $view['headers'][] = (string) $column->showHtmlTitle($output, $header_num);
                     } else {
                         $headers[] = $column->showExportTitle();
                     }
                     $colsname[$colname] = $column;
                 }
-            }
-            if ($is_html_output) {
-                $html_output .= $output::showEndLine();
             }
 
             $list = [];
@@ -704,19 +769,21 @@ class AutoReport extends CommonDBTM
 
             $row_num = 0;
             if (!empty($sqlvalues)) {
-                for ($i = $start; ($i < $numrows) && ($i < $end_display); $i++) {
+                // When the page was fetched with START / LIMIT, $list holds the rows of that page
+                // only, indexed from 0: walking it from $start rendered nothing at all on every
+                // page after the first (an empty table, or an empty export of the current page).
+                $first = $paged_by_query ? 0 : $start;
+                for ($i = $first; ($i < $numrows) && ($i < $end_display); $i++) {
                     $row_num++;
                     $current_row = [];
 
                     $colnum = 0;
 
-                    if ($is_html_output) {
-                        $html_output .= $output::showNewLine($i % 2 === 1);
-                    }
-
+                    $html_cells = [];
+                    $num = 1;
                     foreach ($colsname as $colname => $column) {
                         if ($is_html_output) {
-                            $html_output .= $output::showItem($column->showValue($output_type, $list[$i]), $num, $row_num);
+                            $html_cells[] = $output::showItem($column->showValue($output_type, $list[$i]), $num, $row_num);
                         } else {
                             $current_row[$itemtype . '_' . (++$colnum)] = ['displayname' => $column->showValue($output_type, $list[$i])];
                         }
@@ -724,42 +791,29 @@ class AutoReport extends CommonDBTM
 
                     $rows[$row_num] = $current_row;
                     if ($is_html_output) {
-                        $html_output .= $output::showEndLine(false);
+                        $view['rows'][] = ['odd' => $i % 2 === 1, 'cells' => $html_cells];
                     }
+                }
 
-                    if ($is_html_output) {
-                        if (isset($options['withtotal']) && $options['withtotal']) {
-                            $html_output .= $output::showNewLine();
-                            foreach ($colsname as $colname => $column) {
-                                $html_output .= $output::showItem(
-                                    $column->showNewTotal($output_type, $num, $row_num),
-                                    $num,
-                                    $row_num,
-                                );
-                            }
-
-                            $html_output .= $output::showEndLine();
-                        }
+                // Total line, once after the data. It used to be emitted inside the loop above,
+                // after every single row, which printed one running subtotal per row instead of
+                // the one total line the option was introduced for.
+                if ($is_html_output && !empty($options['withtotal'])) {
+                    $html_cells = [];
+                    $num = 1;
+                    foreach ($colsname as $colname => $column) {
+                        $html_cells[] = $output::showItem(
+                            $column->showNewTotal($output_type, $num, $row_num),
+                            $num,
+                            $row_num,
+                        );
                     }
+                    $view['rows'][] = ['odd' => false, 'cells' => $html_cells];
                 }
             }
 
             if ($is_html_output) {
-                Html::closeForm();
-                $output::showFooter($title, $numrows);
-            }
-
-            //            if (!isset($_GET["display_type"]) || $is_html_output) {
-            //                if (isset($options['withmassiveaction']) && class_exists($options['withmassiveaction'])) {
-            //                    Html::showMassiveActions(['container' => $massformid,
-            //                        'ontop'     => false]);
-            //                    Html::closeForm();
-            //                }
-            //                Html::footer();
-            //            }
-
-            if ($is_html_output) {
-                echo $html_output;
+                TemplateRenderer::getInstance()->display('@reports/autoreport/results.html.twig', $view);
             } else {
                 $params = [
                     'start' => 0,
@@ -796,11 +850,52 @@ class AutoReport extends CommonDBTM
 
                 $output->displayData($report_data, []);
             }
+        } elseif ($is_html_output && $numrows > 0) {
+            // Rows counted but none fetched: still close the page with its title and pager
+            TemplateRenderer::getInstance()->display('@reports/autoreport/results.html.twig', $view);
         }
         if ($is_html_output) {
             $this->footer_displayed = true;
             Html::footer();
         }
+    }
+
+    /**
+     * Display an alert in the page of a report (a missing criteria, a perimeter the session
+     * cannot read...). The text is plain text, escaped by the template.
+     *
+     * @param string $text message
+     * @param string $type bootstrap alert type: danger, warning, info, success
+     */
+    public static function displayMessage(string $text, string $type = 'danger'): void
+    {
+        TemplateRenderer::getInstance()->display('@reports/report/message.html.twig', [
+            'type' => in_array($type, ['danger', 'warning', 'info', 'success'], true) ? $type : 'danger',
+            'text' => $text,
+        ]);
+    }
+
+    /**
+     * Expand a value into hidden fields the way Html::hidden() does: an array becomes one
+     * name[key] field per leaf.
+     *
+     * @param string $name  field name
+     * @param mixed  $value field value
+     *
+     * @return array<int, array{name: string, value: string}>
+     */
+    private static function flattenHiddenFields(string $name, $value): array
+    {
+        if (!is_array($value)) {
+            return [['name' => $name, 'value' => is_scalar($value) ? (string) $value : '']];
+        }
+
+        $fields = [];
+        foreach ($value as $key => $item) {
+            $fields = array_merge($fields, self::flattenHiddenFields($name . '[' . $key . ']', $item));
+        }
+
+        return $fields;
     }
 
     /**
@@ -927,41 +1022,81 @@ class AutoReport extends CommonDBTM
 
         //Display form only if there're criterias
         if (!empty($this->criterias)) {
-            echo "<div class='center'>";
-            echo "<form method='post' name='form' action='" . htmlescape($_SERVER['REQUEST_URI']) . "'>";
+            TemplateRenderer::getInstance()->display('@reports/autoreport/criteria_form.html.twig', [
+                'action'     => $_SERVER['REQUEST_URI'],
+                'title'      => __('Search criteria', 'reports'),
+                'nb_columns' => self::CRITERIA_COLUMNS,
+                'rows'       => $this->getCriteriaRows(),
+            ]);
+        }
+    }
 
-            echo "<table class='tab_cadre_fixe'>";
-            echo "<tr><th colspan='6'>" . __('Search criteria', 'reports');
+    /**
+     * Rows of the criteria form.
+     *
+     * The cells declared by AutoCriteria::getCriteriaFields() are packed two criteria cells
+     * (label + widget) per row. A criteria that still renders itself through the legacy
+     * displayCriteria() API -- the criteria of other plugins written before getCriteriaFields()
+     * existed -- is rendered as it always was, through startColumn() / endColumn(), and its
+     * markup is handed to the template as complete rows.
+     *
+     * @return array<int, array{cells?: array<int, array<string, string>>, legacy_html?: string}>
+     */
+    private function getCriteriaRows(): array
+    {
+        $rows        = [];
+        $cells       = [];
+        $legacy_html = null;
+        $per_row     = intdiv(self::CRITERIA_COLUMNS, 2);
 
-            //If form is validated, then display the bookmark button
-            //            if ($this->criteriasValidated()) {
-            //                //Add parameters to uri to be saved as bookmarks
-            //                $_SERVER["REQUEST_URI"] = $this->buildBookmarkUrl();
-            //                TemplateRenderer::getInstance()->render('pages/tools/savedsearch/save_button.html.twig', [
-            //                    'type' => SavedSearch::SEARCH,
-            //                    'itemtype' => (isStat($this->name) ? Stat::class : Report::class),
-            //                ]);
-            //            }
-            echo "</th></tr>\n";
-
-            //Display each criteria's html selection item
-            foreach ($this->criterias as $criteria) {
+        foreach ($this->criterias as $criteria) {
+            if ($criteria->usesLegacyDisplay()) {
+                if ($cells !== []) {
+                    $rows[] = ['cells' => $cells];
+                    $cells  = [];
+                }
+                // The legacy API echoes its cells (startColumn() / endColumn() and whatever the
+                // criteria prints in between): there is no other way to collect them than to
+                // buffer the output. Consecutive legacy criteria share their rows, as before.
+                ob_start();
                 $criteria->displayCriteria();
+                $legacy_html = ($legacy_html ?? '') . ob_get_clean();
+                continue;
             }
 
-            $this->closeColumn();
+            if ($legacy_html !== null) {
+                $rows[]      = ['legacy_html' => $legacy_html . $this->closeLegacyRow()];
+                $legacy_html = null;
+            }
 
-            echo "<tr class='tab_bg_2'><td colspan='4' class='center'>";
-            echo Html::submit(_sx('button', 'Search'), [
-                'name' => 'find',
-                'class' => 'btn btn-primary',
-            ]);
-            echo "</td></tr>";
-            echo "</table>";
-
-            Html::closeForm();
-            echo "</div>";
+            foreach ((array) $criteria->getCriteriaFields() as $cell) {
+                $cells[] = $cell;
+                if (count($cells) === $per_row) {
+                    $rows[] = ['cells' => $cells];
+                    $cells  = [];
+                }
+            }
         }
+
+        if ($legacy_html !== null) {
+            $rows[] = ['legacy_html' => $legacy_html . $this->closeLegacyRow()];
+        }
+        if ($cells !== []) {
+            $rows[] = ['cells' => $cells];
+        }
+
+        return $rows;
+    }
+
+    /**
+     * Markup closeColumn() emits to complete the row left open by the legacy API.
+     */
+    private function closeLegacyRow(): string
+    {
+        ob_start();
+        $this->closeColumn();
+
+        return (string) ob_get_clean();
     }
 
 
@@ -1028,6 +1163,13 @@ class AutoReport extends CommonDBTM
                 $sql[] = $add;
             }
         }
+        if ($sql === []) {
+            // Every report appends this value as one more WHERE entry ($criteria['WHERE'][] =
+            // ...), and the query builder turns an empty array into "AND ()": a SQL syntax error,
+            // that is a 500, as soon as the form was submitted with every criteria left blank.
+            // Answer a neutral condition instead.
+            return [new QueryExpression('true')];
+        }
         return $sql;
     }
 
@@ -1091,7 +1233,12 @@ class AutoReport extends CommonDBTM
 
 
     /**
-     * Add a new column in the criterias selection form
+     * Add a new column in the criterias selection form.
+     *
+     * Legacy API, kept for the criteria that render themselves through displayCriteria() (those
+     * of other plugins in particular): it echoes the opening of a cell, which the criteria fills
+     * by echoing in turn. displayCriteriasForm() collects that output and places it in the form
+     * template. New criteria implement AutoCriteria::getCriteriaFields() instead.
      **/
     public function startColumn()
     {
@@ -1104,12 +1251,12 @@ class AutoReport extends CommonDBTM
 
 
     /**
-     * End a column in the criterias selection form
+     * End a column in the criterias selection form (legacy API, see startColumn()).
      **/
     public function endColumn()
     {
         echo "</td>";
-        if ($this->cpt == 4) {
+        if ($this->cpt == self::CRITERIA_COLUMNS) {
             echo "</tr>";
             $this->cpt = 0;
         }
@@ -1117,12 +1264,12 @@ class AutoReport extends CommonDBTM
 
 
     /**
-     * Close a column in the criterias selection form
+     * Close a column in the criterias selection form (legacy API, see startColumn()).
      **/
     public function closeColumn()
     {
         if ($this->cpt > 0) {
-            while ($this->cpt < 4) {
+            while ($this->cpt < self::CRITERIA_COLUMNS) {
                 echo "<td></td>";
                 $this->cpt++;
             }

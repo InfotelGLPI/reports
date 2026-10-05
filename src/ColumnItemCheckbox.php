@@ -54,9 +54,10 @@ class ColumnItemCheckbox extends Column
 
     public function showHtmlTitle($output, &$num)
     {
-
-        echo $output::showHeaderItem(Html::getCheckAllAsCheckbox('massform' . get_class($this->obj)), $num);
-
+        // The only caller, AutoReport::execute(), collects the header cell this method returns,
+        // as for every other Column: an echo printed the "check all" box above the page, outside
+        // the table, and left an empty header cell in its place.
+        return $output::showHeaderItem(Html::getCheckAllAsCheckbox('massform' . get_class($this->obj)), $num);
     }
 
     public function showExportTitle() {}

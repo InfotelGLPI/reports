@@ -30,6 +30,8 @@
  * --------------------------------------------------------------------------
  */
 
+use Glpi\Application\View\TemplateRenderer;
+
 $USEDBREPLICATE = 1;
 $DBCONNECTION_REQUIRED = 0; // Not really a big SQL request
 
@@ -49,7 +51,7 @@ if (isset($_GET["reset_search"])) {
     $params["groups_id"] = 0;
 }
 
-displaySearchForm($params);
+$page = ['form' => getSearchForm($params), 'tables' => []];
 
 $where = ['entities_id' => $_SESSION["glpiactive_entity"],
     'is_itemgroup' => 1,
@@ -75,54 +77,54 @@ $last_group_id = -1;
 foreach ($result as $datas) {
 
     if ($last_group_id != $datas["id"]) {
-        echo "<br><table class='tab_cadre' cellpadding='5'>";
-        echo "<tr><th>" . sprintf(__('%1$s: %2$s'), __('Group'), htmlescape($datas['name'])) . "</th></th></tr>";
+        $page['tables'][] = [
+            'class'       => 'tab_cadre',
+            'header_rows' => [['cells' => [['value' => sprintf(__('%1$s: %2$s'), __('Group'), $datas['name'])]]]],
+        ];
         $last_group_id = $datas["id"];
-        echo "</table>";
     }
 
-    getObjectsByGroupAndEntity($datas["id"], $_SESSION["glpiactive_entity"]);
+    $table = getObjectsByGroupAndEntity($datas["id"], $_SESSION["glpiactive_entity"]);
+    if ($table !== null) {
+        $page['tables'][] = $table;
+    }
 }
+
+TemplateRenderer::getInstance()->display('@reports/report/page.html.twig', $page);
 
 Html::footer();
 
 
 /**
- * Display group form
- **/
-/**
+ * Group form, as variables of the shared criteria form template
+ *
  * @param array<string, mixed> $params Merged request values of the report
  **/
-function displaySearchForm(array $params)
+function getSearchForm(array $params): array
 {
-    global $CFG_GLPI;
+    // The reset link points at this very page; the path used to be hard-coded under /plugins,
+    // which broke on an instance where the plugin lives in marketplace/.
+    $reset_href = (string) parse_url((string) $_SERVER["REQUEST_URI"], PHP_URL_PATH) . '?reset_search=reset_search';
 
-    echo "<form action='" . htmlescape($_SERVER["REQUEST_URI"]) . "' method='post'>";
-    echo "<table class='tab_cadre' cellpadding='5'>";
-    echo "<tr class='tab_bg_1 center'>";
-    echo "<td width='300'>";
-    echo __('Group') . "&nbsp;&nbsp;";
-    Group::dropdown([
-        'name' => "groups_id",
-        'value' => (int) $params["groups_id"],
-        'entity' => $_SESSION["glpiactive_entity"],
-        'condition' => ['is_itemgroup' => 1],
-    ]);
-    echo "</td>";
-
-    // Display Reset search
-    echo "<td>";
-    echo "<a href='" . $CFG_GLPI['root_doc'] . "/plugins/reports/report/equipmentbygroups/equipmentbygroups.php?reset_search=reset_search'>"
-        . "<img title='" . __s('Blank') . "' alt='" . __s('Blank') . "' src='"
-        . $CFG_GLPI["root_doc"] . "/pics/reset.png' class='calendrier'></a>";
-    echo "</td>";
-
-    echo "<td>";
-    echo Html::submit(_x('button', 'Post'), ['value' => 'Valider', 'class' => 'btn btn-primary']);
-    echo "</td>";
-
-    echo "</tr></table>";
-    Html::closeForm();
+    return [
+        'action'     => $_SERVER["REQUEST_URI"],
+        'nb_columns' => 2,
+        'rows'       => [[
+            'cells' => [[
+                'name'  => 'groups_id',
+                'label' => __('Group'),
+                'field' => Group::dropdown([
+                    'name'      => "groups_id",
+                    'value'     => is_scalar($params["groups_id"]) ? (int) $params["groups_id"] : 0,
+                    'entity'    => $_SESSION["glpiactive_entity"],
+                    'condition' => ['is_itemgroup' => 1],
+                    'display'   => false,
+                ]),
+            ]],
+        ]],
+        'submit'     => ['name' => 'search', 'value' => 'Valider', 'label' => _x('button', 'Post')],
+        'reset'      => ['href' => $reset_href, 'label' => __('Blank')],
+    ];
 }
 
 
@@ -140,16 +142,18 @@ function getValues($get, $post)
 
 
 /**
- * Display all devices by group
+ * Table of all devices by group
  *
  * @param $group_id - the group ID
  * @param $entity - the current entity
+ *
+ * @return array|null variables of the table template, null when the group holds no device
  **/
 function getObjectsByGroupAndEntity($group_id, $entity)
 {
     global $DB, $CFG_GLPI;
 
-    $display_header = false;
+    $table = null;
 
     // Two problems in the original loop. It removed entries from $CFG_GLPI['asset_types']
     // while walking it, which mutated the global list for the rest of the request, and it
@@ -224,43 +228,54 @@ function getObjectsByGroupAndEntity($group_id, $entity)
         $iterator = $DB->request($criteria);
 
         if (count($iterator) > 0) {
-            if (!$display_header) {
-                echo "<br><table class='tab_cadre_fixehov'>";
-                echo "<tr><th>" . __('Type') . "</th><th>" . __('Name') . "</th>";
-                echo "<th>" . __('Serial number') . "</th><th>" . __('Inventory number') . "</th>";
+            if ($table === null) {
+                $headers = [__('Type'), __('Name'), __('Serial number'), __('Inventory number')];
                 if ($can_view_infocom) {
-                    echo "<th>" . __('Immobilization number') . "</th>";
-                    echo "<th>" . __('Supplier') . "</th><th>" . __('Date of purchase') . "</th>";
+                    $headers[] = __('Immobilization number');
+                    $headers[] = __('Supplier');
+                    $headers[] = __('Date of purchase');
                 }
-                echo "</tr>";
-                $display_header = true;
+                $table = [
+                    'class'       => 'tab_cadre_fixehov',
+                    'header_rows' => [['cells' => array_map(static fn($title) => ['value' => $title], $headers)]],
+                    'rows'        => [],
+                ];
             }
-            displayUserDevices($itemtype, $iterator, $can_view_infocom);
+            $table['rows'] = array_merge($table['rows'], getUserDevicesRows($itemtype, $iterator, $can_view_infocom));
         }
 
     }
-    echo "</table>";
+
+    return $table;
 }
 
 
 /**
- * Display all device for a group
+ * Rows of all device for a group
  *
  * @param $type - the objet type
  * @param $result - the resultset of all the devices found
  * @param $can_view_infocom - whether the profile holds the core "infocom" right
+ *
+ * @return array<int, array{class: string, cells: array}>
  **/
-function displayUserDevices($type, $result, $can_view_infocom)
+function getUserDevicesRows($type, $result, $can_view_infocom)
 {
     global $CFG_GLPI;
 
+    $rows = [];
     $item = new $type();
     foreach ($result as $data) {
-        $link = htmlescape($data["name"]);
-        $url = Toolbox::getItemTypeFormURL("$type");
-        $link = "<a href='" . $url . "?id=" . (int) $data["id"] . "'>" . $link
-            . (($CFG_GLPI["is_ids_visible"] || empty($link)) ? " (" . (int) $data["groups_id"] . ")" : "")
-            . "</a>";
+        // The label used to append the group id rather than the item id when the ids are shown
+        $name = (string) $data["name"];
+        if ($CFG_GLPI["is_ids_visible"] || $name === '') {
+            $name = sprintf(__('%1$s (%2$s)'), $name, (int) $data["id"]);
+        }
+        $link_cell = [
+            'value' => $name,
+            'href'  => Toolbox::getItemTypeFormURL($type) . "?id=" . (int) $data["id"],
+            'class' => 'center',
+        ];
         // A $linktype was built here from a $groups array that this function never receives and
         // never declares -- the lookup was made on one key ($data["id"]) and the label read from
         // another ($data["groups_id"]) -- and the result was assigned to a variable no line of the
@@ -271,55 +286,32 @@ function displayUserDevices($type, $result, $can_view_infocom)
         // it has to be added to the header as well, and the itemtype it walks must go through
         // is_a($linktype, CommonDBTM::class, true) then canView() before any query, the way
         // report/histohard/histohard.php does.
-        echo "<tr class='tab_bg_1'><td class='center'>" . $item->getTypeName() . "</td>"
-            . "<td class='center'>$link</td>";
-
-        echo "<td class='center'>";
-        if (isset($data["serial"]) && !empty($data["serial"])) {
-            echo htmlescape($data["serial"]);
-        } else {
-            echo '&nbsp;';
-        }
-        echo "</td><td class='center'>";
-
-        if (isset($data["otherserial"]) && !empty($data["otherserial"])) {
-            echo htmlescape($data["otherserial"]);
-        } else {
-            echo '&nbsp;';
-        }
-        echo "</td>";
+        $cells = [
+            ['value' => $item->getTypeName(), 'class' => 'center'],
+            $link_cell,
+            ['value' => (string) ($data["serial"] ?? ''), 'class' => 'center'],
+            ['value' => (string) ($data["otherserial"] ?? ''), 'class' => 'center'],
+        ];
 
         // The three financial cells below are only selected -- and only headed -- when the core
         // "infocom" right is held, so they must be skipped here as well to keep the row aligned.
         if ($can_view_infocom) {
-            echo "<td class='center'>";
-
-            if (isset($data["immo_number"]) && !empty($data["immo_number"])) {
-                echo htmlescape($data["immo_number"]);
-            } else {
-                echo '&nbsp;';
-            }
-            echo "</td><td class='center'>";
-
-            if (isset($data["suppliers_id"]) && !empty($data["suppliers_id"])) {
-                // Security (stored XSS): Dropdown::getDropdownName() returns the label exactly as
-                // it is stored, and a supplier name is writable by any holder of the dropdown
-                // right or by an import. The immo_number cell just above escapes for that reason;
-                // this one did not.
-                echo htmlescape(Dropdown::getDropdownName("glpi_suppliers", $data["suppliers_id"]));
-            } else {
-                echo '&nbsp;';
-            }
-            echo "</td><td class='center'>";
-
-            if (isset($data["buy_date"]) && !empty($data["buy_date"])) {
-                echo Html::convDate($data["buy_date"]);
-            } else {
-                echo '&nbsp;';
-            }
-            echo "</td>";
+            $cells[] = ['value' => (string) ($data["immo_number"] ?? ''), 'class' => 'center'];
+            // Security (stored XSS): Dropdown::getDropdownName() returns the label exactly as it
+            // is stored, and a supplier name is writable by any holder of the dropdown right or
+            // by an import: the template escapes it.
+            $cells[] = [
+                'value' => !empty($data["suppliers_id"]) ? Dropdown::getDropdownName("glpi_suppliers", $data["suppliers_id"]) : '',
+                'class' => 'center',
+            ];
+            $cells[] = [
+                'value' => !empty($data["buy_date"]) ? Html::convDate($data["buy_date"]) : '',
+                'class' => 'center',
+            ];
         }
 
-        echo "</tr>";
+        $rows[] = ['class' => 'tab_bg_1', 'cells' => $cells];
     }
+
+    return $rows;
 }

@@ -69,48 +69,24 @@ if (isset($_GET["crit"])) {
 } else {
     $crit = 0;
 }
-$rand  = mt_rand();
-
 // ---------- Form ------------
-echo "<form action='" . htmlescape($_SERVER["REQUEST_URI"]) . "' method='post'>";
-echo "<table class='tab_cadre' cellpadding='5'>\n";
-echo "<tr class='tab_bg_1 center'>";
-echo "<th colspan='3'>" . __('Duplicate computers', 'reports') . "</th></tr>\n";
-
-echo "<tr class='tab_bg_1'><td class='right'>" . _n('Criterion', 'Criteria', 2) . "</td><td>";
-
-Dropdown::showFromArray(
-    'crit',
-    $crits,
-    ['value' => $crit],
-);
-
-echo "</td>";
-
-if ($crit > 0) {
-    echo "<td>";
-    // $_SERVER["REQUEST_URI"] was overwritten here with a rebuilt "<path>?crit=<int>" so that the
-    // save button of the core would store a reproducible bookmark. It never did: the button reads
-    // window.location.pathname + window.location.search in the browser (js/modules/Search/
-    // GenericView.js) and the template below takes no URL at all, so the superglobal was not
-    // consulted for the bookmark. What the write did do was hand every component called after
-    // this line -- breadcrumb, pagination links, logging, and whatever a future version of the
-    // core derives from it -- a REQUEST_URI that no longer describes the request received, with
-    // all the other filtering parameters of the page dropped. The form action above is emitted
-    // before, so it kept the real URI; nothing else needs this value rewritten.
-    TemplateRenderer::getInstance()->render('pages/tools/savedsearch/save_button.html.twig', [
-        'type' => SavedSearch::SEARCH,
-        'itemtype' => 'Computer',
-    ]);
-    echo "</td>";
-}
-echo"</tr>\n";
-
-echo "<tr class='tab_bg_1 center'><td colspan='" . (($crit > 0) ? '3' : '2') . "'>";
-echo Html::submit(__('Search'), ['value' => 'valider', 'class' => 'btn btn-primary']);
-echo "</td></tr>\n";
-echo "</table>\n";
-Html::closeForm();
+// A save button of the core used to be built here through TemplateRenderer::render(), whose
+// return value was never echoed: it never appeared. It could not have worked anyway, its
+// script (js/modules/Search/GenericView.js) being loaded on the search pages only. The dead
+// call is dropped rather than turned into a button that does nothing.
+$form = [
+    'action'     => $_SERVER["REQUEST_URI"],
+    'title'      => __('Duplicate computers', 'reports'),
+    'nb_columns' => 2,
+    'rows'       => [[
+        'cells' => [[
+            'name'  => 'crit',
+            'label' => _n('Criterion', 'Criteria', 2),
+            'field' => Dropdown::showFromArray('crit', $crits, ['value' => $crit, 'display' => false]),
+        ]],
+    ]],
+    'submit'     => ['name' => 'search', 'value' => 'valider', 'label' => __('Search')],
+];
 
 if ($crit == 5) { // Search Duplicate IP Address - From glpi_networking_ports
     $IPBlacklist = "A_ipa.`name` != ''
@@ -482,6 +458,8 @@ if ($crit == 5) { // Search Duplicate IP Address - From glpi_networking_ports
 }
 
 
+$page = ['form' => $form];
+
 if ($crit > 0) { // Display result
     $canedit = $computer->canUpdate();
     $colspan = ($col ? 8 : 7) + ($canedit ? 1 : 0);
@@ -489,53 +467,73 @@ if ($crit > 0) { // Display result
     // save crit for massive action
     $_SESSION['plugin_reports_doublons_crit'] = $crit;
 
-    $rand = mt_rand();
-    if ($canedit) {
-        Html::openMassiveActionsForm('massformComputer');
+    $header_cells = [];
+    foreach (['', 'blue'] as $class) {
+        if ($canedit) {
+            $header_cells[] = ['value' => '', 'class' => $class];
+        }
+        $titles = [__('ID'), __('Name'), __('Manufacturer'), __('Model'), __('Serial number'),
+            __('Inventory number')];
+        if ($col) {
+            $titles[] = $col;
+        }
+        $titles[] = __('Last inventory date', 'reports');
+        foreach ($titles as $title) {
+            $header_cells[] = ['value' => $title, 'class' => $class];
+        }
     }
-    echo "<br><table class='tab_cadre_fixe' cellpadding='5'>"
-       . "<tr><th colspan='$colspan'>" . __('First computer', 'reports') . "</th>"
-       . "<th class='blue' colspan='$colspan'>" . __('Second computer', 'reports') . "</th></tr>\n"
-       . "<tr>";
+    $table = [
+        'class'       => 'tab_cadre_fixe',
+        'header_rows' => [
+            ['cells' => [
+                ['value' => __('First computer', 'reports'), 'colspan' => $colspan],
+                ['value' => __('Second computer', 'reports'), 'colspan' => $colspan, 'class' => 'blue'],
+            ]],
+            ['cells' => $header_cells],
+        ],
+        'rows'        => [],
+    ];
     $colspan *= 2;
-
-    if ($canedit) {
-        echo "<th>&nbsp;</th>";
-    }
-    echo "<th>" . __('ID') . "</th>"
-       . "<th>" . __('Name') . "</th>"
-       . "<th>" . __('Manufacturer') . "</th>"
-       . "<th>" . __('Model') . "</th>"
-       . "<th>" . __('Serial number') . "</th>"
-       . "<th>" . __('Inventory number') . "</th>";
-    if ($col) {
-        echo "<th>$col</th>";
-    }
-    echo "<th>" . __('Last inventory date', 'reports') . "</th>";
-
-    if ($canedit) {
-        echo "<th>&nbsp;</th>";
-    }
-
-    echo "<th class='blue'>" . __('ID') . "</th>"
-         . "<th class='blue'>" . __('Name') . "</th>"
-         . "<th class='blue'>" . __('Manufacturer') . "</th>"
-         . "<th class='blue'>" . __('Inventory number') . "</th>"
-         . "<th class='blue'>" . __('Serial number') . "</th>"
-         . "<th class='blue'>" . __('Inventory number') . "</th>";
-    if ($col) {
-        echo "<th class='blue'>$col</th>";
-    }
-    echo "<th class='blue'>" . __('Last inventory date', 'reports') . "</th>";
-
-    echo "</tr>\n";
-
 
     $comp = new Computer();
     $ids  = [];
 
+    // One side of a duplicate pair: checkbox, identifier, link and inventory columns
+    $build_side = static function (array $data, string $id_key, string $name_key, string $addr_key, string $class) use ($comp, $canedit, $col, &$ids): array {
+        $cells = [];
+        if ($canedit) {
+            if (isset($ids[$data[$id_key]])) {
+                $cells[] = ['value' => '', 'class' => $class];
+            } else {
+                $ids[$data[$id_key]] = true;
+                $cells[] = ['html' => Html::getMassiveActionCheckBox('Computer', $data[$id_key]), 'class' => $class];
+            }
+        }
+        $cells[] = ['value' => (int) $data[$id_key], 'class' => trim('b ' . $class)];
+        if ($comp->getFromDB($data[$id_key])) {
+            // Security (stored XSS): since GLPI 10 the dropdown labels are stored raw and
+            // Dropdown::getDropdownName() returns them as they are. Every value below is escaped
+            // by the template; the labels are writable by anyone holding the dropdown right, and
+            // are also fed by the inventory agents and the datainjection/API imports.
+            $cells[] = ['html' => $comp->getLink(), 'class' => $class];
+            $cells[] = ['value' => Dropdown::getDropdownName("glpi_manufacturers", $comp->getField('manufacturers_id')), 'class' => $class];
+            $cells[] = ['value' => Dropdown::getDropdownName("glpi_computermodels", $comp->getField('computermodels_id')), 'class' => $class];
+            $cells[] = ['value' => $comp->getField('serial'), 'class' => $class];
+            $cells[] = ['value' => $comp->getField('otherserial'), 'class' => $class];
+        } else {
+            // The second side used to print the name of the FIRST computer ($data["Aname"])
+            // when the second one could not be loaded.
+            $cells[] = ['value' => $data[$name_key], 'colspan' => 5, 'class' => $class];
+        }
+        if ($col) {
+            $cells[] = ['value' => $data[$addr_key], 'class' => $class];
+        }
+        $cells[] = ['value' => (string) getLastInventory($data[$id_key]), 'class' => $class];
+
+        return $cells;
+    };
+
     $iterator = $DB->request($criteria);
-    //    for ($prev = -1, $i = 0 ; $data = $DBread->fetchArray($result) ; $i++) {
 
     $i = 0;
     $prev = -1;
@@ -543,100 +541,55 @@ if ($crit > 0) { // Display result
         $i++;
         if ($prev != $data["entity"]) {
             $prev = $data["entity"];
-            // Security (stored XSS): since GLPI 10 the dropdown labels are stored raw and
-            // Dropdown::getDropdownName() returns them as they are - escaping is the caller's
-            // job. The serial, otherserial, Aname, Aaddr and Baddr cells of this very report
-            // already go through htmlescape(); the five getDropdownName() calls of the file were
-            // the only ones left out. The labels are writable by anyone holding the dropdown
-            // right, and are also fed without human interaction by the inventory agents and by
-            // the datainjection/API imports, so the payload lands in the session of every holder
-            // of plugin_reports_doublons - up to a super-admin.
-            echo "<tr class='tab_bg_4'><td class='center' colspan='$colspan'>"
-               . htmlescape(Dropdown::getDropdownName("glpi_entities", $prev)) . "</td></tr>\n";
+            $table['rows'][] = [
+                'class' => 'tab_bg_4',
+                'cells' => [[
+                    'value'   => Dropdown::getDropdownName("glpi_entities", $prev),
+                    'class'   => 'center',
+                    'colspan' => $colspan,
+                ]],
+            ];
         }
-        echo "<tr class='tab_bg_2'>";
-        if ($canedit) {
-            if (isset($ids[$data["AID"]])) {
-                echo "<td>&nbsp;</td>";
-            } else {
-                $ids[$data["AID"]] = true;
-                echo "<td>" . Html::getMassiveActionCheckBox('Computer', $data["AID"]) . "</td>";
-            }
-        }
-        echo "<td class='b'>" . (int) $data["AID"] . "</td>";
-        if ($comp->getFromDB($data["AID"])) {
-
-            echo "<td>";
-            echo $comp->getLink();
-            echo "</td><td>";
-            echo htmlescape(Dropdown::getDropdownName("glpi_manufacturers", $comp->getField('manufacturers_id')));
-            echo "</td><td>";
-            echo htmlescape(Dropdown::getDropdownName("glpi_computermodels", $comp->getField('computermodels_id')));
-            echo "</td><td>" . htmlescape($comp->getField('serial'));
-            echo "</td><td>" . htmlescape($comp->getField('otherserial')) . "</td>";
-
-        } else {
-            echo "<td colspan='5'>" . htmlescape($data["Aname"]) . "</td>";
-        }
-        if ($col) {
-            echo "<td>" . htmlescape($data["Aaddr"]) . "</td>";
-        }
-        echo "<td>";
-        echo htmlescape((string) getLastInventory($data['AID']));
-        echo "</td>";
-        if ($canedit) {
-            if (isset($ids[$data["BID"]])) {
-                echo "<td>&nbsp;</td>";
-            } else {
-                $ids[$data["BID"]] = true;
-                echo "<td>" . Html::getMassiveActionCheckBox('Computer', $data["BID"]) . "</td>";
-            }
-        }
-        echo "<td class='b blue'>" . (int) $data["BID"] . "</td>";
-        if ($comp->getFromDB($data["BID"])) {
-            echo "<td class='blue'>";
-            echo $comp->getLink();
-            echo "</td><td class='blue'>";
-            echo htmlescape(Dropdown::getDropdownName("glpi_manufacturers", $comp->getField('manufacturers_id')));
-            echo "</td><td class='blue'>";
-            echo htmlescape(Dropdown::getDropdownName("glpi_computermodels", $comp->getField('computermodels_id')));
-            echo "</td><td class='blue'>" . htmlescape($comp->getField('serial'));
-            echo "</td><td class='blue'>" . htmlescape($comp->getField('otherserial')) . "</td>";
-        } else {
-            echo "<td colspan='5' class='blue'>" . htmlescape($data["Aname"]) . "</td>";
-        }
-        if ($col) {
-            echo "<td class='blue'>" . htmlescape($data["Baddr"]) . "</td>";
-        }
-        echo "<td class='blue'>";
-        echo htmlescape((string) getLastInventory($data['BID']));
-        echo "</td>";
-
-        echo "</tr>\n";
+        $table['rows'][] = [
+            'class' => 'tab_bg_2',
+            'cells' => array_merge(
+                $build_side($data, 'AID', 'Aname', 'Aaddr', ''),
+                $build_side($data, 'BID', 'Bname', 'Baddr', 'blue'),
+            ),
+        ];
     }
-    echo "<tr class='tab_bg_4'><td class='center' colspan='$colspan'>";
-    if ($i) {
-        echo "<div class='alert alert-danger center'>";
-        printf(__('%1$s: %2$s'), __('Duplicate computers', 'reports'), $i);
-        echo "</div>";
-    } else {
-        echo "<div class='alert alert-danger center'>";
-        echo __s('No results found');
-        echo "</div>";
-    }
-    echo "</td></tr>\n";
-    echo "</table>";
+    $table['rows'][] = [
+        'class' => 'tab_bg_4',
+        'cells' => [[
+            'html'    => TemplateRenderer::getInstance()->render('@reports/report/message.html.twig', [
+                'type' => 'danger',
+                'text' => $i
+                    ? sprintf(__('%1$s: %2$s'), __('Duplicate computers', 'reports'), $i)
+                    : __('No results found'),
+            ]),
+            'class'   => 'center',
+            'colspan' => $colspan,
+        ]],
+    ];
+
+    $page['tables'] = [$table];
     if ($canedit) {
-        if ($i) {
-            $massiveactionparams = ['num_displayed'    => $i,
-                'container'        => 'massformComputer',
-                'ontop'            => false,
-                'forcecreate'      => true];
-            Html::showMassiveActions($massiveactionparams);
-        }
-        Html::closeForm();
+        $page['massive'] = [
+            'form_id' => 'massformComputer',
+            'top'     => '',
+            'bottom'  => $i ? Html::showMassiveActions([
+                'num_displayed' => $i,
+                'container'     => 'massformComputer',
+                'ontop'         => false,
+                'forcecreate'   => true,
+                'display'       => false,
+            ]) : '',
+        ];
     }
 }
+
+TemplateRenderer::getInstance()->display('@reports/report/page.html.twig', $page);
+
 Html::footer();
 
 

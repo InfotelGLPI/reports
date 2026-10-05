@@ -30,6 +30,7 @@
  * --------------------------------------------------------------------------
  */
 
+use Glpi\Application\View\TemplateRenderer;
 use Glpi\DBAL\QueryExpression;
 use GlpiPlugin\Reports\AutoReport;
 use GlpiPlugin\Reports\DateIntervalCriteria;
@@ -199,41 +200,26 @@ if ($report->criteriasValidated()) {
             $result[$type]['12+'] = $data['cpt'];
         }
     }
-    /*
-       if ($display_type == Search::HTML_OUTPUT) {
-             echo "<div class='center'><table class='tab_cadre_fixe'>";
-       //      echo "<tr><th>$title</th></tr>\n";
-             echo "</table></div>\n";
-       }
-    */
+    $table = [
+        'class'       => 'table',
+        'header_rows' => [],
+        'rows'        => [],
+    ];
+    $chart = '';
     $nbres = count($result);
     if ($nbres > 0) {
         if ($nbres > 1) {
-            $nbrows = $nbres * 2 + 2;
             $result['total'] = [];
             reset($result);
             foreach (next($result) as $key => $val) {
                 $result['total'][$key] = 0;
             }
-        } else {
-            $nbrows = 2;
         }
-        $nbcols = 9;
-        echo Search::showHeader($display_type, $nbrows, $nbcols, true);
-        echo Search::showNewLine($display_type);
-        $numcol = 1;
-        echo Search::showHeaderItem($display_type, __('Item type'), $numcol);
-        echo Search::showHeaderItem($display_type, __('Total'), $numcol);
-        echo Search::showHeaderItem($display_type, '0-1', $numcol);
-        echo Search::showHeaderItem($display_type, '2-3', $numcol);
-        echo Search::showHeaderItem($display_type, '4-5', $numcol);
-        echo Search::showHeaderItem($display_type, '6-7', $numcol);
-        echo Search::showHeaderItem($display_type, '8-9', $numcol);
-        echo Search::showHeaderItem($display_type, '10-11', $numcol);
-        echo Search::showHeaderItem($display_type, '12+', $numcol);
-        echo Search::showEndLine($display_type);
+        $table['header_rows'][] = ['cells' => array_map(
+            static fn($title) => ['value' => $title],
+            [__('Item type'), __('Total'), '0-1', '2-3', '4-5', '6-7', '8-9', '10-11', '12+'],
+        )];
 
-        $row_num = 1;
         foreach ($result as $itemtype => $row) {
             if ($itemtype == 'total') {
                 $name = __('Total');
@@ -245,60 +231,50 @@ if ($report->criteriasValidated()) {
                 continue;
             }
 
-            $numcol = 1;
-            echo Search::showNewLine($display_type);
-            echo Search::showItem($display_type, $name, $numcol, $row_num, "class='b'");
-            $labels = [];
-            $series = [];
+            $count_cells   = [['value' => $name, 'class' => 'b']];
+            $percent_cells = [['value' => '']];
             foreach ($row as $ref => $val) {
                 $val = $result[$itemtype][$ref];
-                echo Search::showItem(
-                    $display_type,
-                    ($val ? $val : ''),
-                    $numcol,
-                    $row_num,
-                    "class='right'",
-                );
+                $count_cells[] = ['value' => $val ? $val : '', 'class' => 'right'];
                 if ($itemtype != 'total' && isset($result['total'])) {
                     $result['total'][$ref] += $val;
                 }
-            }
-            echo Search::showEndLine($display_type);
-            $row_num++;
 
-            $numcol = 1;
-            echo Search::showNewLine($display_type);
-            echo Search::showItem($display_type, '', $numcol, $row_num);
-            foreach ($row as $ref => $val) {
-                $val = $result[$itemtype][$ref];
                 $buy = $result[$itemtype]['buy'];
                 if (($ref == 'buy') || ($buy == 0) || ($val == 0)) {
                     $tmp = '';
                 } else {
                     $tmp = round($val * 100 / $buy, 0) . "%";
                 }
-                echo Search::showItem($display_type, $tmp, $numcol, $row_num, "class='right'");
+                $percent_cells[] = ['value' => $tmp, 'class' => 'right'];
             }
-            echo Search::showEndLine($display_type);
-            $row_num++;
+            // The percentages are computed against the "buy" count of the same row, which is
+            // complete by now for the total row as well (it comes last).
+            $table['rows'][] = ['class' => 'tab_bg_2', 'cells' => $count_cells];
+            $table['rows'][] = ['class' => 'tab_bg_1', 'cells' => $percent_cells];
         }
 
-        $stat = new Stat();
-        $stat->displayPieGraph($title, $labels, $series);
-        if ($display_type == Search::HTML_OUTPUT) {
-            $row = array_pop($result); // Last line : total or single type
-            unset($row['buy']);
+        // Pie chart of the last line (total, or the single type): the labels and series handed
+        // to the chart used to be reset inside the loop above and never filled, so the chart
+        // was always drawn empty.
+        $row = end($result);
+        unset($row['buy']);
+        $labels = [];
+        $series = [];
+        foreach ($row as $ref => $val) {
+            $labels[] = $ref;
+            $series[] = ['name' => $ref, 'data' => (int) $val];
         }
+        $stat  = new Stat();
+        $chart = (string) $stat->displayPieGraph($title, $labels, $series, [], false);
     } else {
-        $nbrows = 1;
-        $nbcols = 1;
-        echo Search::showHeader($display_type, $nbrows, $nbcols, true);
-        echo Search::showNewLine($display_type);
-        $num = 1;
-        echo Search::showHeaderItem($display_type, __s('No results found'), $num);
-        echo Search::showEndLine($display_type);
+        $table['header_rows'][] = ['cells' => [['value' => __('No results found')]]];
     }
-    echo Search::showFooter($display_type, $title);
+
+    TemplateRenderer::getInstance()->display('@reports/report/page.html.twig', [
+        'tables' => [$table],
+        'chart'  => $chart,
+    ]);
 }
 if ($display_type == Search::HTML_OUTPUT) {
     Html::footer();

@@ -86,26 +86,26 @@ class Profile extends \Profile
         foreach (self::getReportProfiles($report) as $data) {
             $canaccess = $data['canaccess'];
 
-            // Capture the GLPI right dropdown (or the hidden "no access" field) as already-safe
-            // HTML so the Twig template can output it via |raw while auto-escaping the rest.
-            ob_start();
+            // The GLPI right dropdown (or the hidden "no access" field) is built by the core with
+            // its display option turned off: already-safe HTML the Twig template outputs via |raw
+            // while auto-escaping the rest.
             if ($canaccess && !$data['editable']) {
                 // Profile above the current one: shown, but not offered for edition
                 // (updateForReport() would ignore it anyway).
-                echo htmlescape(($current[$data['id']] ?? 0) ? __('Read') : __('No access'));
+                $field = htmlescape(($current[$data['id']] ?? 0) ? __('Read') : __('No access'));
             } elseif ($canaccess) {
-                \Profile::dropdownRight(
+                $field = (string) \Profile::dropdownRight(
                     (string) $data['id'], // the input is named after the profile id
                     ['value'   => ($current[$data['id']] ?? 0),
                         'nonone'  => 0,
                         'noread'  => 0,
-                        'nowrite' => 1],
+                        'nowrite' => 1,
+                        'display' => false],
                 );
             } else {
                 // Can't access because missing right from GLPI core
-                echo Html::hidden((string) $data['id'], ['value' => 'NULL']);
+                $field = Html::hidden((string) $data['id'], ['value' => 'NULL']);
             }
-            $field = ob_get_clean();
 
             $profiles[] = [
                 'name'      => $data['name'],

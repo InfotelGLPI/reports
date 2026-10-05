@@ -30,6 +30,8 @@
  * --------------------------------------------------------------------------
  */
 
+use Glpi\Application\View\TemplateRenderer;
+
 $USEDBREPLICATE         = 1;
 $DBCONNECTION_REQUIRED  = 0;
 
@@ -37,69 +39,74 @@ global $DB;
 
 Session::checkRight("plugin_reports_rules", READ);
 
-function plugin_reports_rulelist($rulecollection, $title)
+/**
+ * Table of the rules of a collection, as variables of the table template
+ */
+function plugin_reports_rulelist($rulecollection, $title): array
 {
 
     Session::checkRight($rulecollection::$rightname, READ);
 
     $rulecollection->getCollectionDatas(true, true);
-    echo "<div class='center'>";
-    echo "<table class='tab_cadre' cellpadding='5'>\n";
-    echo "<tr><th colspan='6'><a href='" . htmlescape($_SERVER["REQUEST_URI"]) . "'>" .
-          //TRANS: The name of the report = Rule's catalog
-          __("Rule's catalog", 'reports') . "</a> - " . $title . "</th></tr>";
 
-    echo "<tr><th>" . __('Name') . "</th>";
-    echo "<th>" . __('Description') . "</th>";
-    echo "<th colspan='2'>" . _n('Criterion', 'Criteria', 2) . "</th>";
-    echo "<th>" . _n('Action', 'Actions', 2) . "</th>";
-    echo "<th>" . __('Active') . "</th></tr>\n";
+    $table = [
+        'class'       => 'tab_cadre',
+        'header_rows' => [
+            ['cells' => [[
+                //TRANS: The name of the report = Rule's catalog
+                'value'   => sprintf(__('%1$s - %2$s'), __("Rule's catalog", 'reports'), $title),
+                'href'    => $_SERVER["REQUEST_URI"],
+                'colspan' => 6,
+            ]]],
+            ['cells' => [
+                ['value' => __('Name')],
+                ['value' => __('Description')],
+                ['value' => _n('Criterion', 'Criteria', 2), 'colspan' => 2],
+                ['value' => _n('Action', 'Actions', 2)],
+                ['value' => __('Active')],
+            ]],
+        ],
+        'rows'        => [],
+    ];
+
     foreach ($rulecollection->RuleList->list as $rule) {
-        echo "<tr class='tab_bg_1'>";
-        echo "<td>" . htmlescape($rule->fields["name"]) . "</td>";
-        echo "<td>" . htmlescape($rule->fields["description"]) . "</td>";
-
-        if ($rule->fields["match"] == Rule::AND_MATCHING) {
-            echo "<td>" . __('and') . "</td>";
-        } else {
-            echo "<td>" . __('or') . "</td>";
-        }
-
-        echo "<td>";
+        $criteria_lines = [];
         foreach ($rule->criterias as $criteria) {
-            echo htmlescape($rule->getCriteriaName($criteria->fields["criteria"])) . " " .
-                 htmlescape(RuleCriteria::getConditionByID($criteria->fields["condition"], get_class($rule))) . " " .
-                 htmlescape($rule->getCriteriaDisplayPattern(
-                     $criteria->fields["criteria"],
-                     $criteria->fields["condition"],
-                     $criteria->fields["pattern"],
-                 )) .
-                 "<br>";
+            $criteria_lines[] = $rule->getCriteriaName($criteria->fields["criteria"]) . " "
+                . RuleCriteria::getConditionByID($criteria->fields["condition"], get_class($rule)) . " "
+                . $rule->getCriteriaDisplayPattern(
+                    $criteria->fields["criteria"],
+                    $criteria->fields["condition"],
+                    $criteria->fields["pattern"],
+                );
         }
-        echo "</td>";
-        echo "<td>";
+
+        $action_lines = [];
         foreach ($rule->actions as $action) {
-            echo htmlescape($rule->getActionName($action->fields["field"])) . " " .
-                  htmlescape(RuleAction::getActionByID($action->fields["action_type"])) . " " .
-                  htmlescape(stripslashes($rule->getActionValue(
-                      $action->fields["field"],
-                      $action->fields["action_type"],
-                      $action->fields["value"],
-                  ))) .
-                  "<br>";
+            $action_lines[] = $rule->getActionName($action->fields["field"]) . " "
+                . RuleAction::getActionByID($action->fields["action_type"]) . " "
+                . stripslashes((string) $rule->getActionValue(
+                    $action->fields["field"],
+                    $action->fields["action_type"],
+                    $action->fields["value"],
+                ));
         }
-        echo "</td>";
 
-        if ($rule->fields["is_active"]) {
-            echo "<td>" . __('Yes') . "</td>";
-        } else {
-            echo "<td>" . __('No') . "</td>";
-        }
-        echo "</tr>\n";
+        $table['rows'][] = [
+            'class' => 'tab_bg_1',
+            'cells' => [
+                ['value' => $rule->fields["name"]],
+                ['value' => $rule->fields["description"]],
+                ['value' => $rule->fields["match"] == Rule::AND_MATCHING ? __('and') : __('or')],
+                ['lines' => $criteria_lines],
+                ['lines' => $action_lines],
+                ['value' => $rule->fields["is_active"] ? __('Yes') : __('No')],
+            ],
+        ];
     }
-    echo "</table></div>\n";
-}
 
+    return $table;
+}
 Html::header(__("Rule's catalog", 'reports'), '', "utils", "report");
 
 Report::title();
@@ -108,36 +115,41 @@ $allowed_types = ['ldap', 'soft', ''];
 $type = (isset($_GET["type"]) && in_array($_GET["type"], $allowed_types, true)) ? $_GET["type"] : "";
 
 if ($type == "ldap") {
-    $rulecollection = new RuleRightCollection();
-    plugin_reports_rulelist($rulecollection, __('Authorizations assignment rules'));
+    $table = plugin_reports_rulelist(new RuleRightCollection(), __('Authorizations assignment rules'));
 
 } elseif ($type == "soft") {
-    $rulecollection = new RuleSoftwareCategoryCollection();
-    plugin_reports_rulelist($rulecollection, __('Rules for assigning a category to software'));
+    $table = plugin_reports_rulelist(new RuleSoftwareCategoryCollection(), __('Rules for assigning a category to software'));
 
 } else {
-    echo "<div class='center'>";
-    echo "<table class='tab_cadre' cellpadding='5'>\n";
-    echo "<tr><th>" . sprintf(__('%1$s - %2$s'), __("Rule's catalog", 'reports'), __('Rule type')) .
-         "</th></tr>";
-
     // REQUEST_URI already carries a query string whenever the page was reached with one, so a
     // hard-coded "?" produced a second separator and the type parameter was simply ignored.
     $self_url   = $_SERVER["REQUEST_URI"];
     $separator  = str_contains($self_url, '?') ? '&' : '?';
 
+    $table = [
+        'class'       => 'tab_cadre',
+        'header_rows' => [['cells' => [[
+            'value' => sprintf(__('%1$s - %2$s'), __("Rule's catalog", 'reports'), __('Rule type')),
+        ]]]],
+        'rows'        => [],
+    ];
+
     if (Session::haveRight("rule_ldap", READ)) {
-        echo "<tr class='tab_bg_1'><td class='center b'>" .
-             "<a href='" . htmlescape($self_url . $separator . 'type=ldap') . "'>" . __('Authorizations assignment rules') .
-             "</a></td></tr>";
+        $table['rows'][] = ['class' => 'tab_bg_1', 'cells' => [[
+            'value' => __('Authorizations assignment rules'),
+            'href'  => $self_url . $separator . 'type=ldap',
+            'class' => 'center b',
+        ]]];
     }
 
     if (Session::haveRight("rule_softwarecategories", READ)) {
-        echo "<tr class='tab_bg_1'><td class='center b'>" .
-             "<a href='" . htmlescape($self_url . $separator . 'type=soft') . "'>" .
-               __('Rules for assigning a category to software') . "</a></td></tr>";
+        $table['rows'][] = ['class' => 'tab_bg_1', 'cells' => [[
+            'value' => __('Rules for assigning a category to software'),
+            'href'  => $self_url . $separator . 'type=soft',
+            'class' => 'center b',
+        ]]];
     }
-    echo "</table></div>\n";
 }
 
+TemplateRenderer::getInstance()->display('@reports/report/page.html.twig', ['tables' => [$table]]);
 Html::footer();

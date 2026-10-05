@@ -34,6 +34,7 @@ namespace GlpiPlugin\Reports;
 
 use DbUtils;
 use Dropdown;
+use Glpi\Application\View\TemplateRenderer;
 
 /**
  * Manage criterias from dropdown tables
@@ -280,13 +281,37 @@ class DropdownCriteria extends AutoCriteria
 
 
     /**
-     * Display criteria in the criteria's selection form
+     * Cells of the criteria in the selection form: its label and its dropdown.
+    **/
+    public function getCriteriaFields()
+    {
+        return [[
+            'name'  => $this->getName(),
+            'label' => $this->getCriteriaLabel(),
+            'field' => $this->getDropdownField(),
+        ]];
+    }
+
+
+    /**
+     * Display criteria in the criteria's selection form (legacy API).
+     *
+     * A subclass written before getCriteriaFields() existed customises its widget by overriding
+     * displayDropdownCriteria(), which echoes: that override is honoured here, inside the cells
+     * of the legacy grid. The engine routes such a subclass to this method on its own
+     * (AutoCriteria::usesLegacyDisplay()).
     **/
     public function displayCriteria()
     {
+        if (!$this->isOverriddenBelowFields('displayDropdownCriteria')) {
+            $this->displayCriteriaFields();
+            return;
+        }
 
         $this->getReport()->startColumn();
-        echo $this->getCriteriaLabel() . '&nbsp;:';
+        TemplateRenderer::getInstance()->display('@reports/autoreport/criteria_cell.html.twig', [
+            'label' => $this->getCriteriaLabel(),
+        ]);
         $this->getReport()->endColumn();
 
         $this->getReport()->startColumn();
@@ -296,20 +321,36 @@ class DropdownCriteria extends AutoCriteria
 
 
     /**
-     * Display dropdown
+     * HTML of the dropdown, built by the GLPI core helper with 'display' => false.
+     *
+     * The criteria deriving from this class override this method to offer another widget.
     **/
-    public function displayDropdownCriteria()
+    public function getDropdownField(): string
     {
-
         $options = ['name'     => $this->getName(),
             'value'    => $this->getScalarParameterValue(),
             'comments' => $this->getDisplayComments(),
-            'entity'   => $this->getEntityRestrict()];
+            'entity'   => $this->getEntityRestrict(),
+            'display'  => false,
+        ];
 
         if ($this->condition) {
             $options['condition'] = [$this->condition];
         }
-        Dropdown::show($this->getItemType(), $options);
+
+        return (string) Dropdown::show($this->getItemType(), $options);
+    }
+
+
+    /**
+     * Display dropdown (legacy API, kept for its callers: getDropdownField() returns the same
+     * widget for the template).
+    **/
+    public function displayDropdownCriteria()
+    {
+        TemplateRenderer::getInstance()->display('@reports/autoreport/criteria_cell.html.twig', [
+            'field' => $this->getDropdownField(),
+        ]);
     }
 
 

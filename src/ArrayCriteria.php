@@ -67,13 +67,12 @@ class ArrayCriteria extends DropdownCriteria
         return " " . sprintf(__('%1$s: %2$s'), $this->getCriteriaLabel(), $this->choice[$val]);
     }
 
-    public function displayDropdownCriteria()
+    public function getDropdownField(): string
     {
-
-        Dropdown::showFromArray(
+        return (string) Dropdown::showFromArray(
             $this->getName(),
             $this->choice,
-            ['value' => $this->getParameterValue()],
+            ['value' => $this->getParameterValue(), 'display' => false],
         );
     }
 

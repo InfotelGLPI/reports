@@ -68,11 +68,12 @@ class RequestTypeCriteria extends DropdownCriteria
 
 
     //Dropdown priorities is not a generic dropdown, so the function needs to be overwritten
-    public function displayDropdownCriteria()
+    public function getDropdownField(): string
     {
-
-        Dropdown::show('RequestType', ['name'  => $this->getName(),
-            'value' => $this->getParameterValue()]);
+        return (string) Dropdown::show(\RequestType::class, ['name'  => $this->getName(),
+            'value'   => $this->getParameterValue(),
+            'display' => false,
+        ]);
     }
 
 

@@ -1,0 +1,81 @@
+{#
+ # -------------------------------------------------------------------------
+ #  LICENSE
+ #
+ # This file is part of Reports plugin for GLPI.
+ #
+ # Reports is free software: you can redistribute it and/or modify
+ # it under the terms of the GNU Affero General Public License as published by
+ # the Free Software Foundation, either version 3 of the License, or
+ # (at your option) any later version.
+ #
+ # Reports is distributed in the hope that it will be useful,
+ # but WITHOUT ANY WARRANTY; without even the implied warranty of
+ # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ # GNU Affero General Public License for more details.
+ #
+ # You should have received a copy of the GNU Affero General Public License
+ # along with Reports. If not, see <http://www.gnu.org/licenses/>.
+ #
+ # @authors   Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
+ # @copyright Copyright (c) 2009-2026 Reports plugin team
+ # @license   AGPL License 3.0 or (at your option) any later version
+ # @link      https://github.com/InfotelGLPI/reports
+ # @link      http://www.glpi-project.org/
+ # @package   reports
+ # @since     2009
+ #            http://www.gnu.org/licenses/agpl-3.0-standalone.html
+ # --------------------------------------------------------------------------
+ #}
+
+{#
+ # Generic data table of a report.
+ #
+ # class:       CSS class of the table (default tab_cadre_fixe)
+ # header_rows: [{class, cells: [cell]}] header lines (<th>)
+ # rows:        [{class, cells: [cell]}] data lines (<td>)
+ #
+ # A cell is an array with the keys (all optional):
+ #   value:   plain text, escaped
+ #   lines:   list of plain text lines, each escaped, separated by <br>
+ #   href:    URL the value links to (escaped as an attribute)
+ #   html:    HTML built by the GLPI core (CommonDBTM::getLink(),
+ #            Html::getMassiveActionCheckBox()...), output as is
+ #   indent:  indentation level of the value
+ #   class:   CSS class of the cell
+ #   colspan: number of columns the cell spans
+ #}
+{% macro cell_content(cell) %}
+    {%- if (cell.indent ?? 0) > 0 -%}
+        {%- for i in 1..cell.indent -%}&nbsp;&nbsp;&nbsp;{%- endfor -%}
+    {%- endif -%}
+    {%- if cell.html is defined -%}
+        {# Markup built by a GLPI core helper (getLink(), massive action checkbox...) #}
+        {{- cell.html|raw -}}
+    {%- elseif cell.lines is defined -%}
+        {%- for line in cell.lines -%}{{ line }}{% if not loop.last %}<br>{% endif %}{%- endfor -%}
+    {%- elseif cell.href is defined -%}
+        <a href="{{ cell.href }}">{{ cell.value ?? '' }}</a>
+    {%- else -%}
+        {{- cell.value ?? '' -}}
+    {%- endif -%}
+{% endmacro %}
+
+<div class="center">
+    <table class="{{ class ?? 'tab_cadre_fixe' }}">
+        {% for header_row in header_rows ?? [] %}
+            <tr{% if header_row.class is defined %} class="{{ header_row.class }}"{% endif %}>
+                {% for cell in header_row.cells %}
+                    <th{% if cell.colspan is defined %} colspan="{{ cell.colspan }}"{% endif %}{% if cell.class is defined %} class="{{ cell.class }}"{% endif %}>{{ _self.cell_content(cell) }}</th>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+        {% for row in rows ?? [] %}
+            <tr class="{{ row.class ?? 'tab_bg_2' }}">
+                {% for cell in row.cells %}
+                    <td{% if cell.colspan is defined %} colspan="{{ cell.colspan }}"{% endif %}{% if cell.class is defined %} class="{{ cell.class }}"{% endif %}>{{ _self.cell_content(cell) }}</td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </table>
+</div>

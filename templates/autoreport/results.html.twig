@@ -1,0 +1,88 @@
+{#
+ # -------------------------------------------------------------------------
+ #  LICENSE
+ #
+ # This file is part of Reports plugin for GLPI.
+ #
+ # Reports is free software: you can redistribute it and/or modify
+ # it under the terms of the GNU Affero General Public License as published by
+ # the Free Software Foundation, either version 3 of the License, or
+ # (at your option) any later version.
+ #
+ # Reports is distributed in the hope that it will be useful,
+ # but WITHOUT ANY WARRANTY; without even the implied warranty of
+ # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ # GNU Affero General Public License for more details.
+ #
+ # You should have received a copy of the GNU Affero General Public License
+ # along with Reports. If not, see <http://www.gnu.org/licenses/>.
+ #
+ # @authors   Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
+ # @copyright Copyright (c) 2009-2026 Reports plugin team
+ # @license   AGPL License 3.0 or (at your option) any later version
+ # @link      https://github.com/InfotelGLPI/reports
+ # @link      http://www.glpi-project.org/
+ # @package   reports
+ # @since     2009
+ #            http://www.gnu.org/licenses/agpl-3.0-standalone.html
+ # --------------------------------------------------------------------------
+ #}
+
+{#
+ # Result page of an AutoReport (HTML output), rendered by AutoReport::execute().
+ #
+ # - title:      plain text title
+ # - empty:      true when the request returned no row
+ # - republish:  [{name, value}] hidden fields republishing the resolved criteria
+ # - pager:      HTML of AutoReport::printPager() (itself a template)
+ # - massive:    null, or {form_id, actions} for the massive actions of a report
+ # - headers:    [html] header cells, built by Column::showHtmlTitle() through the core
+ #               HTMLSearchOutput::showHeaderItem() (titles are plugin labels, links escaped)
+ # - rows:       [{odd, cells: [html], total: bool}] cells already formatted by the Column
+ #               classes: every Column escapes the database values on the HTML path
+ #               (Column::displayValue() / htmlescape() / getLink()) before they reach here
+ #}
+<div class="center"><h3>{{ title }}</h3></div>
+
+{% if empty %}
+    <div class="alert alert-danger center">{{ __('No results found') }}</div>
+{% else %}
+    {% for hidden in republish %}
+        <input type="hidden" name="{{ hidden.name }}" value="{{ hidden.value }}">
+    {% endfor %}
+
+    {# Pager rendered by its own template (AutoReport::printPager()) #}
+    {{ pager|raw }}
+
+    {% if massive is not null %}
+        <form name="{{ massive.form_id }}" id="{{ massive.form_id }}" method="post"
+              action="{{ path('/front/massiveaction.php') }}" enctype="multipart/form-data">
+        {# Massive actions toolbar of the core (Html::showMassiveActions(..., 'display' => false)) #}
+        {{ massive.actions|raw }}
+    {% endif %}
+
+    <div class="text-center">
+        <table class="table card-table table-hover">
+            <tr class="tab_bg_2">
+                {% for header in headers %}
+                    {# Header cell built by the core HTMLSearchOutput::showHeaderItem() #}
+                    {{ header|raw }}
+                {% endfor %}
+            </tr>
+            {% for row in rows %}
+                <tr class="{{ row.odd ? 'tab_bg_1' : 'tab_bg_2' }}">
+                    {% for cell in row.cells %}
+                        {# Cell built by the core HTMLSearchOutput::showItem() from a value the
+                         # Column classes already escaped (or produced with getLink()) #}
+                        {{ cell|raw }}
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    {% if massive is not null %}
+        <input type="hidden" name="_glpi_csrf_token" value="{{ csrf_token() }}">
+        </form>
+    {% endif %}
+{% endif %}

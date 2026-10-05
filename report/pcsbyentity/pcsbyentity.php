@@ -30,12 +30,19 @@
  * --------------------------------------------------------------------------
  */
 
+use Glpi\Application\View\TemplateRenderer;
+
 function cmpStat($a, $b)
 {
     return $a["tot"] - $b["tot"];
 }
 
 
+/**
+ * Counters of every entity, sorted by count.
+ *
+ * @return array<int, array{class: string, cells: array}> rows of the result table
+ */
 function doStatBis($table, $entities, $header)
 {
     global $DB;
@@ -76,7 +83,8 @@ function doStatBis($table, $entities, $header)
     // Sort result
     uasort($counts, "cmpStat");
 
-    // Display result
+    // Build result
+    $rows = [];
     $total["tot"] = 0;
     foreach ($header as $id => $name) {
         $total[$id] = 0;
@@ -86,35 +94,43 @@ function doStatBis($table, $entities, $header)
             $Ent = new Entity();
             $Ent->getFromDB($entity);
 
-            echo "<tr class='tab_bg_2'><td class='left'>";
-            if ($entity) {
-                echo htmlescape($Ent->fields["name"]);
-            } else {
-                echo __('Root entity');
-            }
-            echo "</td><td class='right'>" . $count["tot"] . "</td>";
+            $cells = [
+                ['value' => $entity ? $Ent->fields["name"] : __('Root entity'), 'class' => 'left'],
+                ['value' => $count["tot"], 'class' => 'right'],
+            ];
             $total["tot"] += $count["tot"];
             foreach ($header as $id => $name) {
-                echo "<td class='right'>" . $count[$id] . "</td>";
+                $cells[] = ['value' => $count[$id], 'class' => 'right'];
                 $total[$id] += $count[$id];
             }
+            $rows[] = ['class' => 'tab_bg_2', 'cells' => $cells];
         }
-        echo "</tr>\n";
     }
 
-    // Display total
+    // Total
     if (count($entities) > 1) {
-        echo "<tr class='tab_bg_1'><td class='left'>" . __('Total') . "</td>";
-        echo "<td class='right'>" . $total["tot"] . "</td>";
+        $cells = [
+            ['value' => __('Total'), 'class' => 'left'],
+            ['value' => $total["tot"], 'class' => 'right'],
+        ];
         foreach ($header as $id => $name) {
-            echo "<td class='right'>" . $total[$id] . "</td>";
+            $cells[] = ['value' => $total[$id], 'class' => 'right'];
         }
-        echo "</tr>\n";
+        $rows[] = ['class' => 'tab_bg_1', 'cells' => $cells];
     }
+
+    return $rows;
 }
 
 
-function doStat($table, $entity, $header, $level = 0)
+/**
+ * Counters of an entity and of its children, as a tree.
+ *
+ * @param array $rows rows of the result table, completed by the call
+ *
+ * @return array counters of the entity, children included
+ */
+function doStat($table, $entity, $header, $level = 0, array &$rows = [])
 {
     global $DB;
 
@@ -149,54 +165,40 @@ function doStat($table, $entity, $header, $level = 0)
         }
     }
 
-    // Display counters for this entity
+    $entity_name = $entity ? $Ent->fields["name"] : __('Root entity');
+
+    // Counters for this entity
     if ($count["tot"] > 0) {
-        echo "<tr class='tab_bg_2'><td>";
-        for ($i = 0 ; $i < $level ; $i++) {
-            echo "&nbsp;&nbsp;&nbsp;";
-        }
-        if ($entity) {
-            echo htmlescape($Ent->fields["name"]);
-        } else {
-            echo __('Root entity');
-        }
-        echo "</td>";
-        echo "<td class='right'>" . $count["tot"] . "</td>";
+        $cells = [
+            ['value' => $entity_name, 'indent' => $level],
+            ['value' => $count["tot"], 'class' => 'right'],
+        ];
         foreach ($header as $id => $name) {
-            echo "<td class='right'>" . $count[$id] . "</td>";
+            $cells[] = ['value' => $count[$id], 'class' => 'right'];
         }
-        echo "</tr>\n";
+        $rows[] = ['class' => 'tab_bg_2', 'cells' => $cells];
     }
 
     // Call for Childs
     $save = $count["tot"];
-    doStatChilds($table, $entity, $header, $count, $level + 1);
+    doStatChilds($table, $entity, $header, $count, $level + 1, $rows);
 
-    // Display total (Current+Childs)
+    // Total (Current+Childs)
     if ($save != $count["tot"]) {
-        echo "<tr class='tab_bg_1'><td>";
-        for ($i = 0 ; $i < $level ; $i++) {
-            echo "&nbsp;&nbsp;&nbsp;";
-        }
-        echo __('Total');
-
-        if ($entity) {
-            echo "&nbsp;" . htmlescape($Ent->fields["name"]);
-        } else {
-            echo "&nbsp;" . __('Root entity');
-        }
-        echo "</td>";
-        echo "<td class='right'>" . $count["tot"] . "</td>";
+        $cells = [
+            ['value' => sprintf(__('%1$s %2$s'), __('Total'), $entity_name), 'indent' => $level],
+            ['value' => $count["tot"], 'class' => 'right'],
+        ];
         foreach ($header as $id => $name) {
-            echo "<td class='right'>" . $count[$id] . "</td>";
+            $cells[] = ['value' => $count[$id], 'class' => 'right'];
         }
-        echo "</tr>\n";
+        $rows[] = ['class' => 'tab_bg_1', 'cells' => $cells];
     }
     return $count;
 }
 
 
-function doStatChilds($table, $entity, $header, &$total, $level)
+function doStatChilds($table, $entity, $header, &$total, $level, array &$rows = [])
 {
     global $DB;
 
@@ -221,7 +223,7 @@ function doStatChilds($table, $entity, $header, &$total, $level)
         if (!Session::haveAccessToEntity($data["id"])) {
             continue;
         }
-        $fille = doStat($table, $data["id"], $header, $level);
+        $fille = doStat($table, $data["id"], $header, $level, $rows);
         foreach ($header as $id => $name) {
             $total[$id] += $fille[$id];
         }
@@ -242,16 +244,6 @@ Html::header(__('Number of items by entity', 'reports'), '', "utils", "report");
 
 Report::title();
 
-echo "<div class='center'>";
-
-// ---------- Form ------------
-echo "<form action='" . htmlescape($_SERVER["REQUEST_URI"]) . "' method='post'>";
-echo "<table class='tab_cadre' cellpadding='5'>\n";
-echo "<tr class='tab_bg_1 center'><th colspan='2'>" . __('Number of items by entity', 'reports')
-      . "</th></tr>\n";
-echo "<tr class='tab_bg_1'><td class='right'>" . __('Item type') . "</td>";
-echo "<td><select name='type'><option value=''>" . Dropdown::EMPTY_VALUE . "</option>";
-
 $choix = [\Computer::class         => _n('Computer', 'Computers', 2),
     \Monitor::class          => _n('Monitor', 'Monitors', 2),
     \Printer::class          => _n('Printer', 'Printers', 2),
@@ -270,36 +262,39 @@ foreach ($choix as $id => $name) {
 }
 
 $posted_type = (isset($_POST["type"]) && is_scalar($_POST["type"])) ? (string) $_POST["type"] : '';
+$posted_sort = (isset($_POST["sort"]) && is_scalar($_POST["sort"]) && ($_POST["sort"] > 0)) ? 1 : 0;
 
-foreach ($allowed_types as $id => $name) {
-    echo "<option value='" . htmlescape($id);
-    if ($posted_type === $id) {
-        echo "' selected='selected'>";
-    } else {
-        echo "'>";
-    }
-    // Translated labels only, today; escape anyway so a future entry cannot reach the markup.
-    echo htmlescape($name) . "</option>";
-}
-echo "</select></td></tr>\n";
-
+// ---------- Form ------------
+$cells = [[
+    'name'  => 'type',
+    'label' => __('Item type'),
+    'field' => Dropdown::showFromArray('type', ['' => Dropdown::EMPTY_VALUE] + $allowed_types, [
+        'value'   => $posted_type,
+        'display' => false,
+    ]),
+]];
 if (count($_SESSION["glpiactiveentities"]) > 1) {
-    echo "<tr class='tab_bg_1'><td class='right'>" . __('Display', 'reports') . "</td>";
-    echo "<td><select name='sort'><option value='0'>" . __('Entity tree', 'reports') . "</option>";
-    $sel = (isset($_POST["sort"]) && $_POST["sort"] ? "selected='selected'" : "");
-
-    echo "<option value='1' $sel>" . __('Sort by count', 'reports') . "</option>"
-         . "</select></td></tr>\n";
+    $cells[] = [
+        'name'  => 'sort',
+        'label' => __('Display', 'reports'),
+        'field' => Dropdown::showFromArray('sort', [
+            0 => __('Entity tree', 'reports'),
+            1 => __('Sort by count', 'reports'),
+        ], [
+            'value'   => $posted_sort,
+            'display' => false,
+        ]),
+    ];
 }
-
-echo "<tr class='tab_bg_1 center'>"
-     . "<td colspan='2'>";
-echo Html::submit(__('Search'), ['class' => 'btn btn-primary']);
-//     <input type='submit' value='Search' class='submit'/></td>";
-echo "</td></tr>\n";
-echo "</table>\n";
-Html::closeForm();
-echo "</div>\n";
+$page = [
+    'form' => [
+        'action'     => $_SERVER["REQUEST_URI"],
+        'title'      => __('Number of items by entity', 'reports'),
+        'nb_columns' => 2,
+        'rows'       => array_map(static fn(array $cell): array => ['cells' => [$cell]], $cells),
+        'submit'     => ['name' => 'search', 'value' => '1', 'label' => __('Search')],
+    ],
+];
 
 // --------------- Result -------------
 if ($posted_type !== '' && !array_key_exists($posted_type, $allowed_types)) {
@@ -307,11 +302,11 @@ if ($posted_type !== '' && !array_key_exists($posted_type, $allowed_types)) {
 }
 
 if ($posted_type !== '') {
-    echo "<br><table class='tab_cadre'>\n";
-
-    echo "<tr><th>" . __('Entity') . "</th>"
-          . "<th>&nbsp;" . __('Total') . "&nbsp;</th>"
-          . "<th>&nbsp;" . __('Unknown', 'reports') . "&nbsp;</th>";
+    $header_cells = [
+        ['value' => __('Entity')],
+        ['value' => __('Total')],
+        ['value' => __('Unknown', 'reports')],
+    ];
 
     $criteria = [
         'SELECT' => [\State::getTable() . '.id', \State::getTable() . '.name'],
@@ -343,18 +338,24 @@ if ($posted_type !== '') {
     $header[0] = __('Unknown', 'reports');
     foreach ($iterator as $data) {
         $header[$data["id"]] = $data["name"];
-        echo "<th>&nbsp;" . htmlescape($data["name"]) . "&nbsp;</th>";
+        $header_cells[] = ['value' => $data["name"]];
     }
-    echo "</tr>\n";
 
-    if (isset($_POST["sort"]) && is_scalar($_POST["sort"]) && ($_POST["sort"] > 0)) {
-        doStatBis($dbu->getTableForItemType($posted_type), $_SESSION["glpiactiveentities"], $header);
+    $rows = [];
+    if ($posted_sort) {
+        $rows = doStatBis($dbu->getTableForItemType($posted_type), $_SESSION["glpiactiveentities"], $header);
     } else {
-        doStat($dbu->getTableForItemType($posted_type), $_SESSION["glpiactive_entity"], $header);
+        doStat($dbu->getTableForItemType($posted_type), $_SESSION["glpiactive_entity"], $header, 0, $rows);
     }
-    echo "</table></div>";
+
+    $page['tables'] = [[
+        'class'       => 'tab_cadre',
+        'header_rows' => [['cells' => $header_cells]],
+        'rows'        => $rows,
+    ]];
 } elseif (isset($_POST["type"])) {
-    echo "<p class='center red'>" . __('Selection of type is mandatory', 'reports') . "</p>";
+    $page['messages'] = [['type' => 'danger', 'text' => __('Selection of type is mandatory', 'reports')]];
 }
 
+TemplateRenderer::getInstance()->display('@reports/report/page.html.twig', $page);
 Html::footer();

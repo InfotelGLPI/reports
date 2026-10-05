@@ -33,6 +33,8 @@
 namespace GlpiPlugin\Reports;
 
 use CommonDBTM;
+use Glpi\Application\View\TemplateRenderer;
+use ReflectionMethod;
 use Session;
 
 /**
@@ -162,7 +164,9 @@ abstract class AutoCriteria
     **/
     public function getCriteriaLabel($parameter = '')
     {
-        return $this->criterias_labels[$parameter ? $parameter : $this->getName()];
+        // A criteria built with a null label has no entry here: answer an empty label rather
+        // than raising an "Undefined array key" warning in the middle of the form.
+        return $this->criterias_labels[$parameter ? $parameter : $this->getName()] ?? '';
     }
 
 
@@ -340,10 +344,108 @@ abstract class AutoCriteria
     //-------------- Other ------------------//
 
     /**
-     * Display criteria in the criteria's selection form
-     * This method is abstract : needs to be implemented by each criteria !
+     * Cells of the criteria in the selection form.
+     *
+     * This is the method a criteria implements to appear in the form: the report engine renders
+     * the cells through a shared template, so a criteria writes no HTML of its own. Each cell is
+     * an array with the keys:
+     *  - name:   (string) name of the input, used to build the id of the label
+     *  - label:  (string) plain text label, escaped by the template
+     *  - field:  (string) HTML of a GLPI core widget, built with 'display' => false
+     *            (Dropdown::show(), Html::showDateField(), Html::input()...)
+     *  - suffix: (string, optional) plain text shown after the widget (a unit for instance)
+     *  - message: (string, optional) plain text warning shown in place of / above the widget
+     *
+     * The default answer, null, means the criteria still renders itself through the legacy
+     * displayCriteria() / startColumn() / endColumn() API: the engine then keeps that path for
+     * this criteria, so the criteria of other plugins written that way keep working unchanged.
+     *
+     * @return array<int, array{name?: string, label?: string, field?: string, suffix?: string, message?: string}>|null
     **/
-    abstract public function displayCriteria();
+    public function getCriteriaFields()
+    {
+        return null;
+    }
+
+
+    /**
+     * Tell whether the engine has to render this criteria through the legacy displayCriteria()
+     * API rather than through getCriteriaFields().
+     *
+     * That is the case when getCriteriaFields() is not implemented at all, and also when a
+     * subclass overrides displayCriteria() (or displayDropdownCriteria() for the dropdown
+     * criteria) below the class that implements getCriteriaFields(): such a subclass customised
+     * the legacy rendering, and its customisation must win over the inherited cells.
+    **/
+    public function usesLegacyDisplay(): bool
+    {
+        $fields_class = (new ReflectionMethod($this, 'getCriteriaFields'))->getDeclaringClass()->getName();
+        if ($fields_class === self::class) {
+            return true;
+        }
+
+        return $this->isOverriddenBelowFields('displayCriteria')
+            || $this->isOverriddenBelowFields('displayDropdownCriteria');
+    }
+
+
+    /**
+     * Tell whether a legacy rendering method is overridden in a class that derives from the one
+     * declaring getCriteriaFields(), i.e. whether a subclass customised the legacy rendering
+     * after the cells were defined.
+     *
+     * @param string $method name of the legacy rendering method
+    **/
+    protected function isOverriddenBelowFields(string $method): bool
+    {
+        if (!method_exists($this, $method)) {
+            return false;
+        }
+
+        $fields_class    = (new ReflectionMethod($this, 'getCriteriaFields'))->getDeclaringClass()->getName();
+        $declaring_class = (new ReflectionMethod($this, $method))->getDeclaringClass()->getName();
+
+        return is_subclass_of($declaring_class, $fields_class);
+    }
+
+
+    /**
+     * Display criteria in the criteria's selection form (legacy API).
+     *
+     * The report engine no longer calls this method for a criteria that implements
+     * getCriteriaFields(); it is kept, and still renders the same cells, for the code that calls
+     * it directly and for the subclasses of other plugins that override it. A criteria that
+     * overrides it is rendered through it, inside the cells opened by startColumn().
+    **/
+    public function displayCriteria()
+    {
+        $this->displayCriteriaFields();
+    }
+
+
+    /**
+     * Render the cells of getCriteriaFields() through the legacy startColumn() / endColumn()
+     * grid, for the callers of displayCriteria().
+    **/
+    protected function displayCriteriaFields()
+    {
+        $report = $this->getReport();
+        foreach ((array) $this->getCriteriaFields() as $cell) {
+            $report->startColumn();
+            TemplateRenderer::getInstance()->display('@reports/autoreport/criteria_cell.html.twig', [
+                'label' => $cell['label'] ?? '',
+            ]);
+            $report->endColumn();
+
+            $report->startColumn();
+            TemplateRenderer::getInstance()->display('@reports/autoreport/criteria_cell.html.twig', [
+                'field'   => $cell['field'] ?? '',
+                'suffix'  => $cell['suffix'] ?? '',
+                'message' => $cell['message'] ?? '',
+            ]);
+            $report->endColumn();
+        }
+    }
 
 
     /**

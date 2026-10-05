@@ -139,17 +139,16 @@ class ItemTypeCriteria extends DropdownCriteria
     }
 
 
-    public function displayDropdownCriteria()
+    public function getDropdownField(): string
     {
         ksort($this->types);
         $types[0] = Dropdown::EMPTY_VALUE;
         $types = array_merge($types, $this->types);
 
-
-        Dropdown::showFromArray(
+        return (string) Dropdown::showFromArray(
             $this->getName(),
             $types,
-            ['value' => $this->getParameterValue()],
+            ['value' => $this->getParameterValue(), 'display' => false],
         );
     }
 

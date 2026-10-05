@@ -94,34 +94,31 @@ class DateIntervalCriteria extends AutoCriteria
     }
 
 
-    public function displayCriteria()
+    /**
+     * Cells of the criteria: one date field for each bound of the interval.
+    **/
+    public function getCriteriaFields()
     {
+        $name   = $this->getCriteriaLabel($this->getName());
+        $prefix = $name ? $name . ', ' : '';
 
-        $this->getReport()->startColumn();
-        $name = $this->getCriteriaLabel($this->getName());
-        if ($name) {
-            echo "$name, ";
+        $cells = [];
+        foreach (['_1' => $this->getStartDate(), '_2' => $this->getEndDate()] as $suffix => $value) {
+            $cells[] = [
+                'name'  => $this->getName() . $suffix,
+                'label' => $prefix . $this->getCriteriaLabel($this->getName() . $suffix),
+                'field' => (string) Html::showDateField($this->getName() . $suffix, [
+                    // The value comes from the request and the core writes it into an inline
+                    // script through json_encode() without the JSON_HEX_* flags: a value carrying
+                    // "</script>" would close the block. Only a date can be redisplayed.
+                    'value'      => $this->getSafeDate($value),
+                    'maybeempty' => false,
+                    'display'    => false,
+                ]),
+            ];
         }
-        echo $this->getCriteriaLabel($this->getName() . "_1") . '&nbsp;:';
-        $this->getReport()->endColumn();
 
-        $this->getReport()->startColumn();
-        Html::showDateField($this->getName() . "_1", ['value'      => $this->getStartDate(),
-            'maybeempty' => false,
-        ]);
-        $this->getReport()->endColumn();
-
-        $this->getReport()->startColumn();
-        if ($name) {
-            echo "$name, ";
-        }
-        echo $this->getCriteriaLabel($this->getName() . "_2") . '&nbsp;:';
-        $this->getReport()->endColumn();
-
-        $this->getReport()->startColumn();
-        Html::showDateField($this->getName() . "_2", ['value'      => $this->getEndDate(),
-            'maybeempty' => false]);
-        $this->getReport()->endColumn();
+        return $cells;
     }
 
 

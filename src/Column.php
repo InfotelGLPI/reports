@@ -104,9 +104,12 @@ class Column
 
     public function showHtmlTitle($output, &$num)
     {
+        // HTMLSearchOutput::showHeaderItem() writes the value into the <th> as it stands: the
+        // title is plain text (a label, possibly built from data by the report), escape it here.
+        $title = htmlescape((string) $this->title);
 
         if (!$this->sorton) {
-            return $output::showHeaderItem($this->title, $num);
+            return $output::showHeaderItem($title, $num);
         }
         $order = 'ASC';
         $issort = false;
@@ -128,7 +131,7 @@ class Column
             }
         }
 
-        return $output::showHeaderItem($this->title, $num, $link, $issort, ($order == 'ASC' ? 'DESC' : 'ASC'));
+        return $output::showHeaderItem($title, $num, $link, $issort, ($order == 'ASC' ? 'DESC' : 'ASC'));
     }
 
     public function showExportTitle()

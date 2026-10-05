@@ -372,7 +372,7 @@ if ($report->criteriasValidated()) {
     if (count($queries) === 0) {
         // QueryUnion refuses an empty list, and an empty list means the caller may read none
         // of the infocom types this report aggregates.
-        echo "<div class='alert alert-danger center'>" . __('No results found') . "</div>";
+        AutoReport::displayMessage(__('No results found'));
     } else {
         $union = new QueryUnion($queries, true);
 

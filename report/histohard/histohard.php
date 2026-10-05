@@ -30,6 +30,7 @@
  * --------------------------------------------------------------------------
  */
 
+use Glpi\Application\View\TemplateRenderer;
 use Glpi\DBAL\QueryFunction;
 
 $USEDBREPLICATE         = 1;
@@ -47,16 +48,23 @@ Html::header(__("History of last hardware's installations", 'reports'), '', "uti
 
 Report::title();
 
-echo "<div class='center'>";
-echo "<table class='tab_cadre_fixe'>\n";
-echo "<tr class='tab_bg_1 center'>"
-     . "<th colspan='5'>" . __("History of last hardware's installations", 'reports') . "</th></tr>\n";
-
-echo "<tr><th>" . __('Date of inventory', 'reports') . "</th>"
-      . "<th>" . __('User') . "</th>"
-      . "<th>" . __('Network device') . "</th>"
-      . "<th>" . __('Field') . "</th>"
-      . "<th>" . __('Modification', 'reports') . "</th></tr>\n";
+$table = [
+    'class'       => 'tab_cadre_fixe',
+    'header_rows' => [
+        ['class' => 'tab_bg_1 center', 'cells' => [[
+            'value'   => __("History of last hardware's installations", 'reports'),
+            'colspan' => 5,
+        ]]],
+        ['cells' => [
+            ['value' => __('Date of inventory', 'reports')],
+            ['value' => __('User')],
+            ['value' => __('Network device')],
+            ['value' => __('Field')],
+            ['value' => __('Modification', 'reports')],
+        ]],
+    ],
+    'rows'        => [],
+];
 
 $criteria = [
     'SELECT' => ['glpi_logs.date_mod AS dat',
@@ -103,23 +111,32 @@ $criteria['WHERE'][] = getEntitiesRestrictCriteria(
 
 $iterator = $DB->request($criteria);
 
-$prev  = "";
-$class = "tab_bg_2";
+$prev      = "";
+$class     = "tab_bg_2";
+$prevclass = $class;
 foreach ($iterator as $data) {
     if (empty($data["name"])) {
         $data["name"] = "(" . $data["cid"] . ")";
     }
     if ($prev == $data["dat"] . $data["name"]) {
-        echo "</td></tr><tr class='" . $prevclass . " top'><td></td><td></td><td></td><td>";
+        // Same inventory of the same computer: only the field and the change are shown
+        $row = [
+            'class' => $prevclass . ' top',
+            'cells' => [['value' => ''], ['value' => ''], ['value' => '']],
+        ];
     } else {
-        if (!empty($prev)) {
-            echo "</td></tr>\n";
-        }
         $prev = $data["dat"] . $data["name"];
-        echo "<tr class='" . $class . " top'><td>" . Html::convDateTime($data["dat"]) . "</td>"
-              . "<td>" . htmlescape($data["user_name"]) . "&nbsp;</td>"
-              . "<td><a href='" . Toolbox::getItemTypeFormURL('Computer') . "?id=" . (int) $data["cid"] . "'>"
-              . htmlescape($data["name"]) . "</a></td><td>";
+        $row = [
+            'class' => $class . ' top',
+            'cells' => [
+                ['value' => Html::convDateTime($data["dat"])],
+                ['value' => $data["user_name"]],
+                [
+                    'value' => $data["name"],
+                    'href'  => Toolbox::getItemTypeFormURL('Computer') . "?id=" . (int) $data["cid"],
+                ],
+            ],
+        ];
         $prevclass = $class;
         $class = ($class == "tab_bg_2" ? "tab_bg_1" : "tab_bg_2");
     }
@@ -142,9 +159,9 @@ foreach ($iterator as $data) {
                     }
                 }
                 // glpi_logs values are stored raw and may contain attacker-controlled
-                // HTML/JS (e.g. via an inventory-supplied device field), so escape them
-                // before they reach the echo on line ~181 (same as histoinst.php).
-                $change = sprintf(__('%1$s: %2$s'), $action_label, htmlescape($data["new_value"]));
+                // HTML/JS (e.g. via an inventory-supplied device field): the template escapes
+                // the whole cell (same as histoinst.php).
+                $change = sprintf(__('%1$s: %2$s'), $action_label, $data["new_value"]);
                 break;
 
             case Log::HISTORY_UPDATE_DEVICE:
@@ -177,7 +194,7 @@ foreach ($iterator as $data) {
                 $change  = sprintf(
                     __('%1$s: %2$s'),
                     sprintf(__('%1$s (%2$s)'), $action_label, $field),
-                    sprintf(__('%1$s by %2$s'), htmlescape($data["old_value"]), htmlescape($data["new_value"])),
+                    sprintf(__('%1$s by %2$s'), $data["old_value"], $data["new_value"]),
                 );
                 break;
 
@@ -191,16 +208,18 @@ foreach ($iterator as $data) {
                         $field = $item->getTypeName(1);
                     }
                 }
-                $change = sprintf(__('%1$s: %2$s'), $action_label, htmlescape($data["old_value"]));
+                $change = sprintf(__('%1$s: %2$s'), $action_label, $data["old_value"]);
                 break;
         }//fin du switch
     }
-    echo $field . "<td>" . $change;
+    $row['cells'][] = ['value' => $field];
+    $row['cells'][] = ['value' => $change];
+    $table['rows'][] = $row;
 }
 
-if (!empty($prev)) {
-    echo "</td></tr>\n";
-}
-echo "</table><div class='alert alert-info center'>" . __('The list is limited to 100 items and 21 days', 'reports') . "</div></div>\n";
+TemplateRenderer::getInstance()->display('@reports/report/page.html.twig', [
+    'tables'          => [$table],
+    'footer_messages' => [['type' => 'info', 'text' => __('The list is limited to 100 items and 21 days', 'reports')]],
+]);
 
 Html::footer();

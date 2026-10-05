@@ -33,6 +33,7 @@
 namespace GlpiPlugin\Reports;
 
 use Dropdown;
+use Glpi\Application\View\TemplateRenderer;
 
 /**
  * Dropdown for softwares with license
@@ -56,7 +57,47 @@ class SoftwareWithLicenseCriteria extends DropdownCriteria
     }
 
 
-    public function displayDropdownCriteria()
+    /**
+     * Cells of the criteria: the select of the softwares that have a licence, or a message when
+     * there is none.
+    **/
+    public function getCriteriaFields()
+    {
+        $items = $this->getSoftwaresWithLicense();
+
+        return [[
+            'name'    => $this->getName(),
+            'label'   => $this->getCriteriaLabel(),
+            'field'   => $items === [] ? '' : $this->getDropdownField(),
+            'message' => $items === [] ? __('No results found') : '',
+        ]];
+    }
+
+
+    public function getDropdownField(): string
+    {
+        $items = $this->getSoftwaresWithLicense();
+        if ($items === []) {
+            return '';
+        }
+
+        return (string) Dropdown::showFromArray(
+            $this->getName(),
+            [0 => Dropdown::EMPTY_VALUE] + $items,
+            [
+                'value'   => $this->getParameterValue(),
+                'display' => false,
+            ],
+        );
+    }
+
+
+    /**
+     * Softwares covered by at least one licence of the active entities.
+     *
+     * @return array<int, string> software id => name
+    **/
+    private function getSoftwaresWithLicense(): array
     {
         global $DB;
 
@@ -88,23 +129,24 @@ class SoftwareWithLicenseCriteria extends DropdownCriteria
             '',
             true,
         );
-        $iterator = $DB->request($criteria);
-
-        $temp[0] = Dropdown::EMPTY_VALUE;
-        if (count($iterator) > 0) {
-            foreach ($iterator as $data) {
-                $temp[$data["id"]] = $data['name'];
-            }
-
-            $params = [
-                "name" => $this->getName(),
-                "value" => $this->getParameterValue(),
-            ];
-
-            Dropdown::showFromArray($this->getName(), $temp, $params);
-
-        } else {
-            echo "<div class='alert alert-danger center'>" . __('No results found') . "</div>";
+        $items = [];
+        foreach ($DB->request($criteria) as $data) {
+            $items[(int) $data["id"]] = (string) $data['name'];
         }
+
+        return $items;
+    }
+
+
+    /**
+     * Display dropdown (legacy API, kept for its callers)
+    **/
+    public function displayDropdownCriteria()
+    {
+        $cell = $this->getCriteriaFields()[0];
+        TemplateRenderer::getInstance()->display('@reports/autoreport/criteria_cell.html.twig', [
+            'field'   => $cell['field'],
+            'message' => $cell['message'],
+        ]);
     }
 }

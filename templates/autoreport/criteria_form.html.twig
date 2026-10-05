@@ -1,0 +1,87 @@
+{#
+ # -------------------------------------------------------------------------
+ #  LICENSE
+ #
+ # This file is part of Reports plugin for GLPI.
+ #
+ # Reports is free software: you can redistribute it and/or modify
+ # it under the terms of the GNU Affero General Public License as published by
+ # the Free Software Foundation, either version 3 of the License, or
+ # (at your option) any later version.
+ #
+ # Reports is distributed in the hope that it will be useful,
+ # but WITHOUT ANY WARRANTY; without even the implied warranty of
+ # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ # GNU Affero General Public License for more details.
+ #
+ # You should have received a copy of the GNU Affero General Public License
+ # along with Reports. If not, see <http://www.gnu.org/licenses/>.
+ #
+ # @authors   Nelly Mahu-Lasson, Remi Collet, Alexandre Delaunay, Xavier Caillaud, Infotel
+ # @copyright Copyright (c) 2009-2026 Reports plugin team
+ # @license   AGPL License 3.0 or (at your option) any later version
+ # @link      https://github.com/InfotelGLPI/reports
+ # @link      http://www.glpi-project.org/
+ # @package   reports
+ # @since     2009
+ #            http://www.gnu.org/licenses/agpl-3.0-standalone.html
+ # --------------------------------------------------------------------------
+ #}
+
+{#
+ # Search criteria form of an AutoReport, also used by the reports that build their own form.
+ #
+ # action:     URL the form posts to
+ # title:      plain text title of the form (optional)
+ # nb_columns: number of <td> per row (two per cell: label + widget)
+ # rows: list of
+ #   - {cells: [{label, field, suffix, message}, ...]}  cells declared by AutoCriteria::getCriteriaFields()
+ #   - {legacy_html: '...'}                              complete <tr> rows of a criteria still rendered
+ #                                                       through the legacy displayCriteria() API
+ # submit:     {name, value, label} of the submit button (optional, "find" by default)
+ # reset:      {href, label} of a link clearing the criteria (optional)
+ #}
+{% set title = title ?? '' %}
+{% set submit = {'name': 'find', 'value': '1', 'label': _x('button', 'Search')}|merge(submit ?? {}) %}
+{% set reset = reset ?? null %}
+<div class="center">
+    <form method="post" name="form" action="{{ action }}">
+        <table class="tab_cadre_fixe">
+            {% if title is not empty %}
+                <tr><th colspan="{{ nb_columns }}">{{ title }}</th></tr>
+            {% endif %}
+            {% for row in rows %}
+                {% if row.legacy_html is defined %}
+                    {# Markup echoed by the displayCriteria() of a third party criteria, which
+                     # builds its widgets with the GLPI core helpers; output as it always was. #}
+                    {{ row.legacy_html|raw }}
+                {% else %}
+                    <tr class="tab_bg_1">
+                        {% for cell in row.cells %}
+                            <td>{{ include('@reports/autoreport/criteria_cell.html.twig', {'label': cell.label ?? ''}) }}</td>
+                            <td>{{ include('@reports/autoreport/criteria_cell.html.twig', {
+                                'field': cell.field ?? '',
+                                'suffix': cell.suffix ?? '',
+                                'message': cell.message ?? '',
+                            }) }}</td>
+                        {% endfor %}
+                        {% if row.cells|length * 2 < nb_columns %}
+                            {% for i in 1..(nb_columns - row.cells|length * 2) %}<td></td>{% endfor %}
+                        {% endif %}
+                    </tr>
+                {% endif %}
+            {% endfor %}
+            <tr class="tab_bg_2">
+                <td colspan="{{ nb_columns }}" class="center">
+                    <button type="submit" name="{{ submit.name }}" value="{{ submit.value }}" class="btn btn-primary">{{ submit.label }}</button>
+                    {% if reset is not null %}
+                        <a href="{{ reset.href }}" class="btn btn-outline-secondary ms-2" title="{{ reset.label }}">
+                            <i class="ti ti-eraser"></i><span class="sr-only">{{ reset.label }}</span>
+                        </a>
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+        <input type="hidden" name="_glpi_csrf_token" value="{{ csrf_token() }}">
+    </form>
+</div>

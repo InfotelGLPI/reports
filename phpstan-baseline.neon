@@ -109,18 +109,6 @@ parameters:
 			path: src/AutoReport.php
 
 		-
-			message: '#^Parameter \#1 \$itemtype of static method Dropdown\:\:showOutputFormat\(\) expects class\-string\<CommonDBTM\>\|null, int\<min, \-1\>\|int\<1, max\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/AutoReport.php
-
-		-
-			message: '#^Parameter \#5 \$item_type_output of static method GlpiPlugin\\Reports\\AutoReport\:\:printPager\(\) expects int, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/AutoReport.php
-
-		-
 			message: '#^Property GlpiPlugin\\Reports\\AutoReport\:\:\$columns_mapping is never read, only written\.$#'
 			identifier: property.onlyWritten
 			count: 1
@@ -133,19 +121,7 @@ parameters:
 			path: src/AutoReport.php
 
 		-
-			message: '#^Static method Glpi\\Search\\Output\\HTMLSearchOutput\:\:showEndLine\(\) invoked with 1 parameter, 0 required\.$#'
-			identifier: arguments.count
-			count: 1
-			path: src/AutoReport.php
-
-		-
 			message: '#^Variable \$headers might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: src/AutoReport.php
-
-		-
-			message: '#^Variable \$num might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
 			path: src/AutoReport.php
@@ -251,12 +227,6 @@ parameters:
 			identifier: property.notFound
 			count: 3
 			path: src/IntegerCriteria.php
-
-		-
-			message: '#^Static method CommonITILObject\:\:dropdownPriority\(\) invoked with 3 parameters, 0\-1 required\.$#'
-			identifier: arguments.count
-			count: 1
-			path: src/PriorityCriteria.php
 
 		-
 			message: '#^Expression on left side of \?\? is not nullable\.$#'
