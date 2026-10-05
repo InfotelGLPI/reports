@@ -42,7 +42,7 @@ $dbu = new DbUtils();
 
 //TRANS: The name of the report = Licenses by expiration date
 // Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
-Session::checkRight("plugin_reports_licensesexpires", READ);
+Session::checkRight(\GlpiPlugin\Reports\Report::getRightName('licensesexpires'), READ);
 
 // The plugin right gates the report, not the data it publishes: this listing emits the serial
 // number and the comments of every license of the entity tree, together with the computers

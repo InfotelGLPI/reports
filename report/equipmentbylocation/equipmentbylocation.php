@@ -30,7 +30,7 @@
  * --------------------------------------------------------------------------
  */
 
-use Glpi\DBAL\QueryExpression;
+use Glpi\DBAL\QuerySubQuery;
 use GlpiPlugin\Reports\AutoReport;
 use GlpiPlugin\Reports\Column;
 use GlpiPlugin\Reports\ColumnInteger;
@@ -41,11 +41,9 @@ $DBCONNECTION_REQUIRED  = 0;
 global $DB;
 
 // Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
-Session::checkRight("plugin_reports_equipmentbylocation", READ);
+Session::checkRight(\GlpiPlugin\Reports\Report::getRightName('equipmentbylocation'), READ);
 
 $report = new AutoReport(__('Number of equipments by location', 'reports'));
-
-$dbu = new DbUtils();
 
 // The report aggregates the volumetry of six asset types, and the report right alone used to be
 // enough to obtain it: nothing confronted the read right of Computer, Monitor, Printer,
@@ -92,16 +90,21 @@ foreach ($asset_types as $itemtype => $asset) {
 
     $columns[] = new ColumnInteger($asset['column'], $asset['label']);
     $select[]  = $asset['alias'] . '.' . $asset['column'];
-    // Table name, alias and column name all come from the static map above: no request value
-    // ever reaches the expression, which is why it may be written as one.
+    // Per-location count of the asset, joined as a derived table. Built as a QuerySubQuery so
+    // the entity restriction values are bound parameters (GLPI 12 prepared statements).
     $joins[$asset['alias']] = [
-        'TABLE' => new QueryExpression('(
-                SELECT COUNT(*) AS ' . $asset['column'] . ', locations_id
-                FROM ' . $asset['table'] . '
-                WHERE is_deleted = 0 AND is_template = 0
-                ' . $dbu->getEntitiesRestrictRequest(' AND ', $asset['table']) . '
-                GROUP BY locations_id
-            ) AS ' . $asset['alias']),
+        'TABLE' => new QuerySubQuery([
+            'SELECT'  => [
+                'COUNT'        => '* AS ' . $asset['column'],
+                'locations_id',
+            ],
+            'FROM'    => $asset['table'],
+            'WHERE'   => [
+                'is_deleted'  => 0,
+                'is_template' => 0,
+            ] + getEntitiesRestrictCriteria($asset['table']),
+            'GROUPBY' => 'locations_id',
+        ], $asset['alias']),
         'ON' => [
             $asset['alias']  => 'locations_id',
             'glpi_locations' => 'id',

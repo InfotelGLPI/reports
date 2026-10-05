@@ -35,7 +35,7 @@ global $DB;
 use Glpi\Application\View\TemplateRenderer;
 use Glpi\DBAL\QueryExpression;
 
-Session::checkRight("plugin_reports_doublons", READ);
+Session::checkRight(\GlpiPlugin\Reports\Report::getRightName('doublons'), READ);
 
 $computer = new Computer();
 $computer->checkGlobal(READ);

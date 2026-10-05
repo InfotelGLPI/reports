@@ -41,7 +41,7 @@ $DBCONNECTION_REQUIRED = 0;
 global $DB;
 
 // Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
-Session::checkRight("plugin_reports_listgroups", READ);
+Session::checkRight(\GlpiPlugin\Reports\Report::getRightName('listgroups'), READ);
 
 // The plugin right gates the report, not the data it publishes: this listing enumerates the
 // groups of the entity tree and their members, which is the organisation chart of the

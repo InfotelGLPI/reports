@@ -38,7 +38,7 @@ $DBCONNECTION_REQUIRED = 1; // Really a big SQL request
 
 global $DB;
 
-Session::checkRight("plugin_reports_histoinst", READ);
+Session::checkRight(\GlpiPlugin\Reports\Report::getRightName('histoinst'), READ);
 
 $computer = new Computer();
 $computer->checkGlobal(READ);

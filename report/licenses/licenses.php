@@ -42,7 +42,7 @@ $dbu = new DbUtils();
 
 //TRANS: The name of the report = Detailed license report
 // Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
-Session::checkRight("plugin_reports_licenses", READ);
+Session::checkRight(\GlpiPlugin\Reports\Report::getRightName('licenses'), READ);
 
 // The plugin right gates the report, not the data it publishes: this listing emits the serial
 // number of every license of the entity tree, together with the computers they are assigned

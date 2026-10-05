@@ -43,7 +43,7 @@ global $DB;
 
 //TRANS: The name of the report = Detailed report of software installation by status
 // Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
-Session::checkRight("plugin_reports_softnotinstalled", READ);
+Session::checkRight(\GlpiPlugin\Reports\Report::getRightName('softnotinstalled'), READ);
 
 // The plugin right gates the report, not the data it publishes: this listing enumerates the
 // computers of the entity tree -- name, operating system, status, location -- selected from

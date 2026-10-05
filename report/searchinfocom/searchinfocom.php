@@ -50,7 +50,7 @@ $dbu = new DbUtils();
 
 //TRANS: The name of the report = Search in the financial information (plural)
 // Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
-Session::checkRight("plugin_reports_searchinfocom", READ);
+Session::checkRight(\GlpiPlugin\Reports\Report::getRightName('searchinfocom'), READ);
 
 // This report selects every column of glpi_infocoms: supplier, order and invoice numbers,
 // purchase date and value, amortization and warranty. Those are gated in the core by the

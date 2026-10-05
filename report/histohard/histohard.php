@@ -38,7 +38,7 @@ $DBCONNECTION_REQUIRED  = 1; // Really a big SQL request
 
 global $DB;
 
-Session::checkRight("plugin_reports_histohard", READ);
+Session::checkRight(\GlpiPlugin\Reports\Report::getRightName('histohard'), READ);
 
 $computer = new Computer();
 $dbu      = new DbUtils();

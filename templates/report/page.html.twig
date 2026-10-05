@@ -65,7 +65,6 @@
 {% if massive is not null %}
     {# Massive actions toolbar of the core (Html::showMassiveActions(..., 'display' => false)) #}
     {{ (massive.bottom ?? '')|raw }}
-    <input type="hidden" name="_glpi_csrf_token" value="{{ csrf_token() }}">
     </form>
 {% endif %}
 

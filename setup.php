@@ -58,7 +58,7 @@ function plugin_init_reports()
 
     Plugin::registerClass(Profile::class, ['addtabon' => ['Profile']]);
 
-    if (Session::haveRight("config", UPDATE)) {
+    if (Session::haveRight(\Config::$rightname, UPDATE)) {
         $PLUGIN_HOOKS[Hooks::CONFIG_PAGE]['reports']     = 'front/report.form.php';
     }
 
@@ -121,6 +121,6 @@ function plugin_version_reports()
         'license'        => 'AGPLv3+',
         'homepage'       => 'https://github.com/InfotelGLPI/reports',
         'minGlpiVersion' => '11.0.0',
-        'requirements'   => ['glpi' => ['min' => '11.0.0',
-            'max' => '12.0.0']]];
+        'requirements'   => ['glpi' => ['min' => '11.0.99',
+            'max' => '12.0.99']]];
 }

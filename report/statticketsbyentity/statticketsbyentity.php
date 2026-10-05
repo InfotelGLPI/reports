@@ -48,7 +48,7 @@ global $DB;
 $dbu = new DbUtils();
 
 // Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
-Session::checkRight("plugin_reports_statticketsbyentity", READ);
+Session::checkRight(\GlpiPlugin\Reports\Report::getRightName('statticketsbyentity'), READ);
 
 // The ticket counts and the oldest/newest ticket dates published below are restricted to the
 // entity tree only, a boundary wider than the ITIL visibility perimeter: a profile limited to
@@ -58,7 +58,7 @@ Session::checkRight("plugin_reports_statticketsbyentity", READ);
 // does. The core returns an empty array both for READALL and for a profile that may see no
 // ticket at all, so the two cases are told apart by the READALL check.
 $visibility_criteria = Ticket::getCriteriaFromProfile();
-if (!Session::haveRight('ticket', Ticket::READALL) && !isset($visibility_criteria['WHERE'])) {
+if (!Session::haveRight(\Ticket::$rightname, Ticket::READALL) && !isset($visibility_criteria['WHERE'])) {
     throw new AccessDeniedHttpException();
 }
 

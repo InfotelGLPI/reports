@@ -73,7 +73,7 @@ $dbu = new DbUtils();
  */
 
 // Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
-Session::checkRight("plugin_reports_infocom", READ);
+Session::checkRight(\GlpiPlugin\Reports\Report::getRightName('infocom'), READ);
 
 $report = new AutoReport(__('Financial information', 'reports'));
 

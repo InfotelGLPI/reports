@@ -67,6 +67,20 @@ class Report extends CommonDBTM
     }
 
     /**
+     * Name of the profile right granting access to a report, as registered by
+     * Profile::getAllRights() and checked by AutoReport::execute()
+     *
+     * @param string $report report key (directory name under report/)
+     * @param string $plugin plugin providing the report
+     */
+    public static function getRightName(string $report, string $plugin = 'reports'): string
+    {
+        return $plugin === 'reports'
+            ? 'plugin_reports_' . $report
+            : 'plugin_reports_' . $plugin . '_' . $report;
+    }
+
+    /**
      * Search for reports in all activated plugins
      *
      * @return array - an array which contains all the reports found (name => plugin)

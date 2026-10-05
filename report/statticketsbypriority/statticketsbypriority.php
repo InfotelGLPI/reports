@@ -49,7 +49,7 @@ $dbu = new DbUtils();
 
 //TRANS: The name of the report = Tickets no closed, sorted by priority
 // Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
-Session::checkRight("plugin_reports_statticketsbypriority", READ);
+Session::checkRight(\GlpiPlugin\Reports\Report::getRightName('statticketsbypriority'), READ);
 
 $report = new AutoReport(__('Tickets no closed, sorted by priority', 'reports'));
 
@@ -135,7 +135,7 @@ if ($report->criteriasValidated()) {
     // it is the only way a hand written query can honour it, as statticketsrennesmetropolesaa
     // and statticketsrennesmetropoledeploiement already do.
     $visibility_criteria = Ticket::getCriteriaFromProfile();
-    if (!Session::haveRight('ticket', Ticket::READALL) && !isset($visibility_criteria['WHERE'])) {
+    if (!Session::haveRight(\Ticket::$rightname, Ticket::READALL) && !isset($visibility_criteria['WHERE'])) {
         // No ticket visibility right at all: the core perimeter is empty, so there is nothing
         // this report may legitimately show.
         throw new AccessDeniedHttpException();

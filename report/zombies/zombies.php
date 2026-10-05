@@ -48,7 +48,7 @@ global $DB;
 
 //TRANS: The name of the report = Users with no right
 // Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
-Session::checkRight("plugin_reports_zombies", READ);
+Session::checkRight(\GlpiPlugin\Reports\Report::getRightName('zombies'), READ);
 
 // Entity isolation: this report lists user accounts that have NO profile assignment
 // (NOT IN glpi_profiles_users), and therefore no entity attachment at all. Such orphan

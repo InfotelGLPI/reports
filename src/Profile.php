@@ -41,7 +41,7 @@ use Session;
 
 class Profile extends \Profile
 {
-    public static $rightname = 'profile';
+    public static string $rightname = 'profile';
 
     /**
      * @param $prof   Profile object
@@ -76,11 +76,11 @@ class Profile extends \Profile
         /* call from front/config.form.php
         * $report = "bar" (from reports) or "foo_bar" (other plugins)
          */
-        if (empty($report) || !Session::haveRight('profile', READ)) {
+        if (empty($report) || !Session::haveRight(\Profile::$rightname, READ)) {
             return false;
         }
         $current = self::getAllProfilesRights(['name' => 'plugin_reports_' . $report]);
-        $canedit = Session::haveRight('profile', UPDATE);
+        $canedit = Session::haveRight(\Profile::$rightname, UPDATE);
 
         $profiles = [];
         foreach (self::getReportProfiles($report) as $data) {
@@ -464,7 +464,7 @@ class Profile extends \Profile
         if ($item instanceof \Profile) {
             if ($item->getField('interface') == 'central') {
                 $nb = 0;
-                if (Session::haveRight('reports', READ)) {
+                if (Session::haveRight(\Report::$rightname, READ)) {
                     if ($_SESSION['glpishow_count_on_tabs']) {
                         // $item is the profile being rendered; reading $_GET['id'] made the
                         // counter describe whatever identifier happened to be in the URL - a
@@ -496,14 +496,14 @@ class Profile extends \Profile
                 // on every plugin_reports_% row whose report is no longer registered: that is a
                 // destructive write, and it was executed while merely rendering a tab. A tab is
                 // loaded through ajax/common.tabs.php, which only tests READ on the carrying
-                // item and is a GET - the request GLPI does not protect with the CSRF token - so
+                // item and is a GET - the request GLPI does not cover with its CSRF check - so
                 // a profile holding nothing but "profile" READ wiped the rights of a plugin that
                 // happened to be disabled at that moment, for every profile of the instance.
                 // front/report.form.php already guards the very same call this way; the tab is
                 // the parallel path where the guard was never replayed. Rendering is now free of
                 // side effects.
                 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET'
-                    && Session::haveRight('profile', UPDATE)) {
+                    && Session::haveRight(\Profile::$rightname, UPDATE)) {
                     (new self())->updatePluginRights();
                 }
 

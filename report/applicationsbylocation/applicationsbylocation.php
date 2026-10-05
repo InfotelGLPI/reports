@@ -44,7 +44,7 @@ $DBCONNECTION_REQUIRED  = 0;
 $dbu = new DbUtils();
 
 // Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
-Session::checkRight("plugin_reports_applicationsbylocation", READ);
+Session::checkRight(\GlpiPlugin\Reports\Report::getRightName('applicationsbylocation'), READ);
 
 // The plugin right gates the report, not the data it publishes: this listing pairs every
 // software version of the entity tree with the computers it is installed on, their location

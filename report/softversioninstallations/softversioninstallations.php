@@ -44,7 +44,7 @@ $dbu = new DbUtils();
 
 //TRANS: The name of the report = Not installed important software (plural)
 // Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
-Session::checkRight("plugin_reports_softversioninstallations", READ);
+Session::checkRight(\GlpiPlugin\Reports\Report::getRightName('softversioninstallations'), READ);
 
 // The plugin right gates the report, not the data it publishes: this listing pairs every
 // software version of the entity tree with the computers it is installed on, their status and

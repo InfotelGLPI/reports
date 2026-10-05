@@ -43,7 +43,7 @@ $DBCONNECTION_REQUIRED  = 0; // not really a big SQL request
 global $DB;
 
 // Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
-Session::checkRight("plugin_reports_globalhisto", READ);
+Session::checkRight(\GlpiPlugin\Reports\Report::getRightName('globalhisto'), READ);
 
 // Entity isolation: every other report of this plugin narrows its query with
 // getEntitiesRestrictCriteria() - histoinst, histohard, doublons, transferreditems and the rest.

@@ -59,7 +59,7 @@ use Toolbox;
 #[AllowDynamicProperties]
 class AutoReport extends CommonDBTM
 {
-    public static $rightname = 'config';
+    public static string $rightname = 'config';
 
     /**
      * Number of <td> per row of the criteria form: two criteria (label + widget) per row.
@@ -644,13 +644,10 @@ class AutoReport extends CommonDBTM
                 }
             }
             foreach ($republished as $key => $val) {
-                // The criteria form is closed with a hidden _glpi_csrf_token: the token was
-                // therefore part of $_POST and ended up concatenated into the pagination string,
-                // which printPager() publishes in every href and re-splits into the hidden fields
-                // of a method='GET' export form. A session token valid until consumption was thus
-                // written to the browser history, the proxy access logs and the Referer header.
-                // Internal _glpi_* fields have no business in a report URL, and every generated
-                // form gets a fresh token of its own anyway.
+                // Everything in $_POST ends up concatenated into the pagination string, which
+                // printPager() publishes in every href and re-splits into the hidden fields of a
+                // method='GET' export form, i.e. into the browser history, the proxy access logs
+                // and the Referer header. Internal _glpi_* fields have no business in a report URL.
                 // list_limit is consumed above, where it becomes the session preference. It used
                 // to be unset from $_POST so it would not be republished here; the superglobal is
                 // now left alone and the exclusion is expressed where it belongs.

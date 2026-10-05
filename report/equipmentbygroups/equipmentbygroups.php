@@ -35,7 +35,7 @@ use Glpi\Application\View\TemplateRenderer;
 $USEDBREPLICATE = 1;
 $DBCONNECTION_REQUIRED = 0; // Not really a big SQL request
 
-Session::checkRight("plugin_reports_equipmentbygroups", READ);
+Session::checkRight(\GlpiPlugin\Reports\Report::getRightName('equipmentbygroups'), READ);
 
 Html::header(__('List all devices of a group, ordered by users', 'reports'), '', "utils", "report");
 

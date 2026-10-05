@@ -37,7 +37,7 @@ $DBCONNECTION_REQUIRED  = 0;
 
 global $DB;
 
-Session::checkRight("plugin_reports_rules", READ);
+Session::checkRight(\GlpiPlugin\Reports\Report::getRightName('rules'), READ);
 
 /**
  * Table of the rules of a collection, as variables of the table template
@@ -134,7 +134,7 @@ if ($type == "ldap") {
         'rows'        => [],
     ];
 
-    if (Session::haveRight("rule_ldap", READ)) {
+    if (Session::haveRight(\RuleRight::$rightname, READ)) {
         $table['rows'][] = ['class' => 'tab_bg_1', 'cells' => [[
             'value' => __('Authorizations assignment rules'),
             'href'  => $self_url . $separator . 'type=ldap',
@@ -142,7 +142,7 @@ if ($type == "ldap") {
         ]]];
     }
 
-    if (Session::haveRight("rule_softwarecategories", READ)) {
+    if (Session::haveRight(\RuleSoftwareCategory::$rightname, READ)) {
         $table['rows'][] = ['class' => 'tab_bg_1', 'cells' => [[
             'value' => __('Rules for assigning a category to software'),
             'href'  => $self_url . $separator . 'type=soft',

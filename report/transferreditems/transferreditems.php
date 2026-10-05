@@ -44,7 +44,7 @@ $dbu = new DbUtils();
 
 //TRANS: The name of the report = List of transfered objects
 // Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
-Session::checkRight("plugin_reports_transferreditems", READ);
+Session::checkRight(\GlpiPlugin\Reports\Report::getRightName('transferreditems'), READ);
 
 $report = new AutoReport(__('List of transfered objects', 'reports'));
 

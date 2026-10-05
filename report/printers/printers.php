@@ -47,7 +47,7 @@ $dbu = new DbUtils();
 
 //TRANS: The name of the report = Printers
 // Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
-Session::checkRight("plugin_reports_printers", READ);
+Session::checkRight(\GlpiPlugin\Reports\Report::getRightName('printers'), READ);
 
 // The plugin right gates the report, not the data it publishes: this listing emits the name,
 // serial number, inventory number, immobilization number, warranty dates, page counter and

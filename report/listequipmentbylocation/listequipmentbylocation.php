@@ -47,7 +47,7 @@ global $DB, $CFG_GLPI;
 
 
 // Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
-Session::checkRight("plugin_reports_listequipmentbylocation", READ);
+Session::checkRight(\GlpiPlugin\Reports\Report::getRightName('listequipmentbylocation'), READ);
 
 $report = new AutoReport(__('List of equipments by location', 'reports'));
 

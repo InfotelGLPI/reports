@@ -238,7 +238,7 @@ global $DB;
 
 $dbu = new DbUtils();
 
-Session::checkRight("plugin_reports_pcsbyentity", READ);
+Session::checkRight(\GlpiPlugin\Reports\Report::getRightName('pcsbyentity'), READ);
 //TRANS: The name of the report = Number of items by entity
 Html::header(__('Number of items by entity', 'reports'), '', "utils", "report");
 

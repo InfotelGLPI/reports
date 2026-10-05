@@ -47,7 +47,7 @@ $dbu = new DbUtils();
 
 //TRANS: The name of the report = Time before equipment start-up
 // Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
-Session::checkRight("plugin_reports_iteminstall", READ);
+Session::checkRight(\GlpiPlugin\Reports\Report::getRightName('iteminstall'), READ);
 
 // Every figure of this report is read from glpi_infocoms -- purchase date, budget, start-up delay
 // -- and the core gates those behind its own dedicated "infocom" right, which is deliberately kept

@@ -34,7 +34,7 @@ use Glpi\Application\View\TemplateRenderer;
 use GlpiPlugin\Reports\Profile;
 use GlpiPlugin\Reports\Report;
 
-Session::checkRight('profile', READ);
+Session::checkRight(\Profile::$rightname, READ);
 
 Html::header(
     __('Reports plugin configuration', 'reports'),
@@ -58,7 +58,7 @@ $prof = new Profile();
 // the default access). Keeping an unreachable mass-mutation reachable by a forged POST buys
 // nothing, so the entry point now only honours the update the form actually posts.
 if (isset($_POST['update']) && $report) {
-    Session::checkRight('profile', UPDATE);
+    Session::checkRight(\Profile::$rightname, UPDATE);
     Profile::updateForReport($_POST);
 }
 
@@ -70,7 +70,7 @@ $tab = Report::searchReport();
 // side effect of a GET page render (CSRF is enforced on non-GET requests only). This mirrors
 // the delete/update branches above, which already require "profile" UPDATE before mutating
 // glpi_profilerights. Reading the page therefore stays side-effect free.
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && Session::haveRight('profile', UPDATE)) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && Session::haveRight(\Profile::$rightname, UPDATE)) {
     $prof->updateRights($tab);
 }
 

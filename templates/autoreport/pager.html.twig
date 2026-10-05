@@ -50,7 +50,7 @@
 
             <td width="31%" class="tab_bg_2">
                 {# List limit form of the core (Html::printPagerForm(..., false)): the core
-                 # escapes the action and closes the form with its own CSRF token. #}
+                 # escapes the action and closes the form. #}
                 {{ pager_form|raw }}
             </td>
 
@@ -61,8 +61,8 @@
             {% if export is not null %}
                 <td class="tab_bg_2 responsive_hidden" width="30%">
                     {# Declared method="get": every field below comes back in the query string
-                     # of the export request. Internal _glpi_* fields are filtered out by PHP, the
-                     # CSRF token included, so that no session token is written to an URL. #}
+                     # of the export request. Internal _glpi_* fields are filtered out by PHP so
+                     # that none of them is written to an URL. #}
                     <form method="get" action="{{ export.action }}" target="_blank">
                         <input type="hidden" name="item_type" value="{{ export.item_type }}">
                         {% if export.item_type_param is not null %}

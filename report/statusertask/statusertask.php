@@ -43,7 +43,7 @@ global $DB;
 
 //titre du rapport dans la liste de selection,  soit en dur ici, soit mettre à jour la variable dans les fichiers de traduction;
 // Defense in depth: enforce the report right on page load, not only inside AutoReport::execute().
-Session::checkRight("plugin_reports_statusertask", READ);
+Session::checkRight(\GlpiPlugin\Reports\Report::getRightName('statusertask'), READ);
 
 $report = new AutoReport(__('Tasks list per user', 'reports'));
 
